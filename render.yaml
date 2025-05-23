@@ -1,0 +1,146 @@
+services:
+  # Backend Service (Node.js)
+  - type: web
+    name: productbazar-backend
+    env: node
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production # Changed for production
+      - key: MONGO_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: REDIS_HOST
+        value: redis-16442.c84.us-east-1-2.ec2.redns.redis-cloud.com
+      - key: REDIS_PORT
+        value: 16442
+      - key: REDIS_USERNAME
+        value: default
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: REDIS_TLS
+        value: false
+      - key: REDIS_USE_TLS
+        value: false
+      - key: REDIS_RETRY_STRATEGY_MAX_RETRIES
+        value: 10
+      - key: REDIS_RETRY_STRATEGY_BASE_DELAY
+        value: 100
+      - key: REDIS_FEATURE_FALLBACK_ENABLED
+        value: true
+      - key: CLIENT_URL
+        value: https://productbazar-frontend.onrender.com
+      - key: SERVER_URL
+        value: https://productbazar-backend.onrender.com
+      - key: PORT
+        value: 5004
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_EMAIL_VERIFICATION_SECRET
+        sync: false
+      - key: JWT_RESET_SECRET
+        sync: false
+      - key: JWT_PASSWORD_RESET_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 900
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 2592000
+      - key: JWT_COOKIE_EXPIRES_IN
+        value: 900
+      - key: JWT_REFRESH_COOKIE_EXPIRES_IN
+        value: 2592000
+      - key: JWT_REMEMBER_ME_EXPIRES_IN
+        value: 3600
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 1d
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: JWT_EMAIL_VERIFICATION_EXPIRES_IN
+        value: 24h
+      - key: JWT_PASSWORD_RESET_EXPIRES_IN
+        value: 1h
+      - key: JWT_PASSWORD_RESET_URL
+        value: https://productbazar-frontend.onrender.com/auth/reset-password
+      - key: OTP_RATE_LIMIT_MAX
+        value: 5
+      - key: OTP_RATE_LIMIT_WINDOW
+        value: 15m
+      - key: EMAIL_VERIFICATION_RATE_LIMIT_MAX
+        value: 10
+      - key: EMAIL_VERIFICATION_RATE_LIMIT_WINDOW
+        value: 1h
+      - key: EMAIL_RESEND_RATE_LIMIT_MAX
+        value: 5
+      - key: EMAIL_RESEND_RATE_LIMIT_WINDOW
+        value: 1h
+      - key: PROFILE_UPDATE_RATE_LIMIT_MAX
+        value: 10
+      - key: PROFILE_UPDATE_RATE_LIMIT_WINDOW
+        value: 15m
+      - key: TOKEN_REFRESH_RATE_LIMIT_MAX
+        value: 30
+      - key: TOKEN_REFRESH_RATE_LIMIT_WINDOW
+        value: 15m
+      - key: MAILTRAP_USER
+        sync: false
+      - key: MAILTRAP_PASS
+        sync: false
+      - key: MAILTRAP_HOST
+        value: sandbox.smtp.mailtrap.io
+      - key: MAILTRAP_PORT
+        value: 587
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_VERIFY_SERVICE_SID
+        sync: false
+      - key: TWILIO_PHONE_VERIFICATION_ENABLED
+        value: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        value: https://productbazar-backend.onrender.com/api/v1/auth/google/callback
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+      - key: LOG_FORMAT
+        value: combined
+    autoDeploy: true
+
+  # Frontend Service (Next.js)
+  - type: web
+    name: productbazar-frontend
+    env: node
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production # Changed for production
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://productbazar-backend.onrender.com/api/v1
+      - key: NEXT_PUBLIC_API_BASE_URL_SOCKET
+        value: https://productbazar-backend.onrender.com
+      - key: NEXT_PUBLIC_TINYMCE_API_KEY
+        value: ixi3ev0vq7fy8dj0u9pvv8np31bvtlejzaqa0jv1s7lpp6g8
+    autoDeploy: true
