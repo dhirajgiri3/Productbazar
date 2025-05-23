@@ -119,7 +119,7 @@ const VisualSection = ({ product, thumbnailUrl, isOwner }) => {
                   className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-violet-500 to-indigo-600 hover:from-violet-600 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
                 >
                   <Globe size={20} strokeWidth={2} />
-                  <span cls>Visit Website</span>
+                  <span>Visit Website</span>
                   <ArrowUpRight size={18} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
                   
                   {/* Enhanced shimmer effect */}

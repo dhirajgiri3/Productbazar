@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useId, useEffect } from "react";
+import React, { useRef, useState, useId, useEffect, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
 import { AnimatedBeam } from "./Animations/AnimatedBeam";
 import {
@@ -14,6 +14,67 @@ import * as LucideIcons from "lucide-react";
 import { useTheme } from "@/lib/contexts/theme-context";
 import SectionLabel from "./Animations/SectionLabel";
 import { useReducedMotion } from "framer-motion";
+
+// Water ripple filter component with client-side only particle generation
+const WaterRippleFilter = ({ children }) => {
+  const [particles, setParticles] = useState([]);
+  const [isClient, setIsClient] = useState(false);
+  const seedRef = useRef(Date.now()); // Use a consistent seed for randomization
+
+  // Pseudo-random number generator with seed
+  const seededRandom = () => {
+    seedRef.current = (seedRef.current * 9301 + 49297) % 233280;
+    return seedRef.current / 233280;
+  };
+
+  useEffect(() => {
+    setIsClient(true);
+    const generateParticle = () => {
+      const width = 2 + seededRandom() * 5;
+      const height = 2 + seededRandom() * 6;
+      const left = seededRandom() * 100;
+      const top = seededRandom() * 100;
+      const opacity = 0.1 + seededRandom() * 0.3;
+
+      return {
+        width: `${width.toFixed(6)}px`,
+        height: `${height.toFixed(6)}px`,
+        left: `${left.toFixed(6)}%`,
+        top: `${top.toFixed(6)}%`,
+        opacity: opacity.toFixed(16),
+        filter: "blur(0.5px)",
+      };
+    };
+
+    const initialParticles = Array.from({ length: 20 }, generateParticle);
+    setParticles(initialParticles);
+  }, []);
+
+  // Return a static placeholder during SSR
+  if (!isClient) {
+    return <div className="relative w-full h-full">{children}</div>;
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      {particles.map((style, index) => (
+        <motion.div
+          key={`particle-${seedRef.current}-${index}`}
+          className="absolute rounded-full bg-gradient-to-br from-violet-300 to-fuchsia-300"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: style.opacity }}
+          transition={{
+            duration: 0.5,
+            delay: index * 0.1,
+            ease: "easeOut",
+          }}
+          style={style}
+        />
+      ))}
+      {children}
+    </div>
+  );
+};
 
 // Enhanced Circle component with improved accessibility, animations and theme support
 const Circle = React.forwardRef(
@@ -533,118 +594,6 @@ const Circle = React.forwardRef(
 
 Circle.displayName = "Circle";
 
-// Enhanced water ripple SVG filter component with additional effects
-const WaterRippleFilter = () => (
-  <svg width="0" height="0" className="absolute">
-    <defs>
-      {/* Basic water ripple effect */}
-      <filter id="water-ripple" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-        <feColorMatrix
-          in="blur"
-          mode="matrix"
-          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"
-          result="water"
-        />
-        <feBlend in="SourceGraphic" in2="water" />
-      </filter>
-
-      {/* Enhanced glow effect for light theme */}
-      <filter id="glow-light" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="2.5" result="blur" />
-        <feFlood floodColor="#ffffff" result="color" />
-        <feComposite in="color" in2="blur" operator="in" result="glow" />
-        <feBlend in="SourceGraphic" in2="glow" mode="screen" />
-      </filter>
-
-      {/* Enhanced glow effect for dark theme */}
-      <filter id="glow-dark" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="3.5" result="blur" />
-        <feFlood floodColor="#8b5cf6" floodOpacity="0.3" result="color" />
-        <feComposite in="color" in2="blur" operator="in" result="glow" />
-        <feBlend in="SourceGraphic" in2="glow" mode="screen" />
-      </filter>
-
-      {/* Soft shadow effect for light theme */}
-      <filter
-        id="soft-shadow-light"
-        x="-50%"
-        y="-50%"
-        width="200%"
-        height="200%"
-      >
-        <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur" />
-        <feOffset in="blur" dx="0.5" dy="0.5" result="offsetBlur" />
-        <feFlood
-          floodColor="#000000"
-          floodOpacity="0.08"
-          result="shadowColor"
-        />
-        <feComposite
-          in="shadowColor"
-          in2="offsetBlur"
-          operator="in"
-          result="shadowBlur"
-        />
-        <feBlend in="SourceGraphic" in2="shadowBlur" mode="normal" />
-      </filter>
-
-      {/* Soft shadow effect for dark theme */}
-      <filter
-        id="soft-shadow-dark"
-        x="-50%"
-        y="-50%"
-        width="200%"
-        height="200%"
-      >
-        <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
-        <feOffset in="blur" dx="1" dy="1" result="offsetBlur" />
-        <feFlood
-          floodColor="#000000"
-          floodOpacity="0.25"
-          result="shadowColor"
-        />
-        <feComposite
-          in="shadowColor"
-          in2="offsetBlur"
-          operator="in"
-          result="shadowBlur"
-        />
-        <feBlend in="SourceGraphic" in2="shadowBlur" mode="normal" />
-      </filter>
-
-      {/* Subtle texture effect */}
-      <filter id="texture-filter" x="0%" y="0%" width="100%" height="100%">
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.8"
-          numOctaves="2"
-          result="noise"
-        />
-        <feColorMatrix
-          in="noise"
-          type="matrix"
-          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"
-          result="texture"
-        />
-        <feBlend in="SourceGraphic" in2="texture" mode="overlay" />
-      </filter>
-
-      {/* Shimmer effect for highlights */}
-      <filter id="shimmer-effect" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-        <feColorMatrix
-          in="blur"
-          type="matrix"
-          values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 12 -5"
-          result="shimmer"
-        />
-        <feBlend in="SourceGraphic" in2="shimmer" mode="screen" />
-      </filter>
-    </defs>
-  </svg>
-);
-
 export function ProductBazarEcosystemConnector() {
   const containerRef = useRef(null);
   const centerRef = useRef(null);
@@ -1007,76 +956,85 @@ export function ProductBazarEcosystemConnector() {
       />
 
       {/* Floating particles in background - improved for light theme */}
-      {!prefersReducedMotion && (
+      {!prefersReducedMotion && containerVisible && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className={`absolute rounded-full bg-gradient-to-br transition-colors duration-300 ${
-                i % 6 === 0
-                  ? `${
-                      isDarkMode
-                        ? "from-blue-400/15 to-blue-500/5"
-                        : "from-blue-300/20 to-blue-400/10"
-                    }`
-                  : i % 6 === 1
-                  ? `${
-                      isDarkMode
-                        ? "from-emerald-400/15 to-emerald-500/5"
-                        : "from-emerald-300/20 to-emerald-400/10"
-                    }`
-                  : i % 6 === 2
-                  ? `${
-                      isDarkMode
-                        ? "from-amber-400/15 to-amber-500/5"
-                        : "from-amber-300/20 to-amber-400/10"
-                    }`
-                  : i % 6 === 3
-                  ? `${
-                      isDarkMode
-                        ? "from-rose-400/15 to-rose-500/5"
-                        : "from-rose-300/20 to-rose-400/10"
-                    }`
-                  : i % 6 === 4
-                  ? `${
-                      isDarkMode
-                        ? "from-purple-400/15 to-purple-500/5"
-                        : "from-purple-300/20 to-purple-400/10"
-                    }`
-                  : `${
-                      isDarkMode
-                        ? "from-cyan-400/15 to-cyan-500/5"
-                        : "from-cyan-300/20 to-cyan-400/10"
-                    }`
-              }`}
-              style={{
-                width: Math.random() * 6 + 2 + "px",
-                height: Math.random() * 6 + 2 + "px",
-                left: Math.random() * 100 + "%",
-                top: Math.random() * 100 + "%",
-                opacity: Math.random() * 0.3 + (isDarkMode ? 0.2 : 0.1),
-                filter: isDarkMode ? "none" : "blur(0.5px)",
-              }}
-              animate={{
-                y: containerVisible ? -30 : 0,
-                x: containerVisible ? Math.random() * 20 - 10 : 0,
-                opacity: containerVisible
-                  ? isDarkMode
-                    ? 0.5
-                    : 0.3
-                  : isDarkMode
-                  ? 0.3
-                  : 0.15,
-              }}
-              transition={{
-                duration: Math.random() * 10 + 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-                delay: Math.random() * 5,
-                ease: "easeInOut",
-              }}
-            />
-          ))}
+          {Array.from({ length: 20 }).map((_, i) => {
+            // Using a deterministic approach instead of Math.random()
+            const seed = i * 12345;
+            const pseudoRandom1 = ((seed * 9301 + 49297) % 233280) / 233280;
+            const pseudoRandom2 = (((seed + 1) * 9301 + 49297) % 233280) / 233280;
+            const pseudoRandom3 = (((seed + 2) * 9301 + 49297) % 233280) / 233280;
+            const pseudoRandom4 = (((seed + 3) * 9301 + 49297) % 233280) / 233280;
+            
+            const width = pseudoRandom1 * 6 + 2;
+            const height = pseudoRandom2 * 6 + 2;
+            const left = pseudoRandom3 * 100;
+            const top = pseudoRandom4 * 100;
+            const opacity = (pseudoRandom1 * 0.3) + (isDarkMode ? 0.2 : 0.1);
+            
+            return (
+              <motion.div
+                key={i}
+                className={`absolute rounded-full bg-gradient-to-br transition-colors duration-300 ${
+                  i % 6 === 0
+                    ? `${
+                        isDarkMode
+                          ? "from-blue-400/15 to-blue-500/5"
+                          : "from-blue-300/20 to-blue-400/10"
+                      }`
+                    : i % 6 === 1
+                    ? `${
+                        isDarkMode
+                          ? "from-emerald-400/15 to-emerald-500/5"
+                          : "from-emerald-300/20 to-emerald-400/10"
+                      }`
+                    : i % 6 === 2
+                    ? `${
+                        isDarkMode
+                          ? "from-amber-400/15 to-amber-500/5"
+                          : "from-amber-300/20 to-amber-400/10"
+                      }`
+                    : i % 6 === 3
+                    ? `${
+                        isDarkMode
+                          ? "from-rose-400/15 to-rose-500/5"
+                          : "from-rose-300/20 to-rose-400/10"
+                      }`
+                    : i % 6 === 4
+                    ? `${
+                        isDarkMode
+                          ? "from-purple-400/15 to-purple-500/5"
+                          : "from-purple-300/20 to-purple-400/10"
+                      }`
+                    : `${
+                        isDarkMode
+                          ? "from-cyan-400/15 to-cyan-500/5"
+                          : "from-cyan-300/20 to-cyan-400/10"
+                      }`
+                }`}
+                style={{
+                  width: `${width}px`,
+                  height: `${height}px`,
+                  left: `${left}%`,
+                  top: `${top}%`,
+                  opacity: opacity,
+                  filter: isDarkMode ? "none" : "blur(0.5px)",
+                }}
+                animate={{
+                  y: -30,
+                  x: pseudoRandom1 * 20 - 10,
+                  opacity: isDarkMode ? 0.5 : 0.3,
+                }}
+                transition={{
+                  duration: pseudoRandom2 * 10 + 10,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  delay: pseudoRandom3 * 5,
+                  ease: "easeInOut",
+                }}
+              />
+            );
+          })}
         </div>
       )}
 

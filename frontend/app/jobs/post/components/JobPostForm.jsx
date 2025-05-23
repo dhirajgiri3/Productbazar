@@ -23,15 +23,21 @@ import {
   ListChecks,
   Award,
   Heart,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { useAuth } from "@/lib/contexts/auth-context";
 import api from "@/lib/api/api";
 import logger from "@/lib/utils/logger";
-import RichTextEditor from "./components/RichTextEditor";
-import SkillsInput from "./components/SkillsInput";
-import JobPostHeader from "./components/JobPostHeader";
+import dynamic from "next/dynamic";
+import SkillsInput from "./SkillsInput";
+import JobPostHeader from "./JobPostHeader";
+
+// Dynamic import for RichTextEditor to disable SSR
+const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
+  ssr: false,
+  loading: () => <div className="h-40 w-full bg-gray-50 rounded-lg animate-pulse" />,
+});
 
 const JobPostForm = () => {
   const router = useRouter();
@@ -41,14 +47,14 @@ const JobPostForm = () => {
   const [formComplete, setFormComplete] = useState(false);
   const [createdJobSlug, setCreatedJobSlug] = useState(null);
   const [activeSection, setActiveSection] = useState(0);
-  
+
   // Sections for progress tracking
   const sections = [
     { name: "Job Basics", icon: <Briefcase size={16} /> },
     { name: "Company", icon: <Users size={16} /> },
     { name: "Job Details", icon: <FileText size={16} /> },
     { name: "Salary", icon: <DollarSign size={16} /> },
-    { name: "Application", icon: <Clock size={16} /> }
+    { name: "Application", icon: <Clock size={16} /> },
   ];
 
   // Helper function to process rich text content
@@ -56,9 +62,17 @@ const JobPostForm = () => {
     if (!htmlContent) return [];
 
     // Convert HTML to plain text list items
-    return htmlContent.split("<p>").filter(p => p.trim()).map(p => {
-      return p.replace(/<\/p>/g, "").replace(/<br\/?>/g, "").replace(/&nbsp;/g, " ").trim();
-    }).filter(Boolean);
+    return htmlContent
+      .split("<p>")
+      .filter((p) => p.trim())
+      .map((p) => {
+        return p
+          .replace(/<\/p>/g, "")
+          .replace(/<br\/?>/g, "")
+          .replace(/ /g, " ")
+          .trim();
+      })
+      .filter(Boolean);
   };
 
   const {
@@ -112,7 +126,7 @@ const JobPostForm = () => {
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.svg', '.webp']
+      "image/*": [".jpeg", ".jpg", ".png", ".svg", ".webp"],
     },
     multiple: false,
     onDrop: (files) => {
@@ -129,22 +143,17 @@ const JobPostForm = () => {
       // Format data for submission
       const formattedData = {
         ...data,
-        // Convert HTML content to appropriate format
         description: data.description || "",
         requirements: processRichTextContent(data.requirements),
         responsibilities: processRichTextContent(data.responsibilities),
-        skills: data.skills.split(",").map(skill => skill.trim()).filter(Boolean),
+        skills: data.skills.split(",").map((skill) => skill.trim()).filter(Boolean),
         benefits: processRichTextContent(data.benefits),
         applicationInstructions: data.applicationInstructions || "",
       };
 
       // Create FormData for file upload
       const formData = new FormData();
-
-      // Add JSON data
       formData.append("data", JSON.stringify(formattedData));
-
-      // Add company logo if exists
       if (companyLogo) {
         formData.append("logo", companyLogo);
       }
@@ -223,7 +232,7 @@ const JobPostForm = () => {
     <AnimatePresence mode="wait">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-0">
         <JobPostHeader />
-        
+
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
@@ -231,14 +240,14 @@ const JobPostForm = () => {
             <span className="text-xs text-gray-500">{calculateProgress()}% complete</span>
           </div>
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-            <motion.div 
+            <motion.div
               className="h-full bg-indigo-600 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${calculateProgress()}%` }}
               transition={{ duration: 0.3 }}
             />
           </div>
-          
+
           {/* Section Indicators */}
           <div className="mt-6 flex justify-between">
             {sections.map((section, index) => (
@@ -252,11 +261,13 @@ const JobPostForm = () => {
                   activeSection === index ? "text-indigo-600" : "text-gray-400 hover:text-gray-700"
                 }`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 transition-all duration-300 ${
-                  activeSection === index 
-                    ? "bg-indigo-50 text-indigo-600 ring-2 ring-indigo-100" 
-                    : "bg-gray-50 group-hover:bg-gray-100"
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 transition-all duration-300 ${
+                    activeSection === index
+                      ? "bg-indigo-50 text-indigo-600 ring-2 ring-indigo-100"
+                      : "bg-gray-50 group-hover:bg-gray-100"
+                  }`}
+                >
                   {section.icon}
                 </div>
                 <span className="text-xs font-medium">{section.name}</span>
@@ -274,7 +285,7 @@ const JobPostForm = () => {
         >
           <form onSubmit={handleSubmit(onSubmit)} className="divide-y divide-gray-100">
             {/* Job Basics Section */}
-            <div className={`p-6 transition-all duration-300 ${activeSection === 0 ? 'block' : 'hidden'}`}>
+            <div className={`p-6 transition-all duration-300 ${activeSection === 0 ? "block" : "hidden"}`}>
               <h2 className="text-lg font-medium text-gray-800 flex items-center pb-4 mb-5 border-b border-gray-100">
                 <Briefcase className="mr-2 text-indigo-500" size={20} />
                 Job Basics
@@ -375,9 +386,9 @@ const JobPostForm = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-6 text-right">
-                <motion.button 
+                <motion.button
                   type="button"
                   onClick={() => {
                     trigger("title");
@@ -394,7 +405,7 @@ const JobPostForm = () => {
             </div>
 
             {/* Company Information */}
-            <div className={`p-6 transition-all duration-300 ${activeSection === 1 ? 'block' : 'hidden'}`}>
+            <div className={`p-6 transition-all duration-300 ${activeSection === 1 ? "block" : "hidden"}`}>
               <h2 className="text-lg font-medium text-gray-800 flex items-center pb-4 mb-5 border-b border-gray-100">
                 <Users className="mr-2 text-indigo-500" size={20} />
                 Company Information
@@ -437,7 +448,7 @@ const JobPostForm = () => {
                   </label>
                   <select
                     {...register("company.size")}
-                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-300 appearance-none bg-white bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNUwwLjgwMzg0OSAyLjVMMTEuMTk2MiAyLjVMNiA3LjVaIiBmaWxsPSIjNkI3MjgwIi8+Cjwvc3ZnPgo=')] bg-[center_right_1rem] bg-no-repeat"
+                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-300 appearance-none bg-white bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik06IDcuNUwwLjgwMzg0OSAyLjVMMTEuMTk2MiAyLjVMNiA3LjVaIiBmaWxsPSIjNkI3MjgwIi8+Cjwvc3ZnPgo=')] bg-[center_right_1rem] bg-no-repeat"
                   >
                     <option value="1-10">1-10 employees</option>
                     <option value="11-50">11-50 employees</option>
@@ -507,9 +518,9 @@ const JobPostForm = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-between">
-                <motion.button 
+                <motion.button
                   type="button"
                   onClick={() => setActiveSection(0)}
                   className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 px-4 py-2 rounded-lg text-sm transition-colors"
@@ -518,8 +529,8 @@ const JobPostForm = () => {
                   <ChevronRight className="rotate-180" size={16} />
                   Back
                 </motion.button>
-                
-                <motion.button 
+
+                <motion.button
                   type="button"
                   onClick={() => {
                     trigger(["company.name"]);
@@ -536,7 +547,7 @@ const JobPostForm = () => {
             </div>
 
             {/* Job Details */}
-            <div className={`p-6 transition-all duration-300 ${activeSection === 2 ? 'block' : 'hidden'}`}>
+            <div className={`p-6 transition-all duration-300 ${activeSection === 2 ? "block" : "hidden"}`}>
               <h2 className="text-lg font-medium text-gray-800 flex items-center pb-4 mb-5 border-b border-gray-100">
                 <FileText className="mr-2 text-indigo-500" size={20} />
                 Job Details
@@ -649,9 +660,9 @@ const JobPostForm = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-between">
-                <motion.button 
+                <motion.button
                   type="button"
                   onClick={() => setActiveSection(1)}
                   className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 px-4 py-2 rounded-lg text-sm transition-colors"
@@ -660,8 +671,8 @@ const JobPostForm = () => {
                   <ChevronRight className="rotate-180" size={16} />
                   Back
                 </motion.button>
-                
-                <motion.button 
+
+                <motion.button
                   type="button"
                   onClick={() => {
                     trigger(["description"]);
@@ -678,7 +689,7 @@ const JobPostForm = () => {
             </div>
 
             {/* Salary Information */}
-            <div className={`p-6 transition-all duration-300 ${activeSection === 3 ? 'block' : 'hidden'}`}>
+            <div className={`p-6 transition-all duration-300 ${activeSection === 3 ? "block" : "hidden"}`}>
               <h2 className="text-lg font-medium text-gray-800 flex items-center pb-4 mb-5 border-b border-gray-100">
                 <DollarSign className="mr-2 text-indigo-500" size={20} />
                 Salary Information
@@ -721,7 +732,7 @@ const JobPostForm = () => {
                   </label>
                   <select
                     {...register("salary.currency")}
-                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-300 appearance-none bg-white bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNUwwLjgwMzg0OSAyLjVMMTEuMTk2MiAyLjVMNiA3LjVaIiBmaWxsPSIjNkI3MjgwIi8+Cjwvc3ZnPgo=')] bg-[center_right_1rem] bg-no-repeat"
+                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-300 appearance-none bg-white bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik06IDcuNUwwLjgwMzg0OSAyLjVMMTEuMTk2MiAyLjVMNiA3LjVaIiBmaWxsPSIjNkI3MjgwIi8+Cjwvc3ZnPgo=')] bg-[center_right_1rem] bg-no-repeat"
                   >
                     <option value="USD">USD - US Dollar</option>
                     <option value="EUR">EUR - Euro</option>
@@ -738,7 +749,7 @@ const JobPostForm = () => {
                   </label>
                   <select
                     {...register("salary.period")}
-                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-300 appearance-none bg-white bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNUwwLjgwMzg0OSAyLjVMMTEuMTk2MiAyLjVMNiA3LjVaIiBmaWxsPSIjNkI3MjgwIi8+Cjwvc3ZnPgo=')] bg-[center_right_1rem] bg-no-repeat"
+                    className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-300 appearance-none bg-white bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik06IDcuNUwwLjgwMzg0OSAyLjVMMTEuMTk2MiAyLjVMNiA3LjVaIiBmaWxsPSIjNkI3MjgwIi8+Cjwvc3ZnPgo=')] bg-[center_right_1rem] bg-no-repeat"
                   >
                     <option value="Hourly">Hourly</option>
                     <option value="Monthly">Monthly</option>
@@ -755,7 +766,10 @@ const JobPostForm = () => {
                         className="sr-only peer"
                       />
                       <div className="h-5 w-5 border border-gray-300 rounded peer-checked:bg-indigo-500 peer-checked:border-indigo-500 peer-focus:ring-2 peer-focus:ring-indigo-200 transition-all duration-200 flex items-center justify-center">
-                        <CheckCircle size={10} className="text-white scale-0 peer-checked:scale-100 transition-transform duration-200" />
+                        <CheckCircle
+                          size={10}
+                          className="text-white scale-0 peer-checked:scale-100 transition-transform duration-200"
+                        />
                       </div>
                     </div>
                     <span className="ml-2 text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
@@ -764,9 +778,9 @@ const JobPostForm = () => {
                   </label>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-between">
-                <motion.button 
+                <motion.button
                   type="button"
                   onClick={() => setActiveSection(2)}
                   className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 px-4 py-2 rounded-lg text-sm transition-colors"
@@ -775,8 +789,8 @@ const JobPostForm = () => {
                   <ChevronRight className="rotate-180" size={16} />
                   Back
                 </motion.button>
-                
-                <motion.button 
+
+                <motion.button
                   type="button"
                   onClick={() => setActiveSection(4)}
                   className="inline-flex items-center gap-1 bg-gray-50 hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -790,7 +804,7 @@ const JobPostForm = () => {
             </div>
 
             {/* Application Information */}
-            <div className={`p-6 transition-all duration-300 ${activeSection === 4 ? 'block' : 'hidden'}`}>
+            <div className={`p-6 transition-all duration-300 ${activeSection === 4 ? "block" : "hidden"}`}>
               <h2 className="text-lg font-medium text-gray-800 flex items-center pb-4 mb-5 border-b border-gray-100">
                 <Clock className="mr-2 text-indigo-500" size={20} />
                 Application Information
@@ -840,9 +854,9 @@ const JobPostForm = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="mt-8 flex justify-between">
-                <motion.button 
+                <motion.button
                   type="button"
                   onClick={() => setActiveSection(3)}
                   className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 px-4 py-2 rounded-lg text-sm transition-colors"
@@ -851,7 +865,7 @@ const JobPostForm = () => {
                   <ChevronRight className="rotate-180" size={16} />
                   Back
                 </motion.button>
-                
+
                 <motion.button
                   type="submit"
                   disabled={isSubmitting}
@@ -875,7 +889,7 @@ const JobPostForm = () => {
             </div>
           </form>
         </motion.div>
-        
+
         <div className="mt-4 text-center">
           <p className="text-xs text-gray-400">
             All fields marked with <span className="text-red-500">*</span> are required

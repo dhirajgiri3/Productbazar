@@ -1304,10 +1304,7 @@ const Impact = () => {
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <div
-                className="flex items-center gap-2 bg-gray-900/90 dark:bg-gray-800/90 backdrop-blur-sm // Darker background
-                         rounded-lg py-2 px-4 text-xs text-gray-100 dark:text-gray-200
-                         shadow-md border border-gray-700/50
-                         "
+                className="flex items-center gap-2 bg-gray-900/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg py-2 px-4 text-xs text-gray-100 dark:text-gray-200 shadow-md border border-gray-700/50"
               >
                 <Keyboard className="w-3.5 h-3.5 opacity-80" />
                 <span>

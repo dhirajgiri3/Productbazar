@@ -31,15 +31,20 @@ import {
   Camera, // For gallery image icon
   Maximize, // For fullscreen preview
 } from "lucide-react"; // <--- Use Lucide icons
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
 import { validateImageFile, optimizeImage } from "@/lib/utils/image/image-utils"; // <-- Import image utils
 import { uploadGalleryImages as uploadGalleryImagesUtil, deleteGalleryImage as deleteGalleryImageUtil } from "@/lib/utils/image/gallery-utils"; // Import gallery utils
+import dynamic from "next/dynamic";
 
-// Dynamically import the rich text editor
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
-import "react-quill/dist/quill.snow.css"; // Quill styles
+// Dynamically import ReactQuill with SSR disabled
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+  loading: () => <p>Loading editor...</p>,
+});
+
+// Import Quill styles only on client side
+typeof window !== "undefined" && require("react-quill/dist/quill.snow.css");
 
 // --- Constants ---
 const MAX_TAGS = 10;

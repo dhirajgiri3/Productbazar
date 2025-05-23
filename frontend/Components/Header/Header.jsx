@@ -89,7 +89,6 @@ const Header = () => {
   } = useAuth();
   const {} = useProduct(); // Keep the context for future use
   const { categories = [] } = useCategories();
-  // const { isDarkMode } = useTheme(); // Can be used if direct style manipulation is needed
 
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const searchQuery = "";
@@ -107,6 +106,13 @@ const Header = () => {
   useOnClickOutside(userMenuRef, () => setIsUserMenuOpen(false));
   useOnClickOutside(roleMenuRef, () => setShowRoleMenu(false));
   useOnClickOutside(categoryMenuRef, () => setShowCategoryMenu(false));
+
+  // Optional debugging: Log DOM to compare server vs. client
+  /*
+  useEffect(() => {
+    console.log('Client Header DOM:', document.querySelector('header')?.outerHTML);
+  }, []);
+  */
 
   const getRoleBasedNavItems = useCallback(() => {
     if (!user || !user.roleCapabilities) return [];
@@ -178,28 +184,22 @@ const Header = () => {
     return items;
   }, [user, pathname]);
 
-  // Listen for auth:login-success event to update header state immediately after login
+  // Listen for auth:login-success event
   useEffect(() => {
     const handleLoginSuccess = () => {
-      // Force refresh user data from context to ensure the Header has the latest user data
       if (typeof refreshUserData === 'function') {
         refreshUserData().catch(err => {
           console.error("Error refreshing user data:", err);
         });
       }
     };
-
-    // Add event listener for login success
     window.addEventListener("auth:login-success", handleLoginSuccess);
-
-    // Clean up event listener
-    return () => {
-      window.removeEventListener("auth:login-success", handleLoginSuccess);
-    };
+    return () => window.removeEventListener("auth:login-success", handleLoginSuccess);
   }, [refreshUserData]);
 
+  // Handle onboarding banner visibility
   useEffect(() => {
-    if (!isAuthenticated || !user) {
+    if (!isInitialized || !isAuthenticated || !user) {
       setShowOnboardingBanner(false);
       return;
     }
@@ -214,8 +214,9 @@ const Header = () => {
       refreshNextStep();
       setShowOnboardingBanner(false);
     }
-  }, [isAuthenticated, user, nextStep, refreshNextStep]);
+  }, [isInitialized, isAuthenticated, user, nextStep, refreshNextStep]);
 
+  // Keyboard shortcut for search
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -317,14 +318,14 @@ const Header = () => {
 
       <header className="bg-white/90 dark:bg-gray-900/90 sticky top-0 z-40 border-b border-gray-200/80 dark:border-gray-800/80 backdrop-blur-lg shadow-sm dark:shadow-gray-950/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center" suppressHydrationWarning>
             <motion.div
               className="relative"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <Link href="/app" aria-label="Go to Home">
+              <Link href="/products" aria-label="Go to Home">
                 <motion.div
                   className="w-10 h-10 bg-gradient-to-br from-violet-500 via-violet-600 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold relative overflow-hidden group shadow-md shadow-violet-500/20 dark:shadow-violet-500/10"
                   whileHover={{ scale: 1.05 }}
@@ -340,10 +341,6 @@ const Header = () => {
                   onHoverStart={() => setIsHoveredLogo(true)}
                   onHoverEnd={() => setIsHoveredLogo(false)}
                 >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 opacity-0 group-hover:opacity-100"
-                    transition={{ duration: 0.3 }}
-                  />
                   <div className="relative w-full h-full flex items-center justify-center">
                     <motion.span
                       className="absolute text-md font-bold tracking-wider"
@@ -408,8 +405,8 @@ const Header = () => {
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
             <NavItem
               label="Home"
-              isActive={pathname === "/" || pathname === "/app"}
-              href="/app"
+              isActive={pathname === "/" || pathname === "/products"}
+              href="/products"
             />
 
             <div className="relative" ref={categoryMenuRef}>
@@ -692,7 +689,7 @@ const Header = () => {
             </motion.div>
 
             {!isInitialized ? (
-              <div className="flex items-center space-x-2 animate-pulse">
+              <div className="flex items-center space-x-2 animate-pulse" aria-hidden="true">
                 <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                 <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
@@ -754,14 +751,14 @@ const Header = () => {
                       <Image
                         src={
                           user?.profilePicture?.url ||
-                          `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=random&color=fff`
+                          `https://ui-avatars.com/api/?name=${user?.firstName || 'User'}+${user?.lastName || ''}&background=8B5CF6&color=fff`
                         }
                         alt={`${user?.firstName || "User"}'s profile`}
                         width={36}
                         height={36}
                         className="w-9 h-9 object-cover rounded-full"
                         onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=User&background=random&color=fff`;
+                          e.target.src = `https://ui-avatars.com/api/?name=User&background=8B5CF6&color=fff`;
                         }}
                       />
                       <motion.div className="absolute inset-0 bg-gradient-to-tr from-violet-400/5 to-indigo-500/5 dark:from-violet-600/10 dark:to-indigo-700/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -796,7 +793,7 @@ const Header = () => {
                               <Image
                                 src={
                                   user?.profilePicture?.url ||
-                                  `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=random&color=fff`
+                                  `https://ui-avatars.com/api/?name=${user?.firstName || 'User'}+${user?.lastName || ''}&background=8B5CF6&color=fff`
                                 }
                                 alt={`${user?.firstName || "User"}'s profile`}
                                 width={40}
@@ -1079,7 +1076,7 @@ const Header = () => {
                       href: "/",
                       label: "Home",
                       icon: Home,
-                      activeCondition: pathname === "/" || pathname === "/app",
+                      activeCondition: pathname === "/" || pathname === "/products",
                     }
                   ].map((item) => (
                     <motion.div
@@ -1285,7 +1282,7 @@ const Header = () => {
               </div>
 
               <motion.div
-                className="p-4 border-t border-gray-200/80 dark:border-gray-700/80 bg-gray-50/80 dark:bg-gray-800/30 backdrop-blur-sm"
+                className="p-4 border-t border-gray-200/80 dark:border  dark:border-gray-700/80 bg-gray-50/80 dark:bg-gray-800/30 backdrop-blur-sm"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}

@@ -23,7 +23,7 @@ import {
 import { useAuth } from "@/lib/contexts/auth-context";
 import { useCategories } from "@/lib/contexts/category-context";
 import ProductCard from "Components/Product/ProductCard";
-import NumberedProductCard from "@/app/app/Components/NumberedProductCard";
+import NumberedProductCard from "@/app/products/Components/NumberedProductCard";
 import LoaderComponent from "Components/UI/LoaderComponent";
 import NewsletterSignup from "Components/common/Auth/NewsletterSignup";
 import logger from "@/lib/utils/logger";

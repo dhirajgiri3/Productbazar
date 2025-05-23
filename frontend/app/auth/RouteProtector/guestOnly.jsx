@@ -20,7 +20,7 @@ const guestOnly = (Component) => {
             ? "/auth/verify-phone" 
             : user.username 
               ? `/user/${user.username}` 
-              : "/app";
+              : "/products";
             
         router.push(redirectPath);
       }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/contexts/auth-context";
-import JobPostForm from "./JobPostForm";
+import JobPostForm from "./components/JobPostForm";
 import LoaderComponent from "Components/UI/LoaderComponent";
 
 export default function PostJobPage() {

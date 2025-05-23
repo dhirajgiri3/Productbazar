@@ -1,16 +1,10 @@
 "use client"; // Ensure this page is rendered on the client-side
 
 import React, { Suspense, useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import viewService from "../../../services/viewService";
 import LoaderComponent from "../../../Components/UI/LoaderComponent";
-
-// Dynamically import the component with no SSR
-const UserViewHistory = dynamic(
-  () => import("../../../Components/View/UserViewHistory"),
-  { ssr: false }
-);
+import UserViewHistory from "../../../Components/View/UserViewHistory";
 
 // Animation variants
 const pageVariants = {

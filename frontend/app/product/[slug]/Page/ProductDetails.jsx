@@ -70,17 +70,25 @@ const ProductDetailPage = ({ slug }) => {
   // The source is now a constant
   const source = 'direct';
 
-  // Load product function
+  // Load product function (no Date.now/Math.random in render)
   const loadProduct = useCallback(
     async (bypassCache = false) => {
       if (!slug) return;
 
-      const loadId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      // Only generate loadId on client
+      let loadId = '';
+      if (typeof window !== 'undefined') {
+        loadId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      }
       console.log(`Starting product load (${loadId}) for slug: ${slug}`);
 
       const loadKey = `product_load_${slug}`;
-      const lastLoad = sessionStorage.getItem(loadKey);
-      const now = Date.now();
+      let lastLoad = null;
+      let now = null;
+      if (typeof window !== 'undefined') {
+        lastLoad = sessionStorage.getItem(loadKey);
+        now = Date.now();
+      }
       const LOAD_TTL = 60000; // 60 seconds
 
       if (!bypassCache && lastLoad && now - parseInt(lastLoad) < LOAD_TTL) {
@@ -91,7 +99,9 @@ const ProductDetailPage = ({ slug }) => {
       console.log(`Attempting to load product story (${loadId}): ${slug}`);
 
       try {
-        sessionStorage.setItem(loadKey, now.toString());
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(loadKey, now.toString());
+        }
       } catch (e) {
         // Ignore storage errors
       }
@@ -144,7 +154,7 @@ const ProductDetailPage = ({ slug }) => {
           clearTimeout(timeoutId);
 
           console.error(
-            `Error loading product story (${loadId}) (Attempt ${retryCount + 1}/${
+            `Error loading product story (${loadId}) (Attempt ${retryCount + 1}/$${
               maxRetries + 1
             }):`,
             err
@@ -164,8 +174,12 @@ const ProductDetailPage = ({ slug }) => {
             );
             break;
           } else if (err.response?.status === 429 && retryCount <= maxRetries) {
-            const baseDelay = Math.min(Math.pow(2, retryCount) * 1000, 8000);
-            const jitter = Math.random() * 1000;
+            // Only use Math.random in client
+            let baseDelay = Math.min(Math.pow(2, retryCount) * 1000, 8000);
+            let jitter = 0;
+            if (typeof window !== 'undefined') {
+              jitter = Math.random() * 1000;
+            }
             const delay = baseDelay + jitter;
 
             console.warn(`Rate limited. Retrying story fetch in ${Math.round(delay / 1000)}s`);
@@ -475,12 +489,22 @@ const ProductDetailPage = ({ slug }) => {
   );
 
   // --- Derived Data ---
-  const formattedDate = product?.createdAt
-    ? formatDistanceToNow(new Date(product.createdAt), { addSuffix: true })
-    : 'in the mists of time';
-  const launchedDateFormatted = product?.launchedAt
-    ? format(new Date(product.launchedAt), 'MMMM do, yyyy')
-    : null;
+  const [formattedDate, setFormattedDate] = useState('');
+  const [launchedDateFormatted, setLaunchedDateFormatted] = useState(null);
+
+  useEffect(() => {
+    if (product?.createdAt) {
+      setFormattedDate(formatDistanceToNow(new Date(product.createdAt), { addSuffix: true }));
+    } else {
+      setFormattedDate('in the mists of time');
+    }
+    if (product?.launchedAt) {
+      setLaunchedDateFormatted(format(new Date(product.launchedAt), 'MMMM do, yyyy'));
+    } else {
+      setLaunchedDateFormatted(null);
+    }
+  }, [product?.createdAt, product?.launchedAt]);
+
   const isOwner = isAuthenticated && user && product && user._id === product.maker?._id;
 
   const getThumbnailUrl = useCallback(() => {

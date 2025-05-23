@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useEffect, useState, useCallback, useRef } from "react";
-import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -14,32 +13,22 @@ import {
   User,
 } from "lucide-react";
 import debounce from "lodash/debounce";
-import "react-quill/dist/quill.snow.css";
+import ReactQuill from "react-quill";
 
-// Dynamically import ReactQuill
-const ReactQuill = dynamic(() => import("react-quill"), {
-  ssr: false,
-  loading: () => (
-    <div className="border rounded-lg p-4 bg-gray-50 animate-pulse h-[120px]">
-      <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
-      <div className="h-4 bg-gray-100 rounded mb-2 w-full"></div>
-      <div className="h-4 bg-gray-100 rounded w-5/6"></div>
-    </div>
-  ),
-});
+// Import styles in a way safe for SSR
+import "react-quill/dist/quill.snow.css";
 
 const formatDateTime = (date) => {
   return new Date(date).toISOString().replace("T", " ").substring(0, 19);
 };
 
-// Fixed styles to properly enforce minHeight
 const getCustomQuillStyles = (minHeight) => `
   .ql-toolbar.ql-snow {
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
     border: 1px solid #e5e7eb;
     background-color: #f9fafb;
-    padding: 6px; /* Reduced padding for more compact toolbar */
+    padding: 6px;
   }
 
   .ql-container.ql-snow {
@@ -50,10 +39,9 @@ const getCustomQuillStyles = (minHeight) => `
     font-family: inherit;
     font-size: 0.875rem;
     height: auto !important;
-    min-height: ${minHeight - 35}px !important; /* Adjusted for smaller toolbar */
+    min-height: ${minHeight - 35}px !important;
   }
 
-  /* Fixed: Force the quill container to respect minHeight */
   .quill {
     display: flex;
     flex-direction: column;
@@ -71,28 +59,27 @@ const getCustomQuillStyles = (minHeight) => `
     flex: 1;
     overflow-y: auto;
     font-family: inherit;
-    padding: 0.75rem; /* Slightly reduced padding */
+    padding: 0.75rem;
     line-height: 1.6;
     color: #374151;
-    min-height: ${minHeight - 35}px !important; /* Important to enforce min height */
+    min-height: ${minHeight - 35}px !important;
     height: auto !important;
   }
 
-  /* Reduced icon sizes for more minimalistic appearance */
   .ql-snow.ql-toolbar button {
-    width: 22px; /* Smaller button size */
-    height: 22px; /* Smaller button size */
+    width: 22px;
+    height: 22px;
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 0.25rem;
     transition: all 0.15s;
-    margin: 1px; /* Tighter spacing */
+    margin: 1px;
   }
 
   .ql-snow.ql-toolbar button svg {
-    transform: scale(0.85); /* Slightly smaller icons */
+    transform: scale(0.85);
   }
 
   .ql-snow.ql-toolbar button:hover {
@@ -113,7 +100,6 @@ const getCustomQuillStyles = (minHeight) => `
     fill: #4f46e5;
   }
 
-  /* Compact dropdown menus */
   .ql-snow .ql-picker {
     font-size: 0.75rem;
     height: 22px;
@@ -196,7 +182,7 @@ const RichTextEditor = ({
   const editorId = id || `editor-${Math.random().toString(36).substring(2, 9)}`;
 
   useEffect(() => {
-    if (value) {
+    if (typeof window !== "undefined" && value) {
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = value;
       const textContent = tempDiv.textContent || tempDiv.innerText || "";
@@ -207,36 +193,37 @@ const RichTextEditor = ({
     }
   }, [value]);
 
-  // Inject dynamic CSS with the specified minHeight
   useEffect(() => {
-    const styleId = "quill-custom-styles";
-    const existingStyle = document.getElementById(styleId);
-    
-    if (existingStyle) {
-      existingStyle.remove();
-    }
-    
-    const styleElement = document.createElement("style");
-    styleElement.id = styleId;
-    styleElement.innerHTML = getCustomQuillStyles(minHeight);
-    document.head.appendChild(styleElement);
-
-    return () => {
-      const styleToRemove = document.getElementById(styleId);
-      if (styleToRemove) {
-        styleToRemove.remove();
+    if (typeof window !== "undefined") {
+      const styleId = "quill-custom-styles";
+      const existingStyle = document.getElementById(styleId);
+      
+      if (existingStyle) {
+        existingStyle.remove();
       }
-    };
+      
+      const styleElement = document.createElement("style");
+      styleElement.id = styleId;
+      styleElement.innerHTML = getCustomQuillStyles(minHeight);
+      document.head.appendChild(styleElement);
+
+      return () => {
+        if (typeof window !== "undefined") {
+          const styleToRemove = document.getElementById(styleId);
+          if (styleToRemove) {
+            styleToRemove.remove();
+          }
+        }
+      };
+    }
   }, [minHeight]);
 
-  // Force correct height after mount
   useEffect(() => {
-    if (quillRef.current) {
+    if (typeof window !== "undefined" && quillRef.current) {
       const editor = quillRef.current.getEditor();
       if (editor) {
         const container = editor.container;
         if (container) {
-          // Force height recalculation
           setTimeout(() => {
             container.style.minHeight = `${minHeight - 35}px`;
             const editorElement = container.querySelector('.ql-editor');
@@ -375,7 +362,7 @@ const RichTextEditor = ({
         className={`relative ${isFocused ? "quill-focus" : ""} ${
           error ? "quill-error" : ""
         }`}
-        style={{ minHeight: `${minHeight}px` }} /* Direct style application */
+        style={{ minHeight: `${minHeight}px` }}
       >
         <ReactQuill
           ref={quillRef}
@@ -392,7 +379,7 @@ const RichTextEditor = ({
           formats={formats}
           readOnly={readOnly}
           className="h-full"
-          style={{ minHeight: `${minHeight}px` }} // Direct style application
+          style={{ minHeight: `${minHeight}px` }}
         />
 
         {error && (

@@ -15,11 +15,9 @@ import {
   HiPencil,
 } from "react-icons/hi";
 import { uploadProductGalleryImages } from "../../../services/productService";
-import dynamic from "next/dynamic";
+import ReactQuill from "react-quill";
 import Image from "next/image";
 import { Tooltip } from "react-tooltip";
-
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
 
 const AddProductModal = ({ isOpen, onClose }) => {

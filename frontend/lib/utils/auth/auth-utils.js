@@ -211,7 +211,7 @@ export const getAuthRedirectPath = (defaultPath = null) => {
   }
 
   // If defaultPath is provided, use it, otherwise redirect to home
-  return defaultPath || "/app";
+  return defaultPath || "/products";
 };
 
 /**

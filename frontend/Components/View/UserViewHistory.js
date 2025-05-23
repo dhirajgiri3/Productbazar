@@ -162,7 +162,7 @@ const EmptyState = () => (
 
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
 
-        <Link href="/app" passHref legacyBehavior>
+        <Link href="/products" passHref legacyBehavior>
           <motion.a
             className="inline-flex items-center justify-center px-6 py-3 bg-white text-violet-600 border border-violet-200 rounded-lg hover:bg-violet-50 transition-all duration-300 font-medium shadow-sm"
             whileHover={{ scale: 1.03 }}
@@ -833,7 +833,7 @@ const PageHeader = () => (
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0"> {/* Added flex-shrink */}
-        <Link href="/app" passHref legacyBehavior>
+        <Link href="/products" passHref legacyBehavior>
           <a className="text-sm text-violet-600 hover:text-violet-800 transition-all flex items-center gap-1 px-3 py-1.5 rounded-lg border border-violet-200 bg-white hover:bg-violet-50 shadow-sm">
             <Sparkles className="w-4 h-4" />
             Recommendations

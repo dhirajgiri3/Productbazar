@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: false, // Temporarily disable strict mode to help with hydration issues
+
+  compiler: {
+    styledComponents: true,
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',

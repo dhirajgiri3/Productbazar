@@ -16,6 +16,7 @@ import { ThemeProvider } from "../lib/contexts/theme-context";
 import runAllCleanup from "../lib/utils/cleanup-utils";
 import Header from "Components/Header/Header";
 import Footer from "Components/Footer/Footer";
+import HydrationSuppressor from "Components/Utility/HydrationSuppressor";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -79,11 +80,13 @@ export default function RootLayout({ children }) {
                         <RecommendationProvider>
                           <SocketProvider>
                             <ViewProvider>
-                              <GlobalStyle />
-                              <Header />
-                              {children}
-                              <Toaster />
-                              <Footer />
+                              <HydrationSuppressor>
+                                <GlobalStyle />
+                                <Header />
+                                {children}
+                                <Toaster />
+                                <Footer />
+                              </HydrationSuppressor>
                             </ViewProvider>
                           </SocketProvider>
                         </RecommendationProvider>
