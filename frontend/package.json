@@ -74,6 +74,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.12",
+    "swr": "^2.3.3",
     "synonyms": "^1.0.1",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
@@ -88,7 +89,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@types/multer": "^1.4.12",
     "@types/sanitize-html": "^2.13.0",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.27.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17"

@@ -7,11 +7,11 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { useRecommendation } from '@/lib/contexts/recommendation-context';
 import { useToast } from '@/lib/contexts/toast-context';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import useSWR from 'swr';
 import { ErrorBoundary } from 'react-error-boundary';
 import logger from '@/lib/utils/logger';
 import { ArrowUp, Clock, AlertCircle } from 'lucide-react';
 import debounce from 'lodash.debounce';
+import useSWR from 'swr';
 
 // Constants
 const RECOMMENDATION_TYPES = {

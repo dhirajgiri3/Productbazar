@@ -47,7 +47,7 @@ import LoaderComponent from "../../../Components/UI/LoaderComponent";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
 import Link from "next/link";
-import { Badge } from "../../../Components/UI/Badge/Badge";
+import { Badge } from "Components/UI/Badge/badge";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem } from "../../../Components/UI/DropdownMenu/DropdownMenu";
 
 // Animation variants
