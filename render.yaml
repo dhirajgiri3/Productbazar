@@ -10,7 +10,7 @@ services:
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
-        value: production # Changed for production
+        value: production
       - key: MONGO_URI
         sync: false
       - key: REDIS_URL
@@ -129,6 +129,7 @@ services:
   - type: web
     name: productbazar-frontend
     env: node
+    runtime: node # Explicitly use Node.js
     region: oregon
     plan: free
     rootDir: frontend
@@ -136,7 +137,7 @@ services:
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
-        value: production # Changed for production
+        value: production
       - key: NEXT_PUBLIC_API_BASE_URL
         value: https://productbazar-backend.onrender.com/api/v1
       - key: NEXT_PUBLIC_API_BASE_URL_SOCKET
