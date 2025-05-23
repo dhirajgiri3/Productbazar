@@ -83,7 +83,7 @@ export default function RootLayout({ children }) {
                                 <Header />
                                 {children}
                                 <Toaster />
-                                <Footer />
+                                {/* <Footer /> */}
                             </ViewProvider>
                           </SocketProvider>
                         </RecommendationProvider>

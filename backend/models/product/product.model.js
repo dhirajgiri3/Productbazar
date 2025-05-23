@@ -32,7 +32,7 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: [true, "Product maker is required"],
-      index: true,
+      // Removed index: true since it might be defined elsewhere
     },
     makerProfile: {
       name: String,

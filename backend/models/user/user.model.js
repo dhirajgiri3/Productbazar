@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       sparse: true,
-      index: true,
+      // Removed index: true since it's defined explicitly below with userSchema.index()
       validate: {
         validator: (v) => !v || validator.isEmail(v),
         message: "Please enter a valid email address",
@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       sparse: true,
-      index: true,
+      // Removed index: true since it's defined explicitly below with userSchema.index()
       validate: {
         validator: (v) =>
           !v || validator.isMobilePhone(v, null, { strictMode: true }),
@@ -63,6 +63,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+      // No index property here, defined explicitly below with userSchema.index()
     },
     isEmailVerified: {
       type: Boolean,
@@ -416,9 +417,12 @@ const userSchema = new mongoose.Schema(
 );
 
 // === Indexes ===
-userSchema.index({ email: 1 }, { sparse: true });
-userSchema.index({ phone: 1 }, { sparse: true });
-userSchema.index({ googleId: 1 }, { sparse: true });
+// Since email, phone, and googleId already have indexes from their schema definitions
+// (defined as unique:true which automatically creates an index), we don't need to
+// define them again here. We'll just create the other needed indexes.
+// userSchema.index({ email: 1 }, { sparse: true });
+// userSchema.index({ phone: 1 }, { sparse: true });
+// userSchema.index({ googleId: 1 }, { sparse: true });
 userSchema.index({ role: 1 });
 userSchema.index({ secondaryRoles: 1 });
 userSchema.index({ interests: 1 });

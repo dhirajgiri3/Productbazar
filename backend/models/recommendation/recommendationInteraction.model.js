@@ -6,13 +6,13 @@ const recommendationInteractionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
-    index: true,
+    // Removed index: true since it's defined in compound indexes below
   },
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",
     required: true,
-    index: true,
+    // Removed index: true since it's defined in compound indexes below
   },
   recommendationType: {
     type: String,
@@ -199,7 +199,7 @@ const recommendationInteractionSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now,
-    index: true,
+    // Removed index: true since it's defined in compound indexes below
   },
 });
 
@@ -211,16 +211,19 @@ recommendationInteractionSchema.index({
   interactionType: 1,
   timestamp: -1,
 });
+// Keep only one timestamp index with TTL
 recommendationInteractionSchema.index(
   { timestamp: 1 },
   { expireAfterSeconds: 90 * 24 * 60 * 60 } // 90-day TTL
 );
-recommendationInteractionSchema.index({ timestamp: 1 });
+// Remove duplicate timestamp index
+// recommendationInteractionSchema.index({ timestamp: 1 });
 recommendationInteractionSchema.index({
   "metadata.recommendationContext.strategy": 1,
 });
-recommendationInteractionSchema.index({ product: 1 });
-recommendationInteractionSchema.index({ user: 1 });
+// Remove duplicate product and user indexes since they're already in compound indexes
+// recommendationInteractionSchema.index({ product: 1 });
+// recommendationInteractionSchema.index({ user: 1 });
 
 // === Methods ===
 recommendationInteractionSchema.statics.recordInteraction = async function (

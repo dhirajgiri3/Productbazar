@@ -7,23 +7,23 @@ const viewSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
       required: [true, "Product ID is required for a view."],
-      index: true,
+      // Removed index: true since it's defined below in compound indexes
     },
     user: {
       // User who viewed (optional, for logged-in users)
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      index: true,
+      // Removed index: true since it's defined below in compound indexes
       default: null, // Explicitly null for anonymous views
     },
     clientId: {
       // Client identifier for anonymous users (browser fingerprint or generated ID)
       type: String,
-      index: true,
+      // Removed index: true since it's defined in compound indexes
       default: null,
     },
     // Session & Source Tracking
-    sessionId: { type: String, index: true }, // Optional: Track user sessions
+    sessionId: { type: String }, // Optional: Track user sessions, removed index
     source: {
       // Where the view originated from
       type: String,
@@ -49,25 +49,25 @@ const viewSchema = new mongoose.Schema(
         "unknown",
       ],
       default: "unknown",
-      index: true,
+      // Removed index: true since it's defined in compound indexes
     },
     referrer: String, // Full referrer URL
     // User Environment
     userAgent: String,
     ip: String, // Store IP carefully due to privacy regulations (consider anonymizing/hashing)
-    isBot: { type: Boolean, default: false, index: true }, // Flag identified bots
+    isBot: { type: Boolean, default: false }, // Flag identified bots, removed index
     // Geolocation
-    country: { type: String, index: true },
+    country: { type: String }, // Removed index since it's in compound indexes
     region: String,
     city: String,
     // Device Information
     device: {
       type: String,
       enum: ["desktop", "mobile", "tablet", "other"],
-      index: true,
+      // Removed index since it's in compound indexes
     },
-    os: { type: String, index: true },
-    browser: { type: String, index: true },
+    os: { type: String }, // Removed index
+    browser: { type: String }, // Removed index
     // Engagement Metrics within the View
     viewDuration: { type: Number, min: 0 }, // Duration on the product page (seconds)
     engagement: {

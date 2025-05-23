@@ -5,11 +5,13 @@ const upvoteSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+    // No index here, defined in compound indexes below
   },
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
     required: true
+    // No index here, defined in compound indexes below
   }
 }, {
   timestamps: true
