@@ -27,7 +27,7 @@
     "@tsparticles/all": "^3.8.1",
     "@tsparticles/react": "^3.0.0",
     "antd": "^5.25.1",
-    "aws-sdk": "^2.1692.0",
+    "autoprefixer": "^10.4.21",
     "axios": "^1.7.7",
     "balloons-js": "^0.0.3",
     "bullmq": "^5.45.2",
@@ -47,7 +47,7 @@
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.503.0",
     "multer": "^1.4.5-lts.1",
-    "next": "14.2.6",
+    "next": "^15.1.8",
     "next-themes": "^0.4.6",
     "nextjs": "^0.0.3",
     "react": "^18.3.1",
@@ -89,9 +89,12 @@
     "@tailwindcss/typography": "^0.5.16",
     "@types/multer": "^1.4.12",
     "@types/sanitize-html": "^2.13.0",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9.27.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17"
+  },
+  "resolutions": {
+    "quill": "^2.0.2",
+    "lodash": "^4.17.21"
   }
 }
