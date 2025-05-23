@@ -13,17 +13,9 @@ import { SocketProvider } from "../lib/contexts/socket-context";
 import { ViewProvider } from "../lib/contexts/view-context";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProvider } from "../lib/contexts/theme-context";
-import dynamic from "next/dynamic";
 import runAllCleanup from "../lib/utils/cleanup-utils";
-
-// Dynamically import components with no SSR to avoid hydration issues
-const Header = dynamic(() => import("../Components/Header/Header.jsx"), {
-  ssr: false,
-});
-
-const Footer = dynamic(() => import("../Components/Footer/Footer.jsx"), {
-  ssr: false,
-});
+import Header from "Components/Header/Header";
+import Footer from "Components/Footer/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
