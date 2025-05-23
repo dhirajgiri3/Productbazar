@@ -98,10 +98,101 @@ const Header = () => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [isHoveredLogo, setIsHoveredLogo] = useState(false);
+  const [userDataKey, setUserDataKey] = useState(0); // Force re-render key
 
   const userMenuRef = useRef(null);
   const roleMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
+
+  // Profile picture component with better error handling
+  const ProfilePicture = ({ user, size = 36, className = "" }) => {
+    const [imgError, setImgError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentSrc, setCurrentSrc] = useState(null);
+    
+    // Reset error state when user or profile picture changes
+    useEffect(() => {
+      setImgError(false);
+      setIsLoading(true);
+      setCurrentSrc(null);
+    }, [user?._id, user?.profilePicture?.url, userDataKey]);
+    
+    const getProfilePictureUrl = useCallback(() => {
+      // First try to use the actual profile picture if available and no error occurred
+      if (user?.profilePicture?.url && user.profilePicture.url.trim() && !imgError) {
+        return user.profilePicture.url;
+      }
+      
+      // Check if there's a default profile image path like in the profile header
+      if (user?.profilePicture && !imgError) {
+        // Sometimes the profilePicture might be a string instead of an object
+        const profileUrl = typeof user.profilePicture === 'string' ? user.profilePicture : user.profilePicture.url;
+        if (profileUrl && profileUrl.trim() && profileUrl !== '/Assets/Image/Profile.png') {
+          return profileUrl;
+        }
+      }
+      
+      // Fallback to avatar generator - always return a valid URL
+      const firstName = user?.firstName || 'User';
+      const lastName = user?.lastName || '';
+      const initials = `${firstName}+${lastName}`;
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=8B5CF6&color=fff&size=${size * 2}&format=png&rounded=true`;
+    }, [user, imgError, size]);
+
+    const handleImageLoad = () => {
+      setIsLoading(false);
+    };
+
+    const handleImageError = () => {
+      console.log('Image error for user:', user?.firstName, 'URL:', currentSrc);
+      setImgError(true);
+      setIsLoading(false);
+    };
+
+    const imageUrl = getProfilePictureUrl();
+    
+    // Update current src when URL changes, but only if it's not empty
+    useEffect(() => {
+      if (imageUrl && imageUrl.trim()) {
+        setCurrentSrc(imageUrl);
+      }
+    }, [imageUrl]);
+
+    return (
+      <div className={`relative ${className}`} style={{ width: size, height: size }}>
+        {isLoading && (
+          <div 
+            className="absolute inset-0 bg-violet-100 dark:bg-violet-900/30 rounded-full animate-pulse"
+            style={{ width: size, height: size }}
+          />
+        )}
+        {currentSrc ? (
+          <Image
+            key={`${user?._id}-${userDataKey}-${user?.profilePicture?.url || 'fallback'}`} // Force re-render on data change
+            src={currentSrc}
+            alt={`${user?.firstName || "User"}'s profile`}
+            width={size}
+            height={size}
+            className={`object-cover rounded-full transition-opacity duration-200 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            style={{ width: size, height: size }}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            priority={size > 30} // Prioritize larger profile pictures
+            unoptimized={currentSrc.includes('ui-avatars.com')} // Don't optimize external avatar service
+          />
+        ) : (
+          <div 
+            className="bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center"
+            style={{ width: size, height: size }}
+          >
+            <span className="text-violet-600 dark:text-violet-300 text-xs font-medium">
+              {user?.firstName?.[0] || 'U'}{user?.lastName?.[0] || ''}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   useOnClickOutside(userMenuRef, () => setIsUserMenuOpen(false));
   useOnClickOutside(roleMenuRef, () => setShowRoleMenu(false));
@@ -184,17 +275,61 @@ const Header = () => {
     return items;
   }, [user, pathname]);
 
-  // Listen for auth:login-success event
+  // Handle user data refresh manually
+  const handleUserDataRefresh = useCallback(async () => {
+    if (refreshUserData) {
+      try {
+        await refreshUserData(true);
+        setUserDataKey(prev => prev + 1);
+      } catch (error) {
+        console.error('Failed to refresh user data:', error);
+      }
+    }
+  }, [refreshUserData]);
+
+  // Debug user data in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && user) {
+      console.log('Header - User data:', {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePicture: user.profilePicture,
+        profilePictureType: typeof user.profilePicture,
+        hasProfilePictureUrl: !!user.profilePicture?.url,
+        userDataKey
+      });
+    }
+  }, [user, userDataKey]);
+
+  // Listen for auth events and user data updates
   useEffect(() => {
     const handleLoginSuccess = () => {
       if (typeof refreshUserData === 'function') {
-        refreshUserData().catch(err => {
+        refreshUserData(true).catch(err => {
           console.error("Error refreshing user data:", err);
         });
       }
     };
+
+    const handleUserUpdated = (event) => {
+      // Force re-render when user data is updated
+      setUserDataKey(prev => prev + 1);
+    };
+
+    const handleUserRefreshed = (event) => {
+      // Force re-render when user data is refreshed
+      setUserDataKey(prev => prev + 1);
+    };
+
     window.addEventListener("auth:login-success", handleLoginSuccess);
-    return () => window.removeEventListener("auth:login-success", handleLoginSuccess);
+    window.addEventListener("auth:user-updated", handleUserUpdated);
+    window.addEventListener("auth:user-refreshed", handleUserRefreshed);
+    
+    return () => {
+      window.removeEventListener("auth:login-success", handleLoginSuccess);
+      window.removeEventListener("auth:user-updated", handleUserUpdated);
+      window.removeEventListener("auth:user-refreshed", handleUserRefreshed);
+    };
   }, [refreshUserData]);
 
   // Handle onboarding banner visibility
@@ -748,18 +883,10 @@ const Header = () => {
                       whileHover={{ rotate: [0, -2, 2, 0] }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Image
-                        src={
-                          user?.profilePicture?.url ||
-                          `https://ui-avatars.com/api/?name=${user?.firstName || 'User'}+${user?.lastName || ''}&background=8B5CF6&color=fff`
-                        }
-                        alt={`${user?.firstName || "User"}'s profile`}
-                        width={36}
-                        height={36}
-                        className="w-9 h-9 object-cover rounded-full"
-                        onError={(e) => {
-                          e.target.src = `https://ui-avatars.com/api/?name=User&background=8B5CF6&color=fff`;
-                        }}
+                      <ProfilePicture 
+                        user={user} 
+                        size={36} 
+                        className="w-9 h-9"
                       />
                       <motion.div className="absolute inset-0 bg-gradient-to-tr from-violet-400/5 to-indigo-500/5 dark:from-violet-600/10 dark:to-indigo-700/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                     </motion.div>
@@ -790,15 +917,10 @@ const Header = () => {
                         <div className="p-3.5 border-b border-gray-200/80 dark:border-gray-700/80">
                           <div className="flex items-center">
                             <div className="mr-3 flex-shrink-0">
-                              <Image
-                                src={
-                                  user?.profilePicture?.url ||
-                                  `https://ui-avatars.com/api/?name=${user?.firstName || 'User'}+${user?.lastName || ''}&background=8B5CF6&color=fff`
-                                }
-                                alt={`${user?.firstName || "User"}'s profile`}
-                                width={40}
-                                height={40}
-                                className="w-10 h-10 object-cover rounded-full border border-gray-200/80 dark:border-gray-700/80 shadow-sm"
+                              <ProfilePicture 
+                                user={user} 
+                                size={40} 
+                                className="w-10 h-10 border border-gray-200/80 dark:border-gray-700/80 shadow-sm"
                               />
                             </div>
                             <div className="flex-1 min-w-0">

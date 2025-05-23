@@ -1,6 +1,43 @@
 // src/utils/api.js
 import axios from 'axios';
 
+// Implement a simple request cache
+const cache = {
+  data: new Map(),
+  get(key) {
+    const cachedItem = this.data.get(key);
+    if (!cachedItem) return null;
+    
+    // Check if cache entry is still valid (2 seconds)
+    if (Date.now() - cachedItem.timestamp < 2000) {
+      return cachedItem.data;
+    }
+    
+    // Remove expired cache entry
+    this.data.delete(key);
+    return null;
+  },
+  set(key, data) {
+    this.data.set(key, {
+      data,
+      timestamp: Date.now()
+    });
+  },
+  invalidate(url) {
+    // Delete specific URL or pattern
+    if (url) {
+      for (const key of this.data.keys()) {
+        if (key.includes(url)) {
+          this.data.delete(key);
+        }
+      }
+    } else {
+      // Clear entire cache
+      this.data.clear();
+    }
+  }
+};
+
 // Create axios instance
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5004/api/v1',
@@ -14,6 +51,17 @@ const api = axios.create({
 // Add request interceptor to automatically add Authorization header
 api.interceptors.request.use(
   (config) => {
+    // Support for caching (check if the request should use cache)
+    if (config.useCache && config.method?.toLowerCase() === 'get') {
+      const cacheKey = `${config.method}:${config.url}:${JSON.stringify(config.params)}:${JSON.stringify(config.headers)}`;
+      const cachedResponse = cache.get(cacheKey);
+      
+      if (cachedResponse) {
+        // This flag is used in the response interceptor
+        config.cachedResponse = cachedResponse;
+      }
+    }
+    
     // Get token from localStorage if available
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('accessToken');
@@ -139,7 +187,14 @@ const notifyTokenRefreshed = (newToken, userData) => {
 };
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // If it's a GET request and should use cache, store in cache
+    if (response.config.method?.toLowerCase() === 'get' && response.config.useCache) {
+      const cacheKey = `${response.config.method}:${response.config.url}:${JSON.stringify(response.config.params)}:${JSON.stringify(response.config.headers)}`;
+      cache.set(cacheKey, response);
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
@@ -206,7 +261,31 @@ api.interceptors.response.use(
 );
 
 export const makePriorityRequest = async (method, url, options = {}) => {
-  const { params, data, headers = {}, isFormData = false, timeout = 15000, retryCount = 0, _isRetry = false } = options;
+  const { 
+    params, 
+    data, 
+    headers = {}, 
+    isFormData = false, 
+    timeout = 15000, 
+    retryCount = 0, 
+    _isRetry = false,
+    useCache = false  // New option to enable caching
+  } = options;
+
+  // User authentication endpoints should use caching to prevent duplicate calls
+  const shouldUseCache = useCache || url.includes('/auth/me');
+  
+  // Check cache first for GET requests that should use cache
+  let cacheKey;
+  if (method.toLowerCase() === 'get' && shouldUseCache) {
+    cacheKey = `${method}:${url}:${JSON.stringify(params)}:${JSON.stringify(headers)}`;
+    const cachedResponse = cache.get(cacheKey);
+    
+    if (cachedResponse) {
+      console.debug('Returning cached response for:', cacheKey);
+      return cachedResponse;
+    }
+  }
 
   // Get token from localStorage if available
   let token = null;
@@ -250,6 +329,21 @@ export const makePriorityRequest = async (method, url, options = {}) => {
       default:
         throw new Error(`Unsupported method: ${method}`);
     }
+
+    // Cache GET responses only if useCache is enabled
+    if (method.toLowerCase() === 'get' && shouldUseCache) {
+      if (!cacheKey) {
+        cacheKey = `${method}:${url}:${JSON.stringify(params)}:${JSON.stringify(headers)}`;
+      }
+      cache.set(cacheKey, response);
+    } else if (!['get', 'head', 'options'].includes(method.toLowerCase())) {
+      // For mutations (POST, PUT, PATCH, DELETE), invalidate related cached GET requests
+      if (url.includes('/auth')) {
+        // Invalidate auth-related caches when auth endpoints are mutated
+        cache.invalidate('/auth/me');
+      }
+    }
+
     return response;
   } catch (error) {
     // Handle token expiration with refresh
@@ -355,5 +449,23 @@ export const makePriorityRequest = async (method, url, options = {}) => {
     throw error;
   }
 };
+
+// Export cache to window for debugging and global access
+if (typeof window !== 'undefined') {
+  window.cache = cache;
+  
+  // Listen for auth events to invalidate cache
+  window.addEventListener('auth:token-refreshed', () => {
+    cache.invalidate('/auth/me');
+  });
+  
+  window.addEventListener('auth:unauthorized', () => {
+    cache.invalidate('/auth/me');
+  });
+  
+  window.addEventListener('auth:logout', () => {
+    cache.invalidate();  // Clear entire cache on logout
+  });
+}
 
 export default api;
