@@ -67,7 +67,7 @@ const ProjectAnalyticsPage = () => {
   }, [currentProject, getProjectAnalytics]);
 
   const canViewAnalytics = () => {
-    if (!isAuthenticated() || !currentProject) return false;
+    if (!isAuthenticated || !currentProject) return false;
     
     // Check if user is owner
     const isOwner = currentProject.owner === user._id;

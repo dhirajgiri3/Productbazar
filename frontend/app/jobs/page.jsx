@@ -851,7 +851,7 @@ export default function JobsPage() {
         </motion.div>
 
         {/* Post Job Button (for authenticated users) */}
-        {isAuthenticated() && user?.roleCapabilities?.canPostJobs && (
+        {isAuthenticated && user?.roleCapabilities?.canPostJobs && (
           <motion.div
             className="mb-8 flex justify-end"
             initial={{ opacity: 0, y: 10 }}

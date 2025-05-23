@@ -175,7 +175,7 @@ const ProjectList = ({
       </div>
 
       {/* Minimalistic Add Project Button */}
-      {showAddButton && isAuthenticated() && user?.roleCapabilities?.canShowcaseProjects && (
+      {showAddButton && isAuthenticated && user?.roleCapabilities?.canShowcaseProjects && (
         <motion.div
           className="mb-6 flex justify-end"
           initial={{ opacity: 0 }}

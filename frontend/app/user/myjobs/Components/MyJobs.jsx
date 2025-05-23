@@ -130,7 +130,7 @@ function MyJobs() {
 
   // Fetch jobs on component mount and when filters or search term changes
   useEffect(() => {
-    if (isAuthenticated()) {
+    if (isAuthenticated) {
       fetchJobs();
     }
   }, [isAuthenticated, filters, currentPage, debouncedSearchTerm, fetchJobs]);
@@ -211,7 +211,7 @@ function MyJobs() {
   // Check if user can post jobs
   const canPostJobs = user?.roleCapabilities?.canPostJobs;
 
-  if (!isAuthenticated()) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

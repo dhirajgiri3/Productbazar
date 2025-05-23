@@ -87,27 +87,6 @@ function Login() {
           </motion.div>
         </div>
 
-        {/* Enhanced mobile branding message */}
-        <motion.div
-          className="lg:hidden text-center mt-10 absolute bottom-8 left-0 right-0 px-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.7, ease: "easeOut" }}
-        >
-          <div className="py-4 px-6 rounded-2xl mx-auto max-w-md relative overflow-hidden">
-            {/* Advanced glass effect */}
-            <div className="absolute inset-0 bg-white/40 backdrop-blur-md border border-white/40 shadow-lg rounded-2xl -z-10"></div>
-            <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-indigo-500/5 rounded-2xl -z-5"></div>
-
-            <p className="text-sm text-gray-700 font-medium relative z-10">
-              Welcome back to{" "}
-              <span className="text-violet-600 font-semibold">
-                Product Bazar
-              </span>{" "}
-              - your hub for discovering innovative products.
-            </p>
-          </div>
-        </motion.div>
       </div>
 
       {/* Enhanced decorative elements */}

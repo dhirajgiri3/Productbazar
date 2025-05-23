@@ -715,7 +715,7 @@ export default function ProjectDetailPage() {
                       </motion.button>
 
                       {/* Project Management Buttons - Only visible to project owner or users with permission */}
-                      {isAuthenticated() && currentProject && (
+                      {isAuthenticated && currentProject && (
                         <>
                           {/* More actions dropdown menu with enhanced animations */}
                           <DropdownMenu>

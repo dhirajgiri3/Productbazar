@@ -67,7 +67,7 @@ const SearchModal = ({ isOpen, onClose, initialQuery = "" }) => {
   // Fetch recent searches and categories when modal opens
   useEffect(() => {
     if (isOpen) {
-      if (isAuthenticated()) {
+      if (isAuthenticated) {
         fetchRecentSearches();
       }
       // Fetch categories for product results
@@ -394,7 +394,7 @@ const SearchModal = ({ isOpen, onClose, initialQuery = "" }) => {
             )}
 
             {/* Recent Searches (only show if no query and user is authenticated) */}
-            {!isLoading && !query.trim() && isAuthenticated() && hasRecentSearches && (
+            {!isLoading && !query.trim() && isAuthenticated && hasRecentSearches && (
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold text-gray-600 flex items-center">

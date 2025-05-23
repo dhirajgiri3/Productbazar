@@ -199,7 +199,7 @@ const Header = () => {
   }, [refreshUserData]);
 
   useEffect(() => {
-    if (!isAuthenticated() || !user) {
+    if (!isAuthenticated || !user) {
       setShowOnboardingBanner(false);
       return;
     }
@@ -238,7 +238,7 @@ const Header = () => {
   };
 
   const handleProductSubmit = () => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       toast.error("Please log in to submit a product");
       router.push("/auth/login");
       return;
@@ -531,7 +531,7 @@ const Header = () => {
               </AnimatePresence>
             </div>
 
-            {isAuthenticated() && (
+            {isAuthenticated && (
               <>
                 <NavItem
                   label="Bookmarks"
@@ -647,7 +647,7 @@ const Header = () => {
 
           <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
             {isInitialized &&
-              isAuthenticated() &&
+              isAuthenticated &&
               user?.roleCapabilities?.canUploadProducts && (
                 <motion.button
                   onClick={handleProductSubmit}
@@ -696,7 +696,7 @@ const Header = () => {
                 <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
                 <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
-            ) : isAuthenticated() ? (
+            ) : isAuthenticated ? (
               <>
                 <motion.div
                   whileHover={{ scale: 1.1 }}
@@ -1186,7 +1186,7 @@ const Header = () => {
                     )}
                   </motion.div>
 
-                  {isAuthenticated() && (
+                  {isAuthenticated && (
                     <>
                       {[
                         {
@@ -1290,7 +1290,7 @@ const Header = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                {isAuthenticated() &&
+                {isAuthenticated &&
                   user?.roleCapabilities?.canUploadProducts && (
                     <motion.button
                       onClick={() => {
@@ -1319,7 +1319,7 @@ const Header = () => {
                       </motion.div>
                     </motion.button>
                   )}
-                {isAuthenticated() ? (
+                {isAuthenticated ? (
                   <motion.button
                     onClick={() => {
                       setIsMobileMenuOpen(false);

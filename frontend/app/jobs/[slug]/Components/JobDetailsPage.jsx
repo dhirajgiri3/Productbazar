@@ -138,7 +138,7 @@ export default function JobDetailPage({ slug }) {
   };
 
   const handleApplyButtonClick = () => {
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       toast.error("Please log in to apply for this job");
       router.push(`/auth/login?redirect=/jobs/${slug}`);
       return;
@@ -165,7 +165,7 @@ export default function JobDetailPage({ slug }) {
   const handleApply = async (e) => {
     e.preventDefault();
 
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       toast.error("Please log in to apply for this job");
       router.push(`/auth/login?redirect=/jobs/${slug}`);
       return;

@@ -166,7 +166,7 @@ export const setNextStep = (nextStep) => {
 export const getAuthState = () => {
   const user = getUserData();
   return {
-    isAuthenticated: isAuthenticated(),
+    isAuthenticated: !!user && !!getAuthToken() && !isTokenExpired(),
     isEmailVerified: isEmailVerified(),
     isPhoneVerified: isPhoneVerified(),
     isProfileCompleted: isProfileCompleted(),
