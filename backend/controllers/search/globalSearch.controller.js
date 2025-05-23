@@ -1,4 +1,4 @@
-import globalSearchService from '../../Services/Search/globalSearch.service.js';
+import globalSearchService from '../../services/search/globalSearch.service.js';
 import { AppError } from '../../utils/logging/error.js';
 import logger from '../../utils/logging/logger.js';
 import SearchHistory from '../../models/search/searchHistory.model.js';
