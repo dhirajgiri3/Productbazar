@@ -1,0 +1,41 @@
+/* Skeleton loading animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-loading {
+  animation: shimmer 1.5s infinite;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Improved spacing for grid layout */
+.grid {
+  --gap-x: 1.5rem;
+  --gap-y: 2rem;
+}
+
+/* Enhanced animations for filter transitions */
+.filter-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Improved list view styling */
+.list-view-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.list-view-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
