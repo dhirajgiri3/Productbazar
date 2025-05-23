@@ -1,12 +1,5 @@
-import dynamic from "next/dynamic";
-
-// Import the CSS
+import Landing from "Components/Landing/Landing";
 import "./globals.css";
-
-// Dynamically import the Landing component with no SSR
-const Landing = dynamic(() => import("../Components/Landing/Landing"), {
-  ssr: false,
-});
 
 export default function Page() {
   return (
