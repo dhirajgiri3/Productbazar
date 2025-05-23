@@ -1,6 +1,6 @@
 import logger from '../logging/logger.js';
 import synonyms from 'synonyms';
-import { semanticSimilarity } from '../data/vectorEmbeddings.js';
+import { semanticSimilarity } from './vectorEmbeddings.js';
 
 // Common synonyms for tech and business terms
 const SYNONYMS_MAP = {

@@ -10,10 +10,10 @@ import {
   calculateSimilarityScore,
   calculatePersonalizedScore,
   normalizeScore,
-} from "../recommendation/recommendationScoring.utils.js";
+} from "./recommendationScoring.utils.js";
 import recommendationCacheService from "../../services/recommendation/recommendationCache.service.js";
 import logger from "../logging/logger.js";
-import { buildAggregationPipeline } from "../recommendation/recommendationPipelines.js";
+import { buildAggregationPipeline } from "./recommendationPipelines.js";
 import { generateScoreExplanation } from "../data/generateExplanation.js";
 
 const validate = {
