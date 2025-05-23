@@ -1,55 +1,56 @@
-import { Inter } from "next/font/google";
-import "./globals.css";
-import StyledComponentsRegistry from "../lib/registry";
-import GlobalStyle from "../styles/global";
-import { AuthProvider } from "../lib/contexts/auth-context";
-import { Toaster } from "react-hot-toast";
-import { ToastProvider } from "../lib/contexts/toast-context";
-import { CategoryProvider } from "../lib/contexts/category-context";
-import { ProductProvider } from "../lib/contexts/product-context";
-import { ProjectProvider } from "../lib/contexts/project-context";
-import { RecommendationProvider } from "../lib/contexts/recommendation-context";
-import { SocketProvider } from "../lib/contexts/socket-context";
-import { ViewProvider } from "../lib/contexts/view-context";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { ThemeProvider } from "../lib/contexts/theme-context";
-import runAllCleanup from "../lib/utils/cleanup-utils";
-import Header from "Components/Header/Header";
-import Footer from "Components/Footer/Footer";
+import { Inter } from 'next/font/google';
+import './globals.css';
+import StyledComponentsRegistry from '../lib/registry';
+import GlobalStyle from '../styles/global';
+import { AuthProvider } from '../lib/contexts/auth-context';
+import { Toaster } from 'react-hot-toast';
+import { ToastProvider } from '../lib/contexts/toast-context';
+import { CategoryProvider } from '../lib/contexts/category-context';
+import { ProductProvider } from '../lib/contexts/product-context';
+import { ProjectProvider } from '../lib/contexts/project-context';
+import { RecommendationProvider } from '../lib/contexts/recommendation-context';
+import { SocketProvider } from '../lib/contexts/socket-context';
+import { ViewProvider } from '../lib/contexts/view-context';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import { ThemeProvider } from '../lib/contexts/theme-context';
+import runAllCleanup from '../lib/utils/cleanup-utils';
+import Header from 'Components/Header/Header';
+import Footer from 'Components/Footer/Footer';
+import HydrationSuppressor from 'Components/Utility/HydrationSuppressor';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: "Product Bazar | Innovative Marketplace for Startup Success",
+  title: 'Product Bazar | Innovative Marketplace for Startup Success',
   description:
-    "Discover Product Bazar, the premier marketplace connecting startups with essential tools and resources. Find product-market fit, accelerate growth, and achieve startup success with our curated solutions.",
+    'Discover Product Bazar, the premier marketplace connecting startups with essential tools and resources. Find product-market fit, accelerate growth, and achieve startup success with our curated solutions.',
   keywords:
-    "product marketplace, product-market fit, startup tools, startup resources, innovation platform, entrepreneurship, tech startups",
+    'product marketplace, product-market fit, startup tools, startup resources, innovation platform, entrepreneurship, tech startups',
   openGraph: {
-    title: "Product Bazar | Empowering Startups to Thrive",
+    title: 'Product Bazar | Empowering Startups to Thrive',
     description:
-      "Join Product Bazar to access cutting-edge tools, connect with industry experts, and propel your startup to new heights.",
-    url: "https://productbazar.com",
-    type: "website",
+      'Join Product Bazar to access cutting-edge tools, connect with industry experts, and propel your startup to new heights.',
+    url: 'https://productbazar.com',
+    type: 'website',
     images: [
       {
-        url: "https://productbazar.com/og-image.jpg",
+        url: 'https://productbazar.com/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: "Product Bazar - Startup Marketplace",
+        alt: 'Product Bazar - Startup Marketplace',
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
-    site: "@ProductBazar",
-    creator: "@ProductBazar",
+    card: 'summary_large_image',
+    site: '@ProductBazar',
+    creator: '@ProductBazar',
   },
 };
 
 export default function RootLayout({ children }) {
   // Run cleanup on application startup
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     runAllCleanup();
   }
 
@@ -66,11 +67,7 @@ export default function RootLayout({ children }) {
       <body className={inter.className} suppressHydrationWarning>
         <ToastProvider>
           <StyledComponentsRegistry>
-            <NextThemesProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-            >
+            <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
               <ThemeProvider>
                 <AuthProvider>
                   <ProductProvider>
@@ -79,11 +76,13 @@ export default function RootLayout({ children }) {
                         <RecommendationProvider>
                           <SocketProvider>
                             <ViewProvider>
+                              <HydrationSuppressor>
                                 <GlobalStyle />
                                 <Header />
                                 {children}
                                 <Toaster />
-                                {/* <Footer /> */}
+                                <Footer />
+                              </HydrationSuppressor>
                             </ViewProvider>
                           </SocketProvider>
                         </RecommendationProvider>

@@ -41,7 +41,7 @@ const redis = process.env.REDIS_URL
   : new Redis(redisOptions);
 
 // --- Event Listeners ---
-redis.on("connect", () => logger.info("Redis client connected successfully."));
+redis.on("connect", () => logger.info(`Redis client connected successfully on ${redisOptions.host}:${redisOptions.port}`));
 redis.on("ready", () => logger.info("Redis client ready to process commands."));
 redis.on("error", (err) =>
   logger.error(`Redis Error: ${err.message}`, { stack: err.stack })
