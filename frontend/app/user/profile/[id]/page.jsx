@@ -6,7 +6,7 @@ import logger from '@/lib/utils/logger';
 // It will redirect to the user's profile page if possible, or to the app home page
 
 export default async function UserProfileFallbackPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
   
   try {
     // Get the access token from cookies

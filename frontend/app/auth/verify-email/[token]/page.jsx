@@ -2,19 +2,19 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from "@/lib/contexts/auth-context";
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const VerifyEmailTokenPage = ({ params }) => {
-  const { token } = params;
+const VerifyEmailTokenPage = () => {
+  const { token } = useParams();
   const { verifyEmail, user, authLoading, error } = useAuth();
   const [verificationStatus, setVerificationStatus] = useState('loading');
   const [verificationError, setVerificationError] = useState('');
   const [verificationAttempted, setVerificationAttempted] = useState(false);
   const confettiCanvasRef = useRef(null);
   const router = useRouter();
-  
+
   useEffect(() => {
     const verifyEmailToken = async () => {
       try {
@@ -26,9 +26,9 @@ const VerifyEmailTokenPage = ({ params }) => {
 
         // Clean the token in case it has any URL encoding issues
         const cleanToken = decodeURIComponent(token).trim();
-        
+
         const result = await verifyEmail(cleanToken);
-        
+
         if (result.success) {
           setVerificationStatus('success');
           // Trigger confetti effect after successful verification
@@ -41,7 +41,7 @@ const VerifyEmailTokenPage = ({ params }) => {
                     resize: true,
                     useWorker: true
                   });
-                  
+
                   myConfetti({
                     particleCount: 100,
                     spread: 70,
@@ -71,7 +71,7 @@ const VerifyEmailTokenPage = ({ params }) => {
       setVerificationError("Verification token is missing");
       setVerificationStatus('error');
     }
-    
+
     // If user is already verified and tries to verify again, show success message
     if (user?.isEmailVerified && verificationStatus === 'loading') {
       setVerificationStatus('success');
@@ -81,12 +81,12 @@ const VerifyEmailTokenPage = ({ params }) => {
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { 
+      transition: {
         duration: 0.6,
-        when: "beforeChildren", 
-        staggerChildren: 0.2 
+        when: "beforeChildren",
+        staggerChildren: 0.2
       }
     },
     exit: { opacity: 0, transition: { duration: 0.3 } }
@@ -94,8 +94,8 @@ const VerifyEmailTokenPage = ({ params }) => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.4, ease: "easeOut" }
     }
@@ -103,10 +103,10 @@ const VerifyEmailTokenPage = ({ params }) => {
 
   const iconVariants = {
     hidden: { scale: 0, opacity: 0 },
-    visible: { 
-      scale: 1, 
+    visible: {
+      scale: 1,
       opacity: 1,
-      transition: { 
+      transition: {
         type: "spring",
         stiffness: 200,
         damping: 10,
@@ -124,11 +124,11 @@ const VerifyEmailTokenPage = ({ params }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Hidden canvas for confetti */}
-      <canvas 
-        ref={confettiCanvasRef} 
+      <canvas
+        ref={confettiCanvasRef}
         className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
       />
-      
+
       {/* Background pattern */}
       <div className="absolute inset-0 z-0 opacity-5">
         <div className="absolute inset-0" style={{
@@ -136,18 +136,18 @@ const VerifyEmailTokenPage = ({ params }) => {
           backgroundSize: "24px 24px"
         }}></div>
       </div>
-      
+
       <AnimatePresence mode="wait">
         {verificationStatus === 'loading' && !verificationAttempted && (
           <motion.div
-            key="loading"
+            key="email-verification-loading"
             className="sm:mx-auto sm:w-full sm:max-w-md z-10"
             initial="hidden"
             animate="visible"
             exit="exit"
             variants={containerVariants}
           >
-            <motion.div 
+            <motion.div
               className="bg-white py-10 px-6 shadow-lg sm:rounded-lg border border-gray-100 text-center"
               variants={itemVariants}
             >
@@ -159,7 +159,7 @@ const VerifyEmailTokenPage = ({ params }) => {
                   <motion.div
                     className="w-16 h-16 border-t-4 border-primary border-solid rounded-full"
                     animate={{ rotate: 360 }}
-                    transition={{ 
+                    transition={{
                       duration: 1.5,
                       repeat: Infinity,
                       ease: "linear"
@@ -175,18 +175,18 @@ const VerifyEmailTokenPage = ({ params }) => {
 
         {verificationStatus === 'success' && (
           <motion.div
-            key="success"
+            key="email-verification-success"
             className="sm:mx-auto sm:w-full sm:max-w-md z-10"
             initial="hidden"
             animate="visible"
             exit="exit"
             variants={containerVariants}
           >
-            <motion.div 
+            <motion.div
               className="bg-white py-10 px-6 shadow-lg sm:rounded-lg border border-gray-100 text-center"
               variants={itemVariants}
             >
-              <motion.div 
+              <motion.div
                 className="bg-green-50 rounded-full mx-auto p-4 w-24 h-24 flex items-center justify-center mb-6"
                 variants={iconVariants}
               >
@@ -208,8 +208,8 @@ const VerifyEmailTokenPage = ({ params }) => {
                     whileHover="hover"
                     whileTap="tap"
                   >
-                    <Link 
-                      href="/auth/verify-phone" 
+                    <Link
+                      href="/auth/verify-phone"
                       className="px-6 py-2 bg-accent text-white rounded-full hover:bg-accent-dark transition-colors shadow-md flex items-center justify-center"
                     >
                       <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -225,8 +225,8 @@ const VerifyEmailTokenPage = ({ params }) => {
                   whileHover="hover"
                   whileTap="tap"
                 >
-                  <Link 
-                    href="/user" 
+                  <Link
+                    href="/user"
                     className="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors shadow-md flex items-center justify-center"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -242,18 +242,18 @@ const VerifyEmailTokenPage = ({ params }) => {
 
         {verificationStatus === 'error' && (
           <motion.div
-            key="error"
+            key="email-verification-error"
             className="sm:mx-auto sm:w-full sm:max-w-md z-10"
             initial="hidden"
             animate="visible"
             exit="exit"
             variants={containerVariants}
           >
-            <motion.div 
+            <motion.div
               className="bg-white py-10 px-6 shadow-lg sm:rounded-lg border border-gray-100 text-center"
               variants={itemVariants}
             >
-              <motion.div 
+              <motion.div
                 className="bg-red-50 rounded-full mx-auto p-4 w-24 h-24 flex items-center justify-center mb-6"
                 variants={iconVariants}
               >
@@ -274,8 +274,8 @@ const VerifyEmailTokenPage = ({ params }) => {
                   whileHover="hover"
                   whileTap="tap"
                 >
-                  <Link 
-                    href="/auth/login" 
+                  <Link
+                    href="/auth/login"
                     className="px-6 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition-colors shadow-md flex items-center justify-center"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -290,8 +290,8 @@ const VerifyEmailTokenPage = ({ params }) => {
                   whileHover="hover"
                   whileTap="tap"
                 >
-                  <Link 
-                    href="/auth/verify-email" 
+                  <Link
+                    href="/auth/verify-email"
                     className="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors shadow-md flex items-center justify-center"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
+import { useParams } from 'next/navigation';
 import ResetPasswordForm from './components/ResetPasswordForm';
 
-function ResetPasswordPage({ params }) {
-  const { token } = params;
+function ResetPasswordPage() {
+  const { token } = useParams();
   
   return (
     <div className="flex min-h-screen">

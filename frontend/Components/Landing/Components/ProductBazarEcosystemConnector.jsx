@@ -19,7 +19,15 @@ import { useReducedMotion } from "framer-motion";
 const WaterRippleFilter = ({ children }) => {
   const [particles, setParticles] = useState([]);
   const [isClient, setIsClient] = useState(false);
-  const seedRef = useRef(Date.now()); // Use a consistent seed for randomization
+  // SSR-safe: use a fixed seed for SSR, and Date.now() for client
+  const [seed, setSeed] = useState(12345); // deterministic for SSR
+  const seedRef = useRef(seed);
+
+  useEffect(() => {
+    setIsClient(true);
+    // Only set seed on client
+    setSeed(Date.now());
+  }, []);
 
   // Pseudo-random number generator with seed
   const seededRandom = () => {
@@ -28,7 +36,7 @@ const WaterRippleFilter = ({ children }) => {
   };
 
   useEffect(() => {
-    setIsClient(true);
+    if (!isClient) return;
     const generateParticle = () => {
       const width = 2 + seededRandom() * 5;
       const height = 2 + seededRandom() * 6;
@@ -48,7 +56,7 @@ const WaterRippleFilter = ({ children }) => {
 
     const initialParticles = Array.from({ length: 20 }, generateParticle);
     setParticles(initialParticles);
-  }, []);
+  }, [isClient, seed]);
 
   // Return a static placeholder during SSR
   if (!isClient) {

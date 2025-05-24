@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import GlobalButton from "../../UI/Buttons/GlobalButton";
 import Image from "next/image";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/lib/contexts/theme-context";
 import SectionLabel from "./Animations/SectionLabel";
 
 // Lazy loaded components for better performance

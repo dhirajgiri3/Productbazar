@@ -1,7 +1,7 @@
 import { ProductProvider } from "@/lib/contexts/product-context";
 
 export async function generateMetadata({ params }) {
-  const username = params.username;
+  const { username } = await params;
   let title = `${username}'s Products - Product Bazar`;
 
   return {
@@ -13,8 +13,8 @@ export async function generateMetadata({ params }) {
 
 export default function UserProductsLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="products-container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="bg-gradient-to-b from-gray-50 to-white">
+      <div className="products-container mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
         <ProductProvider>{children}</ProductProvider>
       </div>
     </div>

@@ -11,12 +11,10 @@ import { ProjectProvider } from '../lib/contexts/project-context';
 import { RecommendationProvider } from '../lib/contexts/recommendation-context';
 import { SocketProvider } from '../lib/contexts/socket-context';
 import { ViewProvider } from '../lib/contexts/view-context';
-import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { ThemeProvider } from '../lib/contexts/theme-context';
-import runAllCleanup from '../lib/utils/cleanup-utils';
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import Header from 'Components/Header/Header';
 import Footer from 'Components/Footer/Footer';
-import HydrationSuppressor from 'Components/Utility/HydrationSuppressor';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -49,11 +47,6 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  // Run cleanup on application startup
-  if (typeof window !== 'undefined') {
-    runAllCleanup();
-  }
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -76,13 +69,11 @@ export default function RootLayout({ children }) {
                         <RecommendationProvider>
                           <SocketProvider>
                             <ViewProvider>
-                              <HydrationSuppressor>
                                 <GlobalStyle />
                                 <Header />
                                 {children}
-                                <Toaster />
                                 <Footer />
-                              </HydrationSuppressor>
+                                <Toaster />
                             </ViewProvider>
                           </SocketProvider>
                         </RecommendationProvider>

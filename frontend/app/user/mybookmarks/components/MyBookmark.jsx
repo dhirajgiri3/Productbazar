@@ -818,13 +818,13 @@ const MyBookmarksPage = () => {
             <AnimatePresence mode="wait">
               {viewMode === "list" ? (
                 <BookmarksList
-                  key="list"
+                  key="bookmarks-list"
                   bookmarks={bookmarks}
                   onRefresh={fetchBookmarks}
                 />
               ) : (
                 <BookmarksGrid
-                  key="grid"
+                  key="bookmarks-grid"
                   bookmarks={bookmarks}
                   onRefresh={fetchBookmarks}
                 />

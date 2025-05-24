@@ -51,21 +51,25 @@ export function formatDate(date, options = {}) {
     }
     
     // Format as date
-    return dateObj.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: dateObj.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-    })
+    return typeof window !== 'undefined'
+      ? dateObj.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: dateObj.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+        })
+      : dateObj.toISOString().slice(0, 10);
   }
   
   // Full date format
-  return dateObj.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return typeof window !== 'undefined'
+    ? dateObj.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : dateObj.toISOString().replace('T', ' ').slice(0, 16);
 }
 
 /**

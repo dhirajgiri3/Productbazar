@@ -762,7 +762,7 @@ export default function ActivityTab({ activity = [], onBack }) {
       <AnimatePresence mode="wait">
         {sortedDates.length > 0 ? (
           <motion.div
-            key="activity-dates"
+            key="user-activity-dates"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

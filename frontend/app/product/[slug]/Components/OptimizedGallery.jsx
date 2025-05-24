@@ -363,7 +363,7 @@ const OptimizedGallery = ({
                 <div className="relative w-full h-full max-w-5xl max-h-[80vh] mx-auto flex items-center justify-center">
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={`fullscreen-${currentImageIndex}`}
+                      key={`gallery-fullscreen-${currentImageIndex}`}
                       className="relative w-full h-full flex items-center justify-center"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}

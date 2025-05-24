@@ -24,8 +24,7 @@ function Landing() {
   const { isDarkMode } = useTheme();
 
   return (
-    <div className="flex flex-col align-center justify-center bg-white dark:bg-gray-900 transition-colors duration-300">
-      {/* Hero section doesn't need top margin */}
+    <div className="flex flex-col align-center justify-center bg-white dark:bg-gray-900 transition-colors duration-300 min-h-screen">
       <SectionSpacing isFirst={true}>
         <HeroSection isDarkMode={isDarkMode} />
       </SectionSpacing>
@@ -62,7 +61,6 @@ function Landing() {
         <ProductBazarEcosystemConnector />
       </SectionSpacing>
 
-      {/* FAQ section doesn't need bottom margin */}
       <SectionSpacing isLast={true}>
         <FaqSection />
       </SectionSpacing>

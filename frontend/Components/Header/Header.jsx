@@ -7,7 +7,6 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   Search,
   Plus,
-  Bell,
   Menu,
   X,
   ChevronDown,
@@ -28,15 +27,15 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useAuth } from "@/lib/contexts/auth-context";
-import { useProduct } from "@/lib/contexts/product-context"; // Keep for future use
+import { useProduct } from "@/lib/contexts/product-context";
 import { useCategories } from "@/lib/contexts/category-context";
 import { useOnClickOutside } from "@/lib/hooks/useOnClickOutside";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import OnboardingBanner from "./OnboardingBanner.jsx";
 import SearchModal from "../Modal/Search/SearchModal.jsx";
-import CategoryIcon from "../UI/CategoryIcon"; // Assumed to be theme-aware
-import ThemeToggle from "../UI/ThemeToggle/ThemeToggle"; // Assumed to be theme-aware
+import CategoryIcon from "../UI/CategoryIcon";
+import ThemeToggle from "../UI/ThemeToggle/ThemeToggle";
 
 const NavItem = ({ label, isActive, href, onClick }) => (
   <motion.div
@@ -74,6 +73,332 @@ const NewBadge = () => (
   </span>
 );
 
+// ProfilePicture component with stable rendering
+const ProfilePicture = ({ user, size = 36, className = "" }) => {
+  const [imgError, setImgError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentSrc, setCurrentSrc] = useState(null);
+
+  useEffect(() => {
+    setImgError(false);
+    setIsLoading(true);
+    setCurrentSrc(null);
+  }, [user?._id, user?.profilePicture?.url]);
+
+  const getProfilePictureUrl = useCallback(() => {
+    if (!user) {
+      return `https://ui-avatars.com/api/?name=Guest&background=8B5CF6&color=fff&size=${size * 2}&format=png&rounded=true`;
+    }
+    if (!imgError) {
+      const profileUrl = user.profilePicture?.url || (typeof user.profilePicture === "string" ? user.profilePicture : "");
+      if (profileUrl && profileUrl.trim() && profileUrl !== "/Assets/Image/Profile.png") {
+        return profileUrl;
+      }
+    }
+    const firstName = user.firstName || "User";
+    const lastName = user.lastName || "";
+    const initials = `${firstName}+${lastName}`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=8B5CF6&color=fff&size=${size * 2}&format=png&rounded=true`;
+  }, [user, imgError, size]);
+
+  const handleImageLoad = () => setIsLoading(false);
+  const handleImageError = () => {
+    setImgError(true);
+    setIsLoading(false);
+  };
+
+  const imageUrl = getProfilePictureUrl();
+
+  useEffect(() => {
+    if (imageUrl && imageUrl.trim()) {
+      setCurrentSrc(imageUrl);
+    }
+  }, [imageUrl]);
+
+  return (
+    <div className={`relative ${className}`} style={{ width: size, height: size }}>
+      {isLoading && (
+        <div
+          className="absolute inset-0 bg-violet-100 dark:bg-violet-900/30 rounded-full animate-pulse"
+          style={{ width: size, height: size }}
+        />
+      )}
+      {currentSrc ? (
+        <Image
+          src={currentSrc}
+          alt={`${user?.firstName || "User"}'s profile`}
+          width={size}
+          height={size}
+          className={`object-cover rounded-full transition-opacity duration-200 ${isLoading ? "opacity-0" : "opacity-100"}`}
+          style={{ width: size, height: size }}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          priority={size > 30}
+          unoptimized={currentSrc.includes("ui-avatars.com")}
+        />
+      ) : (
+        <div
+          className="bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center"
+          style={{ width: size, height: size }}
+        >
+          <span className="text-violet-600 dark:text-violet-300 text-xs font-medium">
+            {user?.firstName?.[0] || "U"}
+            {user?.lastName?.[0] || ""}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Authentication section to handle user menu and login/signup
+const AuthSection = ({ userMenuRef, setIsUserMenuOpen, isUserMenuOpen, handleLogout, pathname }) => {
+  const { user, isAuthenticated, isInitialized } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="flex items-center space-x-2 animate-pulse" aria-hidden="true">
+        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+        <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </div>
+    );
+  }
+
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center space-x-2 animate-pulse" aria-hidden="true">
+        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+        <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && user) {
+    return (
+      <div ref={userMenuRef} className="relative">
+        <motion.button
+          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+          className="flex items-center space-x-1 focus:outline-none group"
+          aria-expanded={isUserMenuOpen}
+          aria-haspopup="true"
+          aria-label="User menu"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <motion.div
+            className="rounded-full overflow-hidden border-2 border-gray-200/80 dark:border-gray-700/80 group-hover:border-violet-300 dark:group-hover:border-violet-500 transition-all duration-200 relative shadow-sm"
+            whileHover={{ rotate: [0, -2, 2, 0] }}
+            transition={{ duration: 0.3 }}
+          >
+            <ProfilePicture user={user} size={36} className="w-9 h-9" />
+            <motion.div className="absolute inset-0 bg-gradient-to-tr from-violet-400/5 to-indigo-500/5 dark:from-violet-600/10 dark:to-indigo-700/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          </motion.div>
+          <motion.div
+            animate={{ rotate: isUserMenuOpen ? 180 : 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="text-gray-500 dark:text-gray-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors"
+          >
+            <ChevronDown size={15} className="opacity-70" />
+          </motion.div>
+        </motion.button>
+        <AnimatePresence>
+          {isUserMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 5, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 5, scale: 0.98 }}
+              transition={{
+                duration: 0.15,
+                type: "spring",
+                stiffness: 500,
+                damping: 30,
+              }}
+              className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-gray-800/95 border border-gray-200/80 dark:border-gray-700/80 rounded-xl shadow-lg dark:shadow-black/20 overflow-hidden z-20 backdrop-blur-xl"
+              role="menu"
+            >
+              <motion.div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-indigo-500" />
+              <div className="p-3.5 border-b border-gray-200/80 dark:border-gray-700/80">
+                <div className="flex items-center">
+                  <div className="mr-3 flex-shrink-0">
+                    <ProfilePicture
+                      user={user}
+                      size={40}
+                      className="w-10 h-10 border border-gray-200/80 dark:border-gray-700/80 shadow-sm"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 dark:text-white flex items-center">
+                      {user.firstName || "User"} {user.lastName || ""}
+                      {user.role && (
+                        <span className="ml-2 px-1.5 py-0.5 text-xs bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-full ring-1 ring-inset ring-violet-500/20 dark:ring-violet-500/30">
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                      {user.email || user.phone || "No contact info"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="py-1">
+                {[
+                  {
+                    href: user.username
+                      ? `/user/${user.username}`
+                      : user._id
+                      ? `/user/profile/${user._id}`
+                      : "/app",
+                    label: "Your Profile",
+                    icon: User,
+                    delay: 0.03,
+                  },
+                  {
+                    href: user.username
+                      ? `/user/${user.username}/products`
+                      : user._id
+                      ? `/user/profile/${user._id}/products`
+                      : "/app",
+                    label: "Your Products",
+                    icon: Briefcase,
+                    delay: 0.06,
+                  },
+                  {
+                    href: "/user/history",
+                    label: "View History",
+                    icon: Clock,
+                    delay: 0.09,
+                  },
+                  ...(user.roleCapabilities?.canApplyToJobs
+                    ? [
+                        {
+                          href: "/profile/applications",
+                          label: "My Applications",
+                          icon: FileText,
+                          isNew: true,
+                          delay: 0.12,
+                        },
+                      ]
+                    : []),
+                  ...(user.roleCapabilities?.canPostJobs
+                    ? [
+                        {
+                          href: "/user/myjobs",
+                          label: "My Jobs",
+                          icon: Briefcase,
+                          delay: 0.15,
+                        },
+                      ]
+                    : []),
+                  ...(user.roleCapabilities?.canShowcaseProjects
+                    ? [
+                        {
+                          href: "/projects",
+                          label: "My Projects",
+                          icon: Layers,
+                          delay: 0.18,
+                        },
+                      ]
+                    : []),
+                  {
+                    href: "/user/settings",
+                    label: "Settings",
+                    icon: Settings,
+                    delay: 0.21,
+                  },
+                ].map((item) => (
+                  <motion.div
+                    key={item.href}
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: item.delay }}
+                  >
+                    <Link
+                      href={item.href}
+                      className="flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-violet-50/70 dark:hover:bg-violet-800/30 hover:text-violet-700 dark:hover:text-violet-300 transition-all duration-150 rounded-md mx-1 my-0.5"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      role="menuitem"
+                    >
+                      <item.icon
+                        size={16}
+                        className="mr-3 text-violet-500 dark:text-violet-400 opacity-80"
+                      />
+                      {item.label}
+                      {item.isNew && <NewBadge />}
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="py-1 border-t border-gray-200/80 dark:border-gray-700/80 bg-gray-50/50 dark:bg-gray-800/30">
+                <motion.div
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.24 }}
+                >
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex w-full items-center px-4 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-red-50/70 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150 rounded-md mx-1 my-0.5"
+                    role="menuitem"
+                  >
+                    <LogOut size={16} className="mr-3 opacity-80" /> Log Out
+                  </button>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center space-x-2 md:space-x-3">
+      <motion.div
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, type: "spring", stiffness: 400, damping: 25 }}
+      >
+        <Link
+          href="/auth/login"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all border border-gray-200/80 dark:border-gray-700/80 hover:border-violet-300 dark:hover:border-violet-700 shadow-sm"
+        >
+          Log In
+        </Link>
+      </motion.div>
+      <motion.div
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1, type: "spring", stiffness: 400, damping: 25 }}
+        className="relative overflow-hidden rounded-full shadow-md hover:shadow-lg transition-all group"
+      >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-violet-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          initial={{ opacity: 0 }}
+          whileHover={{ opacity: 1 }}
+        />
+        <Link
+          href="/auth/register"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 font-medium rounded-full transition-all relative z-10 block"
+        >
+          Sign Up
+        </Link>
+      </motion.div>
+    </div>
+  );
+};
+
 const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -87,7 +412,7 @@ const Header = () => {
     refreshNextStep,
     refreshUserData,
   } = useAuth();
-  const {} = useProduct(); // Keep the context for future use
+  const {} = useProduct();
   const { categories = [] } = useCategories();
 
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -98,112 +423,15 @@ const Header = () => {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [isHoveredLogo, setIsHoveredLogo] = useState(false);
-  const [userDataKey, setUserDataKey] = useState(0); // Force re-render key
+  const [userDataKey, setUserDataKey] = useState(0);
 
   const userMenuRef = useRef(null);
   const roleMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
 
-  // Profile picture component with better error handling
-  const ProfilePicture = ({ user, size = 36, className = "" }) => {
-    const [imgError, setImgError] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentSrc, setCurrentSrc] = useState(null);
-    
-    // Reset error state when user or profile picture changes
-    useEffect(() => {
-      setImgError(false);
-      setIsLoading(true);
-      setCurrentSrc(null);
-    }, [user?._id, user?.profilePicture?.url, userDataKey]);
-    
-    const getProfilePictureUrl = useCallback(() => {
-      // First try to use the actual profile picture if available and no error occurred
-      if (user?.profilePicture?.url && user.profilePicture.url.trim() && !imgError) {
-        return user.profilePicture.url;
-      }
-      
-      // Check if there's a default profile image path like in the profile header
-      if (user?.profilePicture && !imgError) {
-        // Sometimes the profilePicture might be a string instead of an object
-        const profileUrl = typeof user.profilePicture === 'string' ? user.profilePicture : user.profilePicture.url;
-        if (profileUrl && profileUrl.trim() && profileUrl !== '/Assets/Image/Profile.png') {
-          return profileUrl;
-        }
-      }
-      
-      // Fallback to avatar generator - always return a valid URL
-      const firstName = user?.firstName || 'User';
-      const lastName = user?.lastName || '';
-      const initials = `${firstName}+${lastName}`;
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=8B5CF6&color=fff&size=${size * 2}&format=png&rounded=true`;
-    }, [user, imgError, size]);
-
-    const handleImageLoad = () => {
-      setIsLoading(false);
-    };
-
-    const handleImageError = () => {
-      console.log('Image error for user:', user?.firstName, 'URL:', currentSrc);
-      setImgError(true);
-      setIsLoading(false);
-    };
-
-    const imageUrl = getProfilePictureUrl();
-    
-    // Update current src when URL changes, but only if it's not empty
-    useEffect(() => {
-      if (imageUrl && imageUrl.trim()) {
-        setCurrentSrc(imageUrl);
-      }
-    }, [imageUrl]);
-
-    return (
-      <div className={`relative ${className}`} style={{ width: size, height: size }}>
-        {isLoading && (
-          <div 
-            className="absolute inset-0 bg-violet-100 dark:bg-violet-900/30 rounded-full animate-pulse"
-            style={{ width: size, height: size }}
-          />
-        )}
-        {currentSrc ? (
-          <Image
-            key={`${user?._id}-${userDataKey}-${user?.profilePicture?.url || 'fallback'}`} // Force re-render on data change
-            src={currentSrc}
-            alt={`${user?.firstName || "User"}'s profile`}
-            width={size}
-            height={size}
-            className={`object-cover rounded-full transition-opacity duration-200 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-            style={{ width: size, height: size }}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-            priority={size > 30} // Prioritize larger profile pictures
-            unoptimized={currentSrc.includes('ui-avatars.com')} // Don't optimize external avatar service
-          />
-        ) : (
-          <div 
-            className="bg-violet-100 dark:bg-violet-900/30 rounded-full flex items-center justify-center"
-            style={{ width: size, height: size }}
-          >
-            <span className="text-violet-600 dark:text-violet-300 text-xs font-medium">
-              {user?.firstName?.[0] || 'U'}{user?.lastName?.[0] || ''}
-            </span>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   useOnClickOutside(userMenuRef, () => setIsUserMenuOpen(false));
   useOnClickOutside(roleMenuRef, () => setShowRoleMenu(false));
   useOnClickOutside(categoryMenuRef, () => setShowCategoryMenu(false));
-
-  // Optional debugging: Log DOM to compare server vs. client
-  /*
-  useEffect(() => {
-    console.log('Client Header DOM:', document.querySelector('header')?.outerHTML);
-  }, []);
-  */
 
   const getRoleBasedNavItems = useCallback(() => {
     if (!user || !user.roleCapabilities) return [];
@@ -275,56 +503,51 @@ const Header = () => {
     return items;
   }, [user, pathname]);
 
-  // Handle user data refresh manually
   const handleUserDataRefresh = useCallback(async () => {
     if (refreshUserData) {
       try {
         await refreshUserData(true);
-        setUserDataKey(prev => prev + 1);
+        setUserDataKey((prev) => prev + 1);
       } catch (error) {
-        console.error('Failed to refresh user data:', error);
+        console.error("Failed to refresh user data:", error);
       }
     }
   }, [refreshUserData]);
 
-  // Debug user data in development
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && user) {
-      console.log('Header - User data:', {
+    if (process.env.NODE_ENV === "development" && user) {
+      console.log("Header - User data:", {
         firstName: user.firstName,
         lastName: user.lastName,
         profilePicture: user.profilePicture,
         profilePictureType: typeof user.profilePicture,
         hasProfilePictureUrl: !!user.profilePicture?.url,
-        userDataKey
+        userDataKey,
       });
     }
   }, [user, userDataKey]);
 
-  // Listen for auth events and user data updates
   useEffect(() => {
     const handleLoginSuccess = () => {
-      if (typeof refreshUserData === 'function') {
-        refreshUserData(true).catch(err => {
+      if (typeof refreshUserData === "function") {
+        refreshUserData(true).catch((err) => {
           console.error("Error refreshing user data:", err);
         });
       }
     };
 
-    const handleUserUpdated = (event) => {
-      // Force re-render when user data is updated
-      setUserDataKey(prev => prev + 1);
+    const handleUserUpdated = () => {
+      setUserDataKey((prev) => prev + 1);
     };
 
-    const handleUserRefreshed = (event) => {
-      // Force re-render when user data is refreshed
-      setUserDataKey(prev => prev + 1);
+    const handleUserRefreshed = () => {
+      setUserDataKey((prev) => prev + 1);
     };
 
     window.addEventListener("auth:login-success", handleLoginSuccess);
     window.addEventListener("auth:user-updated", handleUserUpdated);
     window.addEventListener("auth:user-refreshed", handleUserRefreshed);
-    
+
     return () => {
       window.removeEventListener("auth:login-success", handleLoginSuccess);
       window.removeEventListener("auth:user-updated", handleUserUpdated);
@@ -332,14 +555,12 @@ const Header = () => {
     };
   }, [refreshUserData]);
 
-  // Handle onboarding banner visibility
   useEffect(() => {
     if (!isInitialized || !isAuthenticated || !user) {
       setShowOnboardingBanner(false);
       return;
     }
-    const allStepsCompleted =
-      user.isEmailVerified && user.isPhoneVerified && user.isProfileCompleted;
+    const allStepsCompleted = user.isEmailVerified && user.isPhoneVerified && user.isProfileCompleted;
     if (allStepsCompleted) {
       setShowOnboardingBanner(false);
       if (nextStep) refreshNextStep();
@@ -351,7 +572,6 @@ const Header = () => {
     }
   }, [isInitialized, isAuthenticated, user, nextStep, refreshNextStep]);
 
-  // Keyboard shortcut for search
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -379,11 +599,7 @@ const Header = () => {
       router.push("/auth/login");
       return;
     }
-    if (
-      nextStep &&
-      (nextStep.type === "email_verification" ||
-        nextStep.type === "phone_verification")
-    ) {
+    if (nextStep && (nextStep.type === "email_verification" || nextStep.type === "phone_verification")) {
       toast.error("Please verify your contact information first");
       handleCompleteOnboarding();
       return;
@@ -398,12 +614,9 @@ const Header = () => {
 
   const handleCompleteOnboarding = () => {
     if (!nextStep) return;
-    if (nextStep.type === "email_verification")
-      router.push("/auth/verify-email");
-    else if (nextStep.type === "phone_verification")
-      router.push("/auth/verify-phone");
-    else if (nextStep.type === "profile_completion")
-      router.push("/complete-profile");
+    if (nextStep.type === "email_verification") router.push("/auth/verify-email");
+    else if (nextStep.type === "phone_verification") router.push("/auth/verify-phone");
+    else if (nextStep.type === "profile_completion") router.push("/complete-profile");
   };
 
   return (
@@ -427,23 +640,16 @@ const Header = () => {
                 skipProfileCompletion();
               }}
               onRefresh={async () => {
-                toast.loading("Refreshing verification status...", {
-                  id: "refresh-toast",
-                });
+                toast.loading("Refreshing verification status...", { id: "refresh-toast" });
                 try {
                   const result = await Promise.resolve(refreshNextStep());
                   setTimeout(() => {
-                    toast.success(
-                      result
-                        ? "Verification status updated"
-                        : "All steps completed!",
-                      { id: "refresh-toast" }
-                    );
+                    toast.success(result ? "Verification status updated" : "All steps completed!", {
+                      id: "refresh-toast",
+                    });
                   }, 500);
                 } catch (error) {
-                  toast.error("Failed to refresh status", {
-                    id: "refresh-toast",
-                  });
+                  toast.error("Failed to refresh status", { id: "refresh-toast" });
                 }
               }}
             />
@@ -453,7 +659,7 @@ const Header = () => {
 
       <header className="bg-white/90 dark:bg-gray-900/90 sticky top-0 z-40 border-b border-gray-200/80 dark:border-gray-800/80 backdrop-blur-lg shadow-sm dark:shadow-gray-950/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <div className="flex items-center" suppressHydrationWarning>
+          <div className="flex items-center">
             <motion.div
               className="relative"
               initial={{ opacity: 0 }}
@@ -467,12 +673,7 @@ const Header = () => {
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0, rotate: -10, y: 5 }}
                   animate={{ opacity: 1, rotate: 0, y: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 20,
-                    delay: 0.1,
-                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.1 }}
                   onHoverStart={() => setIsHoveredLogo(true)}
                   onHoverEnd={() => setIsHoveredLogo(false)}
                 >
@@ -506,12 +707,7 @@ const Header = () => {
                 whileTap={{ scale: 0.99 }}
                 initial={{ opacity: 0, x: -5 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  duration: 0.3,
-                  type: "spring",
-                  stiffness: 400,
-                  damping: 30,
-                }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 400, damping: 30 }}
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-violet-50/50 to-indigo-50/50 dark:from-violet-900/10 dark:to-indigo-900/10 opacity-0 rounded-full group-hover:opacity-100"
@@ -538,11 +734,7 @@ const Header = () => {
           </div>
 
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-            <NavItem
-              label="Home"
-              isActive={pathname === "/" || pathname === "/products"}
-              href="/products"
-            />
+            <NavItem label="Home" isActive={pathname === "/" || pathname === "/products"} href="/products" />
 
             <div className="relative" ref={categoryMenuRef}>
               <motion.button
@@ -580,30 +772,18 @@ const Header = () => {
                     initial={{ opacity: 0, y: 5, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 5, scale: 0.98 }}
-                    transition={{
-                      duration: 0.15,
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30,
-                    }}
+                    transition={{ duration: 0.15, type: "spring", stiffness: 500, damping: 30 }}
                     className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-gray-800/95 border border-gray-200/80 dark:border-gray-700/80 rounded-xl shadow-lg dark:shadow-black/20 overflow-hidden z-20 backdrop-blur-xl"
                   >
                     <motion.div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-indigo-500" />
                     <div className="p-3.5 border-b border-gray-200/80 dark:border-gray-700/80">
                       <div className="flex items-center">
                         <div className="mr-3 flex-shrink-0 p-2 rounded-full bg-violet-50 dark:bg-violet-500/10 shadow-sm">
-                          <Grid
-                            size={18}
-                            className="text-violet-600 dark:text-violet-400"
-                          />
+                          <Grid size={18} className="text-violet-600 dark:text-violet-400" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            Browse Categories
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Discover products by category
-                          </div>
+                          <div className="font-medium text-gray-900 dark:text-white">Browse Categories</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Discover products by category</div>
                         </div>
                       </div>
                     </div>
@@ -617,19 +797,12 @@ const Header = () => {
                             transition={{ delay: index * 0.03 }}
                           >
                             <Link
-                              href={`/category/${
-                                category.slug ||
-                                category.name.toLowerCase().replace(/\s+/g, "-")
-                              }`}
+                              href={`/category/${category.slug || category.name.toLowerCase().replace(/\s+/g, "-")}`}
                               className="flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-violet-50/70 dark:hover:bg-violet-800/30 hover:text-violet-700 dark:hover:text-violet-300 transition-all duration-150 rounded-md mx-1 my-0.5"
                               onClick={() => setShowCategoryMenu(false)}
                             >
                               <span className="mr-3 text-violet-500 dark:text-violet-400 opacity-80">
-                                <CategoryIcon
-                                  icon={category.icon}
-                                  name={category.name}
-                                  size={16}
-                                />
+                                <CategoryIcon icon={category.icon} name={category.name} size={16} />
                               </span>
                               <span>{category.name}</span>
                             </Link>
@@ -642,21 +815,14 @@ const Header = () => {
                             onClick={() => setShowCategoryMenu(false)}
                           >
                             View All Categories{" "}
-                            <motion.div
-                              className="ml-1"
-                              initial={{ x: 0 }}
-                              whileHover={{ x: 3 }}
-                              transition={{ duration: 0.2 }}
-                            >
+                            <motion.div className="ml-1" initial={{ x: 0 }} whileHover={{ x: 3 }} transition={{ duration: 0.2 }}>
                               <ArrowRight size={14} />
                             </motion.div>
                           </Link>
                         </div>
                       </div>
                     ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 italic">
-                        Loading categories...
-                      </div>
+                      <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 italic">Loading categories...</div>
                     )}
                   </motion.div>
                 )}
@@ -665,11 +831,7 @@ const Header = () => {
 
             {isAuthenticated && (
               <>
-                <NavItem
-                  label="Bookmarks"
-                  isActive={pathname === "/user/mybookmarks"}
-                  href="/user/mybookmarks"
-                />
+                <NavItem label="Bookmarks" isActive={pathname === "/user/mybookmarks"} href="/user/mybookmarks" />
                 <div className="relative" ref={roleMenuRef}>
                   <motion.button
                     onClick={() => setShowRoleMenu(!showRoleMenu)}
@@ -696,11 +858,7 @@ const Header = () => {
                       <motion.div
                         className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-indigo-500 dark:from-violet-400 dark:to-indigo-400 rounded-full shadow-sm dark:shadow-violet-500/20"
                         layoutId="navIndicator"
-                        transition={{
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30,
-                        }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
                       />
                     )}
                   </motion.button>
@@ -710,30 +868,18 @@ const Header = () => {
                         initial={{ opacity: 0, y: 5, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.98 }}
-                        transition={{
-                          duration: 0.15,
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30,
-                        }}
+                        transition={{ duration: 0.15, type: "spring", stiffness: 500, damping: 30 }}
                         className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-gray-800/95 border border-gray-200/80 dark:border-gray-700/80 rounded-xl shadow-lg dark:shadow-black/20 overflow-hidden z-20 backdrop-blur-xl"
                       >
                         <motion.div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-indigo-500" />
                         <div className="p-3.5 border-b border-gray-200/80 dark:border-gray-700/80">
                           <div className="flex items-center">
                             <div className="mr-3 flex-shrink-0 p-2 rounded-full bg-violet-50 dark:bg-violet-500/10 shadow-sm">
-                              <Folder
-                                size={18}
-                                className="text-violet-600 dark:text-violet-400"
-                              />
+                              <Folder size={18} className="text-violet-600 dark:text-violet-400" />
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900 dark:text-white">
-                                Your Features
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                Role-specific features
-                              </div>
+                              <div className="font-medium text-gray-900 dark:text-white">Your Features</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">Role-specific features</div>
                             </div>
                           </div>
                         </div>
@@ -755,9 +901,7 @@ const Header = () => {
                                   }`}
                                   onClick={() => setShowRoleMenu(false)}
                                 >
-                                  <span className="mr-3 text-violet-500 dark:text-violet-400 opacity-80">
-                                    {item.icon}
-                                  </span>
+                                  <span className="mr-3 text-violet-500 dark:text-violet-400 opacity-80">{item.icon}</span>
                                   <span>{item.label}</span>
                                   {item.isNew && <NewBadge />}
                                 </Link>
@@ -778,37 +922,30 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
-            {isInitialized &&
-              isAuthenticated &&
-              user?.roleCapabilities?.canUploadProducts && (
-                <motion.button
-                  onClick={handleProductSubmit}
-                  className="hidden md:flex items-center justify-center bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-full px-5 py-2 text-sm font-medium relative overflow-hidden group shadow-md hover:shadow-lg transition-all"
-                  aria-label="Submit a product"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, type: "spring", stiffness: 400, damping: 25 }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-violet-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    initial={{ opacity: 0 }}
-                    whileHover={{ opacity: 1 }}
-                  />
-                  <motion.div className="relative z-10 flex items-center">
-                    <motion.div
-                      className="mr-1.5"
-                      initial={{ rotate: 0 }}
-                      whileHover={{ rotate: 90 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Plus size={16} />
-                    </motion.div>
-                    <span>Submit Product</span>
+            {isInitialized && isAuthenticated && user?.roleCapabilities?.canUploadProducts && (
+              <motion.button
+                onClick={handleProductSubmit}
+                className="hidden md:flex items-center justify-center bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-full px-5 py-2 text-sm font-medium relative overflow-hidden group shadow-md hover:shadow-lg transition-all"
+                aria-label="Submit a product"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 400, damping: 25 }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-violet-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                />
+                <motion.div className="relative z-10 flex items-center">
+                  <motion.div className="mr-1.5" initial={{ rotate: 0 }} whileHover={{ rotate: 90 }} transition={{ duration: 0.2 }}>
+                    <Plus size={16} />
                   </motion.div>
-                </motion.button>
-              )}
+                  <span>Submit Product</span>
+                </motion.div>
+              </motion.button>
+            )}
 
             <motion.div
               whileHover={{ scale: 1.1 }}
@@ -819,271 +956,18 @@ const Header = () => {
             >
               <ThemeToggle
                 size="small"
+                instanceId="header"
                 className="shadow-sm rounded-full p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50"
               />
             </motion.div>
 
-            {!isInitialized ? (
-              <div className="flex items-center space-x-2 animate-pulse" aria-hidden="true">
-                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              </div>
-            ) : isAuthenticated ? (
-              <>
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="relative"
-                >
-                  <Link
-                    href="/notifications"
-                    className="relative p-1.5 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-700/30 rounded-full transition-colors flex items-center justify-center"
-                    aria-label="Notifications"
-                  >
-                    <Bell size={20} />
-                    {user?.unreadNotifications > 0 && (
-                      <motion.span
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm"
-                        aria-label={`${user.unreadNotifications} unread notifications`}
-                      >
-                        {user.unreadNotifications > 9
-                          ? "9+"
-                          : user.unreadNotifications}
-                      </motion.span>
-                    )}
-                  </Link>
-                  {user?.unreadNotifications > 0 && (
-                    <motion.span
-                      className="absolute inset-0 rounded-full border-2 border-violet-300 dark:border-violet-500 opacity-0"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: [0, 0.5, 0], scale: [0.8, 1.2, 0.8] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        repeatType: "loop",
-                      }}
-                    />
-                  )}
-                </motion.div>
-
-                <div ref={userMenuRef} className="relative">
-                  <motion.button
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center space-x-1 focus:outline-none group"
-                    aria-expanded={isUserMenuOpen}
-                    aria-haspopup="true"
-                    aria-label="User menu"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <motion.div
-                      className="rounded-full overflow-hidden border-2 border-gray-200/80 dark:border-gray-700/80 group-hover:border-violet-300 dark:group-hover:border-violet-500 transition-all duration-200 relative shadow-sm"
-                      whileHover={{ rotate: [0, -2, 2, 0] }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ProfilePicture 
-                        user={user} 
-                        size={36} 
-                        className="w-9 h-9"
-                      />
-                      <motion.div className="absolute inset-0 bg-gradient-to-tr from-violet-400/5 to-indigo-500/5 dark:from-violet-600/10 dark:to-indigo-700/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                    </motion.div>
-                    <motion.div
-                      animate={{ rotate: isUserMenuOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className="text-gray-500 dark:text-gray-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors"
-                    >
-                      <ChevronDown size={15} className="opacity-70" />
-                    </motion.div>
-                  </motion.button>
-                  <AnimatePresence>
-                    {isUserMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 5, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 5, scale: 0.98 }}
-                        transition={{
-                          duration: 0.15,
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30,
-                        }}
-                        className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-gray-800/95 border border-gray-200/80 dark:border-gray-700/80 rounded-xl shadow-lg dark:shadow-black/20 overflow-hidden z-20 backdrop-blur-xl"
-                        role="menu"
-                      >
-                        <motion.div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-indigo-500" />
-                        <div className="p-3.5 border-b border-gray-200/80 dark:border-gray-700/80">
-                          <div className="flex items-center">
-                            <div className="mr-3 flex-shrink-0">
-                              <ProfilePicture 
-                                user={user} 
-                                size={40} 
-                                className="w-10 h-10 border border-gray-200/80 dark:border-gray-700/80 shadow-sm"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-gray-900 dark:text-white flex items-center">
-                                {user?.firstName} {user?.lastName}
-                                {user?.role && (
-                                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-full ring-1 ring-inset ring-violet-500/20 dark:ring-violet-500/30">
-                                    {user.role.charAt(0).toUpperCase() +
-                                      user.role.slice(1)}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                                {user?.email || user?.phone || ""}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="py-1">
-                          {[
-                            {
-                              href: user?.username
-                                ? `/user/${user.username}`
-                                : (user?._id ? `/user/profile/${user._id}` : '/app'),
-                              label: "Your Profile",
-                              icon: User,
-                              delay: 0.03,
-                            },
-                            {
-                              href: user?.username
-                                ? `/user/${user.username}/products`
-                                : (user?._id ? `/user/profile/${user._id}/products` : '/app'),
-                              label: "Your Products",
-                              icon: Briefcase,
-                              delay: 0.06,
-                            },
-                            {
-                              href: "/user/history",
-                              label: "View History",
-                              icon: Clock,
-                              delay: 0.09,
-                            },
-                            ...(user?.roleCapabilities?.canApplyToJobs
-                              ? [
-                                  {
-                                    href: "/profile/applications",
-                                    label: "My Applications",
-                                    icon: FileText,
-                                    isNew: true,
-                                    delay: 0.12,
-                                  },
-                                ]
-                              : []),
-                            ...(user?.roleCapabilities?.canPostJobs
-                              ? [
-                                  {
-                                    href: "/user/myjobs",
-                                    label: "My Jobs",
-                                    icon: Briefcase,
-                                    delay: 0.15,
-                                  },
-                                ]
-                              : []),
-                            ...(user?.roleCapabilities?.canShowcaseProjects
-                              ? [
-                                  {
-                                    href: "/projects",
-                                    label: "My Projects",
-                                    icon: Layers,
-                                    delay: 0.18,
-                                  },
-                                ]
-                              : []),
-                            {
-                              href: "/user/settings",
-                              label: "Settings",
-                              icon: Settings,
-                              delay: 0.21,
-                            },
-                          ].map((item) => (
-                            <motion.div
-                              key={item.href}
-                              initial={{ opacity: 0, x: -5 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: item.delay }}
-                            >
-                              <Link
-                                href={item.href}
-                                className="flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-violet-50/70 dark:hover:bg-violet-800/30 hover:text-violet-700 dark:hover:text-violet-300 transition-all duration-150 rounded-md mx-1 my-0.5"
-                                onClick={() => setIsUserMenuOpen(false)}
-                                role="menuitem"
-                              >
-                                <item.icon
-                                  size={16}
-                                  className="mr-3 text-violet-500 dark:text-violet-400 opacity-80"
-                                />
-                                {item.label}
-                                {item.isNew && <NewBadge />}
-                              </Link>
-                            </motion.div>
-                          ))}
-                        </div>
-                        <div className="py-1 border-t border-gray-200/80 dark:border-gray-700/80 bg-gray-50/50 dark:bg-gray-800/30">
-                          <motion.div
-                            initial={{ opacity: 0, x: -5 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.24 }}
-                          >
-                            <button
-                              onClick={() => {
-                                setIsUserMenuOpen(false);
-                                handleLogout();
-                              }}
-                              className="flex w-full items-center px-4 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-red-50/70 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-300 transition-all duration-150 rounded-md mx-1 my-0.5"
-                              role="menuitem"
-                            >
-                              <LogOut size={16} className="mr-3 opacity-80" /> Log Out
-                            </button>
-                          </motion.div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center space-x-2 md:space-x-3">
-                <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, type: "spring", stiffness: 400, damping: 25 }}
-                >
-                  <Link
-                    href="/auth/login"
-                    className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all border border-gray-200/80 dark:border-gray-700/80 hover:border-violet-300 dark:hover:border-violet-700 shadow-sm"
-                  >
-                    Log In
-                  </Link>
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1, type: "spring", stiffness: 400, damping: 25 }}
-                  className="relative overflow-hidden rounded-full shadow-md hover:shadow-lg transition-all group"
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-violet-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    initial={{ opacity: 0 }}
-                    whileHover={{ opacity: 1 }}
-                  />
-                  <Link
-                    href="/auth/register"
-                    className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 font-medium rounded-full transition-all relative z-10 block"
-                  >
-                    Sign Up
-                  </Link>
-                </motion.div>
-              </div>
-            )}
+            <AuthSection
+              userMenuRef={userMenuRef}
+              setIsUserMenuOpen={setIsUserMenuOpen}
+              isUserMenuOpen={isUserMenuOpen}
+              handleLogout={handleLogout}
+              pathname={pathname}
+            />
 
             <motion.button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -1099,32 +983,22 @@ const Header = () => {
               <AnimatePresence initial={false} mode="wait">
                 {isMobileMenuOpen ? (
                   <motion.div
-                    key="close"
+                    key="header-mobile-close"
                     initial={{ rotate: -45, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: 45, opacity: 0 }}
-                    transition={{
-                      duration: 0.15,
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 25,
-                    }}
+                    transition={{ duration: 0.15, type: "spring", stiffness: 400, damping: 25 }}
                     className="relative z-10"
                   >
                     <X size={20} />
                   </motion.div>
                 ) : (
                   <motion.div
-                    key="menu"
+                    key="header-mobile-menu"
                     initial={{ rotate: 45, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: -45, opacity: 0 }}
-                    transition={{
-                      duration: 0.15,
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 25,
-                    }}
+                    transition={{ duration: 0.15, type: "spring", stiffness: 400, damping: 25 }}
                     className="relative z-10"
                   >
                     <Menu size={20} />
@@ -1155,16 +1029,13 @@ const Header = () => {
           </motion.button>
         </div>
 
-        <SearchModal
-          isOpen={isSearchModalOpen}
-          onClose={() => setIsSearchModalOpen(false)}
-          initialQuery={searchQuery}
-        />
+        <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} initialQuery={searchQuery} />
       </header>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
+            key="header-mobile-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1188,10 +1059,7 @@ const Header = () => {
                   className="flex flex-col space-y-1"
                   initial="hidden"
                   animate="visible"
-                  variants={{
-                    hidden: {},
-                    visible: { transition: { staggerChildren: 0.05 } },
-                  }}
+                  variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.05 } } }}
                 >
                   {[
                     {
@@ -1199,15 +1067,9 @@ const Header = () => {
                       label: "Home",
                       icon: Home,
                       activeCondition: pathname === "/" || pathname === "/products",
-                    }
+                    },
                   ].map((item) => (
-                    <motion.div
-                      key={item.href}
-                      variants={{
-                        hidden: { opacity: 0, y: 15 },
-                        visible: { opacity: 1, y: 0 },
-                      }}
-                    >
+                    <motion.div key={item.href} variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }}>
                       <Link
                         href={item.href}
                         className={`flex items-center px-3 py-2.5 rounded-lg text-base transition-all ${
@@ -1219,66 +1081,39 @@ const Header = () => {
                       >
                         <item.icon
                           size={18}
-                          className={`mr-3 ${
-                            item.activeCondition
-                              ? "text-violet-600 dark:text-violet-400"
-                              : "text-gray-500 dark:text-gray-400 opacity-80"
-                          }`}
+                          className={`mr-3 ${item.activeCondition ? "text-violet-600 dark:text-violet-400" : "text-gray-500 dark:text-gray-400 opacity-80"}`}
                         />
                         {item.label}
                       </Link>
                     </motion.div>
                   ))}
 
-                  <motion.div
-                    variants={{
-                      hidden: { opacity: 0, y: 15 },
-                      visible: { opacity: 1, y: 0 },
-                    }}
-                    className="pt-4"
-                  >
+                  <motion.div variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }} className="pt-4">
                     <div className="px-3 py-2 mb-1">
-                      <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Categories
-                      </h3>
+                      <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Categories</h3>
                     </div>
                     {categories.length > 0 ? (
                       <div className="space-y-1">
                         {categories.slice(0, 5).map((category, idx) => (
                           <motion.div
                             key={category._id || idx}
-                            variants={{
-                              hidden: { opacity: 0, x: -10 },
-                              visible: { opacity: 1, x: 0 },
-                            }}
+                            variants={{ hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0 } }}
                             transition={{ delay: idx * 0.03 }}
                           >
                             <Link
-                              href={`/category/${
-                                category.slug ||
-                                category.name.toLowerCase().replace(/\s+/g, "-")
-                              }`}
+                              href={`/category/${category.slug || category.name.toLowerCase().replace(/\s+/g, "-")}`}
                               className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-violet-50/70 dark:hover:bg-violet-800/30 hover:text-violet-700 dark:hover:text-violet-300 rounded-lg transition-all duration-150"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
                               <div className="mr-3 flex-shrink-0 w-5 h-5 flex items-center justify-center text-violet-500 dark:text-violet-400 opacity-80">
-                                <CategoryIcon
-                                  icon={category.icon}
-                                  name={category.name}
-                                  size={16}
-                                />
+                                <CategoryIcon icon={category.icon} name={category.name} size={16} />
                               </div>
-                              <span className="text-sm font-medium">
-                                {category.name}
-                              </span>
+                              <span className="text-sm font-medium">{category.name}</span>
                             </Link>
                           </motion.div>
                         ))}
                         <motion.div
-                          variants={{
-                            hidden: { opacity: 0, y: 5 },
-                            visible: { opacity: 1, y: 0 },
-                          }}
+                          variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }}
                           className="px-3 py-2"
                         >
                           <Link
@@ -1287,21 +1122,14 @@ const Header = () => {
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
                             View All Categories{" "}
-                            <motion.div
-                              className="ml-1"
-                              initial={{ x: 0 }}
-                              whileHover={{ x: 3 }}
-                              transition={{ duration: 0.2 }}
-                            >
+                            <motion.div className="ml-1" initial={{ x: 0 }} whileHover={{ x: 3 }} transition={{ duration: 0.2 }}>
                               <ArrowRight size={14} />
                             </motion.div>
                           </Link>
                         </motion.div>
                       </div>
                     ) : (
-                      <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 italic">
-                        Loading...
-                      </div>
+                      <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 italic">Loading...</div>
                     )}
                   </motion.div>
 
@@ -1323,10 +1151,7 @@ const Header = () => {
                       ].map((item) => (
                         <motion.div
                           key={item.href}
-                          variants={{
-                            hidden: { opacity: 0, y: 15 },
-                            visible: { opacity: 1, y: 0 },
-                          }}
+                          variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }}
                           className="pt-2"
                         >
                           <Link
@@ -1340,12 +1165,8 @@ const Header = () => {
                           >
                             <item.icon
                               size={20}
-                              className={`mr-3 ${
-                                item.activeCondition
-                                  ? "text-violet-600 dark:text-violet-400"
-                                  : "text-gray-500 dark:text-gray-400"
-                              }`}
-                            />{" "}
+                              className={`mr-3 ${item.activeCondition ? "text-violet-600 dark:text-violet-400" : "text-gray-500 dark:text-gray-400"}`}
+                            />
                             {item.label}
                           </Link>
                         </motion.div>
@@ -1353,10 +1174,7 @@ const Header = () => {
 
                       {getRoleBasedNavItems().length > 0 && (
                         <motion.div
-                          variants={{
-                            hidden: { opacity: 0, y: 15 },
-                            visible: { opacity: 1, y: 0 },
-                          }}
+                          variants={{ hidden: { opacity: 0, y: 15 }, visible: { opacity: 1, y: 0 } }}
                           className="pt-4"
                         >
                           <div className="px-3 py-2 mb-1">
@@ -1367,10 +1185,7 @@ const Header = () => {
                           {getRoleBasedNavItems().map((item, index) => (
                             <motion.div
                               key={`role-${index}`}
-                              variants={{
-                                hidden: { opacity: 0, x: -10 },
-                                visible: { opacity: 1, x: 0 },
-                              }}
+                              variants={{ hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0 } }}
                               transition={{ delay: index * 0.03 }}
                             >
                               <Link
@@ -1382,13 +1197,7 @@ const Header = () => {
                                 }`}
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
-                                <span
-                                  className={`mr-3 ${
-                                    item.isActive
-                                      ? "text-violet-600 dark:text-violet-400"
-                                      : "text-gray-500 dark:text-gray-400"
-                                  }`}
-                                >
+                                <span className={`mr-3 ${item.isActive ? "text-violet-600 dark:text-violet-400" : "text-gray-500 dark:text-gray-400"}`}>
                                   {item.icon}
                                 </span>
                                 {item.label}
@@ -1404,40 +1213,34 @@ const Header = () => {
               </div>
 
               <motion.div
-                className="p-4 border-t border-gray-200/80 dark:border  dark:border-gray-700/80 bg-gray-50/80 dark:bg-gray-800/30 backdrop-blur-sm"
+                className="p-4 border-t border-gray-200/80 dark:border dark:border-gray-700/80 bg-gray-50/80 dark:bg-gray-800/30 backdrop-blur-sm"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                {isAuthenticated &&
-                  user?.roleCapabilities?.canUploadProducts && (
-                    <motion.button
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        handleProductSubmit();
-                      }}
-                      className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-full px-4 py-3 text-sm font-medium transition-all flex items-center justify-center relative overflow-hidden group mb-3 shadow-md hover:shadow-lg"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-violet-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        initial={{ opacity: 0 }}
-                        whileHover={{ opacity: 1 }}
-                      />
-                      <motion.div className="relative z-10 flex items-center">
-                        <motion.div
-                          className="mr-2"
-                          initial={{ rotate: 0 }}
-                          whileHover={{ rotate: 90 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Plus size={16} />
-                        </motion.div>
-                        <span>Submit Product</span>
+                {isAuthenticated && user?.roleCapabilities?.canUploadProducts && (
+                  <motion.button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleProductSubmit();
+                    }}
+                    className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white rounded-full px-4 py-3 text-sm font-medium transition-all flex items-center justify-center relative overflow-hidden group mb-3 shadow-md hover:shadow-lg"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-violet-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                    />
+                    <motion.div className="relative z-10 flex items-center">
+                      <motion.div className="mr-2" initial={{ rotate: 0 }} whileHover={{ rotate: 90 }} transition={{ duration: 0.2 }}>
+                        <Plus size={16} />
                       </motion.div>
-                    </motion.button>
-                  )}
+                      <span>Submit Product</span>
+                    </motion.div>
+                  </motion.button>
+                )}
                 {isAuthenticated ? (
                   <motion.button
                     onClick={() => {
@@ -1445,25 +1248,15 @@ const Header = () => {
                       handleLogout();
                     }}
                     className="w-full border border-gray-200/80 dark:border-gray-700/80 hover:bg-gray-100/80 dark:hover:bg-gray-700/40 text-gray-600 dark:text-gray-300 rounded-full px-4 py-3 text-sm font-medium transition-all flex items-center justify-center shadow-sm"
-                    whileHover={{
-                      scale: 1.02,
-                      borderColor: "rgba(124, 58, 237, 0.3)",
-                    }}
+                    whileHover={{ scale: 1.02, borderColor: "rgba(124, 58, 237, 0.3)" }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <LogOut
-                      size={16}
-                      className="mr-2 text-gray-500 dark:text-gray-400 opacity-80"
-                    />
+                    <LogOut size={16} className="mr-2 text-gray-500 dark:text-gray-400 opacity-80" />
                     Log Out
                   </motion.button>
                 ) : (
                   <div className="flex space-x-3">
-                    <motion.div
-                      className="flex-1"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
+                    <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Link
                         href="/auth/login"
                         onClick={() => setIsMobileMenuOpen(false)}

@@ -365,7 +365,7 @@ const DashboardPreview = () => {
                 <AnimatePresence initial={false} mode="wait">
                   {isDarkMode ? (
                     <motion.span
-                      key="moon"
+                      key="dashboard-moon"
                       initial={{ y: -8, opacity: 0, rotate: -20, scale: 0.8 }}
                       animate={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
                       exit={{ y: 8, opacity: 0, rotate: 20, scale: 0.8 }}
@@ -384,7 +384,7 @@ const DashboardPreview = () => {
                     </motion.span>
                   ) : (
                     <motion.span
-                      key="sun"
+                      key="dashboard-sun"
                       initial={{ y: -8, opacity: 0, rotate: -20, scale: 0.8 }}
                       animate={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
                       exit={{ y: 8, opacity: 0, rotate: 20, scale: 0.8 }}

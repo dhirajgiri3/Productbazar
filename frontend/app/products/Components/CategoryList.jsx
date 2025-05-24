@@ -12,14 +12,12 @@ const CategoryList = () => {
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [activeCategory, setActiveCategory] = useState(null);
 
-  // Get current path to determine active category
+  // Get current path to determine active category - moved to useEffect to prevent hydration mismatch
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const path = window.location.pathname;
-      const categoryMatch = path.match(/\/category\/([\w-]+)/);
-      if (categoryMatch && categoryMatch[1]) {
-        setActiveCategory(categoryMatch[1]);
-      }
+    const path = window.location.pathname;
+    const categoryMatch = path.match(/\/category\/([\w-]+)/);
+    if (categoryMatch && categoryMatch[1]) {
+      setActiveCategory(categoryMatch[1]);
     }
   }, []);
 

@@ -86,12 +86,9 @@ const useFormattedDailyData = (dailyViews = [], timeframe = 7) => {
       count: dayData.count || 0,
       uniqueCount: dayData.uniqueCount || 0,
       // Format date for display
-      displayDate: date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      displayDate: typeof window !== 'undefined' ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : date.toISOString().slice(5, 10),
       // Get day of week for context
-      dayOfWeek: date.toLocaleDateString("en-US", { weekday: "short" }),
+      dayOfWeek: typeof window !== 'undefined' ? date.toLocaleDateString('en-US', { weekday: 'short' }) : '---',
     });
   }
 
@@ -111,7 +108,7 @@ const prepareGeographyData = (data) => {
     country: item.country || "Unknown",
     total,
     percentage: ((item.count / total) * 100).toFixed(1),
-    formattedCount: item.count?.toLocaleString() || "0",
+    formattedCount: typeof window !== 'undefined' ? (item.count?.toLocaleString() || '0') : String(item.count ?? 0),
     // Add ISO code for potential country flags
     countryCode: item.countryCode || getCountryCode(item.country || "Unknown"),
     // Add color based on index for consistent coloring
@@ -199,12 +196,7 @@ const GeographyTooltip = ({ active, payload }) => {
 const DailyViewsTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const date = new Date(label);
-    const formattedDate = date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    const formattedDate = typeof window !== 'undefined' ? date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : date.toISOString().slice(0, 10);
 
     return (
       <div className="custom-tooltip text-white bg-gray-900/95 border border-indigo-500/30 backdrop-blur-sm p-3 rounded-lg shadow-xl">
@@ -222,7 +214,7 @@ const DailyViewsTooltip = ({ active, payload, label }) => {
               <span className="text-gray-300">{entry.name}:</span>
             </div>
             <span className="font-medium ml-2" style={{ color: entry.color }}>
-              {entry.value}
+              {typeof window !== 'undefined' ? entry.value.toLocaleString() : entry.value}
             </span>
           </div>
         ))}
@@ -688,8 +680,9 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                       className="mr-1 group-hover:scale-110 transition-transform"
                     />
                     <span>
-                      {Number.isFinite(metrics.viewsChange)
+                      {typeof window !== 'undefined' ? Number.isFinite(metrics.viewsChange)
                         ? `${metrics.viewsChange.toFixed(1)}% growth`
+                        : "Positive growth"
                         : "Positive growth"}
                       {metrics.dataQuality === "limited" && (
                         <span className="ml-1 opacity-75 text-xs">*</span>
@@ -703,8 +696,9 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                       className="mr-1 rotate-90 group-hover:scale-110 transition-transform"
                     />
                     <span>
-                      {Number.isFinite(metrics.viewsChange)
+                      {typeof window !== 'undefined' ? Number.isFinite(metrics.viewsChange)
                         ? `${Math.abs(metrics.viewsChange).toFixed(1)}% decline`
+                        : "Negative trend"
                         : "Negative trend"}
                       {metrics.dataQuality === "limited" && (
                         <span className="ml-1 opacity-75 text-xs">*</span>
@@ -741,7 +735,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
             <div className="flex items-center gap-2">
               <div className="text-xs px-3 py-1 rounded-md bg-indigo-900/30 text-indigo-300 border border-indigo-700/30 flex items-center">
                 <span className="w-2 h-2 rounded-full bg-indigo-400 mr-1.5"></span>
-                <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                <span>Last updated: {typeof window !== 'undefined' ? new Date().toLocaleTimeString() : '---'}</span>
               </div>
 
               {/* Real-time toggle */}
@@ -888,14 +882,14 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                 </div>
               </div>
               <p className="text-4xl font-bold text-white mb-2 tracking-tight">
-                {stats?.totals?.totalViews ? stats.totals.totalViews.toLocaleString() : '0'}
+                {typeof window !== 'undefined' ? stats.totals.totalViews.toLocaleString() : stats.totals.totalViews}
               </p>
               <div className="flex items-center mt-2 text-indigo-300 text-sm">
                 {metrics?.viewsChange >= 0 ? (
                   <>
                     <ArrowUpRight size={16} className="mr-1 text-green-400" />
                     <span className="text-green-400">
-                      +{metrics?.viewsChange.toFixed(1)}%
+                      +{typeof window !== 'undefined' ? metrics.viewsChange.toFixed(1) : metrics.viewsChange}%
                     </span>
                   </>
                 ) : (
@@ -905,7 +899,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                       className="mr-1 rotate-90 text-red-400"
                     />
                     <span className="text-red-400">
-                      {metrics?.viewsChange.toFixed(1)}%
+                      {typeof window !== 'undefined' ? metrics.viewsChange.toFixed(1) : metrics.viewsChange}%
                     </span>
                   </>
                 )}
@@ -939,14 +933,14 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                 </div>
               </div>
               <p className="text-4xl font-bold text-white mb-2 tracking-tight">
-                {stats?.totals?.uniqueViewers ? stats.totals.uniqueViewers.toLocaleString() : '0'}
+                {typeof window !== 'undefined' ? stats.totals.uniqueViewers.toLocaleString() : stats.totals.uniqueViewers}
               </p>
               <div className="flex items-center mt-2 text-blue-300 text-sm">
                 {metrics?.uniqueChange >= 0 ? (
                   <>
                     <ArrowUpRight size={16} className="mr-1 text-green-400" />
                     <span className="text-green-400">
-                      +{metrics?.uniqueChange.toFixed(1)}%
+                      +{typeof window !== 'undefined' ? metrics.uniqueChange.toFixed(1) : metrics.uniqueChange}%
                     </span>
                   </>
                 ) : (
@@ -956,7 +950,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                       className="mr-1 rotate-90 text-red-400"
                     />
                     <span className="text-red-400">
-                      {metrics?.uniqueChange.toFixed(1)}%
+                      {typeof window !== 'undefined' ? metrics.uniqueChange.toFixed(1) : metrics.uniqueChange}%
                     </span>
                   </>
                 )}
@@ -988,7 +982,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
               </div>
               <p className="text-4xl font-bold text-white mb-2 tracking-tight">
                 {(() => {
-                  const duration = stats?.totals?.avgDuration || 0;
+                  const duration = typeof window !== 'undefined' ? stats.totals.avgDuration || 0 : stats.totals.avgDuration;
                   const minutes = Math.floor(duration / 60);
                   const seconds = Math.floor(duration % 60);
                   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
@@ -997,9 +991,9 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
               <div className="flex items-center mt-2 text-green-300 text-sm">
                 <Clock size={14} className="text-green-400 mr-1" />
                 <span>
-                  {(stats?.totals?.avgDuration || 0) > 180
+                  {(typeof window !== 'undefined' ? stats.totals.avgDuration : stats.totals.avgDuration) > 180
                     ? "High engagement time"
-                    : (stats?.totals?.avgDuration || 0) > 60
+                    : (typeof window !== 'undefined' ? stats.totals.avgDuration : stats.totals.avgDuration) > 60
                     ? "Good engagement time"
                     : "Average engagement time"}
                 </span>
@@ -1029,16 +1023,16 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                 </div>
               </div>
               <p className="text-4xl font-bold text-white mb-2 tracking-tight">
-                {devicePercentages.length}
+                {typeof window !== 'undefined' ? devicePercentages.length : '---'}
               </p>
               <div className="flex items-center mt-2 text-amber-300 text-sm">
                 {devicePercentages.length > 0 && (
                   <div className="flex items-center gap-1 w-full">
                     <span className="capitalize truncate max-w-[120px]">
-                      {devicePercentages[0]?.device || "No"} leads with{" "}
+                      {typeof window !== 'undefined' ? devicePercentages[0]?.device || "No" : '---'} leads with{" "}
                     </span>
                     <span className="font-semibold text-amber-200">
-                      {devicePercentages[0]?.percentage || 0}%
+                      {typeof window !== 'undefined' ? devicePercentages[0]?.percentage || 0 : '---'}%
                     </span>
                     <div
                       className="ml-auto h-2 w-12 bg-amber-900/50 rounded-full overflow-hidden"
@@ -1047,7 +1041,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                       <div
                         className="h-full bg-amber-500"
                         style={{
-                          width: `${devicePercentages[0]?.percentage || 0}%`,
+                          width: `${typeof window !== 'undefined' ? devicePercentages[0]?.percentage || 0 : 0}%`,
                         }}
                       ></div>
                     </div>
@@ -1181,7 +1175,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                       <Legend
                         wrapperStyle={{ color: "#d1d5db", paddingTop: "10px" }}
                         formatter={(value) => (
-                          <span style={{ color: "#d1d5db" }}>{value}</span>
+                          <span style={{ color: "#d1d5db" }}>{typeof window !== 'undefined' ? value.toLocaleString() : value}</span>
                         )}
                       />
                       <Bar
@@ -1267,7 +1261,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                       <Legend
                         wrapperStyle={{ color: "#d1d5db", paddingTop: "10px" }}
                         formatter={(value) => (
-                          <span style={{ color: "#d1d5db" }}>{value}</span>
+                          <span style={{ color: "#d1d5db" }}>{typeof window !== 'undefined' ? value.toLocaleString() : value}</span>
                         )}
                       />
                       <Area
@@ -1341,7 +1335,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                       <Legend
                         wrapperStyle={{ color: "#d1d5db", paddingTop: "10px" }}
                         formatter={(value) => (
-                          <span style={{ color: "#d1d5db" }}>{value}</span>
+                          <span style={{ color: "#d1d5db" }}>{typeof window !== 'undefined' ? value.toLocaleString() : value}</span>
                         )}
                       />
                       <Bar
@@ -1398,7 +1392,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                   </h3>
                 </div>
                 <div className="text-xs bg-blue-900/30 text-blue-300 rounded-full px-2 py-0.5 border border-blue-700/30">
-                  {devicePercentages.length} types
+                  {typeof window !== 'undefined' ? devicePercentages.length : '---'} types
                 </div>
               </div>
 
@@ -1442,7 +1436,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                         animationDuration={1500}
                         animationBegin={300}
                         label={({ device, percentage }) =>
-                          `${device} (${percentage}%)`
+                          `${typeof window !== 'undefined' ? device : '---'} (${typeof window !== 'undefined' ? percentage : '---'}%)`
                         }
                         labelLine={{
                           stroke: "rgba(255, 255, 255, 0.3)",
@@ -1462,7 +1456,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                         formatter={(value, name, props) => {
                           const percentage = props.payload.percentage;
                           return [
-                            `${value.toLocaleString()} (${percentage}%)`,
+                            `${typeof window !== 'undefined' ? value.toLocaleString() : value} (${typeof window !== 'undefined' ? percentage : percentage}%)`,
                             name,
                           ];
                         }}
@@ -1503,15 +1497,15 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                           }}
                         ></div>
                         <span className="text-gray-300 text-sm capitalize">
-                          {entry.device}
+                          {typeof window !== 'undefined' ? entry.device : '---'}
                         </span>
                       </div>
                       <div className="flex items-center">
                         <span className="text-gray-400 text-sm">
-                          {entry.count}
+                          {typeof window !== 'undefined' ? entry.count : '---'}
                         </span>
                         <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full bg-indigo-900/40 text-indigo-300 border border-indigo-700/30">
-                          {entry.percentage}%
+                          {typeof window !== 'undefined' ? entry.percentage : '---'}%
                         </span>
                       </div>
                     </motion.div>
@@ -1539,7 +1533,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                 <h3 className="font-semibold text-white">Traffic Sources</h3>
               </div>
               <div className="text-xs bg-purple-900/30 text-purple-300 rounded-full px-3 py-1 border border-purple-700/30">
-                {formattedSources.length} sources
+                {typeof window !== 'undefined' ? formattedSources.length : '---'} sources
               </div>
             </div>
 
@@ -1581,11 +1575,11 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                                   backgroundColor: source.color,
                                 }}
                               ></div>
-                              {source.sourceName}
+                              {typeof window !== 'undefined' ? source.sourceName : '---'}
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            {source.count.toLocaleString()}
+                            {typeof window !== 'undefined' ? source.count.toLocaleString() : source.count}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center">
@@ -1596,18 +1590,18 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                                     backgroundColor: source.color,
                                   }}
                                   initial={{ width: 0 }}
-                                  animate={{ width: `${source.percentage}%` }}
+                                  animate={{ width: `${typeof window !== 'undefined' ? source.percentage : 0}%` }}
                                   transition={{
                                     duration: 1,
                                     delay: 0.5 + index * 0.1,
                                   }}
                                 ></motion.div>
                               </div>
-                              <span>{source.percentage}%</span>
+                              <span>{typeof window !== 'undefined' ? source.percentage : 0}%</span>
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            {parseFloat(source.change) > 0 ? (
+                            {typeof window !== 'undefined' ? (parseFloat(source.change) > 0 ? (
                               <div className="flex items-center text-green-400">
                                 <ArrowUpRight size={14} className="mr-1" />
                                 {source.change}%
@@ -1619,6 +1613,11 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                                   className="mr-1 rotate-90"
                                 />
                                 {Math.abs(parseFloat(source.change))}%
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-gray-400">
+                                <div className="w-4 mr-1 h-0.5 bg-gray-500"></div>
+                                0%
                               </div>
                             ) : (
                               <div className="flex items-center text-gray-400">
@@ -1677,8 +1676,8 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                           animationDuration={1500}
                           animationBegin={300}
                           label={(entry) =>
-                            `${entry.sourceName.substring(0, 8)}${
-                              entry.sourceName.length > 8 ? "..." : ""
+                            `${typeof window !== 'undefined' ? entry.sourceName.substring(0, 8) : '---'}${
+                              typeof window !== 'undefined' && entry.sourceName.length > 8 ? "..." : ""
                             }`
                           }
                           labelLine={{
@@ -1701,7 +1700,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                           formatter={(value, name, props) => {
                             const percentage = props.payload.percentage;
                             return [
-                              `${value.toLocaleString()} (${percentage}%)`,
+                              `${typeof window !== 'undefined' ? value.toLocaleString() : value} (${typeof window !== 'undefined' ? percentage : percentage}%)`,
                               props.payload.sourceName,
                             ];
                           }}
@@ -1725,7 +1724,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                           <Lightbulb size={14} className="text-amber-400" />
                         </div>
                         <p>
-                          {formattedSources[0].source === "direct"
+                          {typeof window !== 'undefined' ? (formattedSources[0].source === "direct"
                             ? `Most traffic comes directly (${formattedSources[0].percentage}%). Consider adding UTM parameters to better track your traffic sources.`
                             : `Most traffic comes from "${
                                 formattedSources[0].sourceName
@@ -1735,7 +1734,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                                   : parseFloat(formattedSources[0].change) < -5
                                   ? "This source is declining."
                                   : "This source is stable."
-                              }`}
+                              }`) : 'Most traffic comes directly (0%). Consider adding UTM parameters to better track your traffic sources.'}
                         </p>
                       </div>
                     </div>

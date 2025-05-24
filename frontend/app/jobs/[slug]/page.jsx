@@ -1,10 +1,11 @@
 import React from 'react'
 import JobDetailsPage from './Components/JobDetailsPage'
 
-function page({ params }) {
+async function page({ params }) {
+  const { slug } = await params;
   return (
     <div>
-      <JobDetailsPage slug={params.slug} />
+      <JobDetailsPage slug={slug} />
     </div>
   )
 } 

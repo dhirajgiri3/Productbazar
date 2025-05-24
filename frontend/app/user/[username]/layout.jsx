@@ -2,7 +2,7 @@ import { ProductProvider } from "@/lib/contexts/product-context";
 
 export async function generateMetadata({ params }) {
   // Fetch user data from the API
-  const username = params.username;
+  const { username } = await params;
   let title = `${username} User Profile - Product Bazar`;
 
   try {
@@ -32,8 +32,8 @@ export async function generateMetadata({ params }) {
 
 export default function UserProfileLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="profile-container mx-auto">
+    <div className="bg-gradient-to-b from-gray-50 to-white">
+      <div className="profile-container mx-auto min-h-screen">
         <ProductProvider>{children}</ProductProvider>
       </div>
     </div>

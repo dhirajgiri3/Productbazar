@@ -1,10 +1,11 @@
 import React from 'react'
 import ThreadPage from './Components/ThreadPage'
 
-function page({ params }) {
+async function page({ params }) {
+  const awaitedParams = await params;
   return (
     <div>
-      <ThreadPage params={params} />
+      <ThreadPage params={awaitedParams} />
     </div>
   )
 }

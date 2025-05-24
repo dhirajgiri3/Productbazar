@@ -489,11 +489,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
 
       {/* Bento Grid Layout with improved animations */}
       <div className="flex flex-col gap-8">
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence initial={false}>
           {/* Render each row */}
           {Object.keys(rows).map((rowKey) => (
             <motion.div
-              key={`row-${rowKey}-${activeTab}`}
+              key={`features-row-${rowKey}-${activeTab}`}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 md:gap-8"
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}

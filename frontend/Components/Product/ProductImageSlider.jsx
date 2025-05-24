@@ -20,37 +20,37 @@ export default function ProductImageSlider({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const intervalRef = useRef(null);
-  
+
   // Extract all available images from the product with proper handling of gallery objects
   const images = useMemo(() => {
     if (!product) return [];
-    
+
     const allImages = [];
     const processedUrls = new Set(); // To avoid duplicate images
-    
+
     // First add the thumbnail/main image if it exists
     if (product.thumbnail) {
       allImages.push(product.thumbnail);
       processedUrls.add(product.thumbnail);
     }
-    
+
     // Process gallery items - they could be objects with url property or direct strings
     if (Array.isArray(product.gallery) && product.gallery.length > 0) {
       product.gallery.forEach(item => {
         // Handle different gallery item structures
         const imageUrl = typeof item === 'string' ? item : item?.url;
-        
+
         // Skip if it's not a valid string or it's already included
         if (typeof imageUrl !== 'string' || !imageUrl || processedUrls.has(imageUrl)) {
           return;
         }
-        
+
         // Add new unique image URL
         allImages.push(imageUrl);
         processedUrls.add(imageUrl);
       });
     }
-    
+
     return allImages;
   }, [product]);
 
@@ -61,7 +61,7 @@ export default function ProductImageSlider({
         setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
       }, interval);
     }
-    
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -72,18 +72,18 @@ export default function ProductImageSlider({
   // Handle manual navigation
   const navigate = (direction) => {
     if (images.length <= 1) return;
-    
+
     // Reset autoplay timer when manually navigating
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    
+
     if (direction === 'prev') {
       setCurrentIndex(prevIndex => (prevIndex - 1 + images.length) % images.length);
     } else {
       setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
     }
-    
+
     // Restart autoplay if enabled
     if (autoplay) {
       intervalRef.current = setInterval(() => {
@@ -98,7 +98,7 @@ export default function ProductImageSlider({
   // If there are no images, show placeholder
   if (!images.length) {
     return (
-      <div 
+      <div
         className={`relative flex items-center justify-center bg-gray-100 ${className}`}
         aria-label="No product image available"
       >
@@ -106,11 +106,11 @@ export default function ProductImageSlider({
       </div>
     );
   }
-  
+
   // If there's only one image, don't use the slider
   if (images.length === 1) {
     return (
-      <div 
+      <div
         className={`relative overflow-hidden ${className}`}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
@@ -136,7 +136,7 @@ export default function ProductImageSlider({
 
   // For multiple images, use the slider
   return (
-    <div 
+    <div
       className={`relative overflow-hidden ${className}`}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -144,7 +144,7 @@ export default function ProductImageSlider({
       <div className="relative w-full h-full">
         <AnimatePresence initial={false} mode="wait">
           <motion.div
-            key={currentIndex}
+            key={`product-slider-${currentIndex}`}
             className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -167,7 +167,7 @@ export default function ProductImageSlider({
             />
           </motion.div>
         </AnimatePresence>
-        
+
         {/* Controls - Only show when hovering or explicitly enabled */}
         {(showControls || isHovering) && images.length > 1 && (
           <>
@@ -187,7 +187,7 @@ export default function ProductImageSlider({
             </button>
           </>
         )}
-        
+
         {/* Dots indicator for multiple images */}
         {images.length > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
@@ -208,8 +208,8 @@ export default function ProductImageSlider({
                   }
                 }}
                 className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  currentIndex === idx 
-                    ? 'bg-white w-4' 
+                  currentIndex === idx
+                    ? 'bg-white w-4'
                     : 'bg-white/50'
                 }`}
                 aria-label={`Go to image ${idx + 1}`}

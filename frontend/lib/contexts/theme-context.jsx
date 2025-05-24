@@ -53,6 +53,14 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [mounted, transitionDuration]);
 
+  // Set theme cookie for server-side rendering
+  useEffect(() => {
+    if (!mounted) return;
+    if (resolvedTheme) {
+      document.cookie = `theme=${resolvedTheme}; path=/; max-age=31536000; SameSite=Lax`;
+    }
+  }, [resolvedTheme, mounted]);
+
   // Optimized function to toggle between light and dark themes
   const toggleTheme = useCallback(() => {
     if (isTransitioning) return; // Prevent multiple rapid toggles
@@ -69,7 +77,11 @@ export const ThemeProvider = ({ children }) => {
         document.documentElement.style.setProperty('will-change', 'color, background-color, border-color, text-decoration-color, fill, stroke');
 
         // Set the theme immediately - the transition class is already applied
-        setTheme(resolvedTheme === "dark" ? "light" : "dark");
+        const newTheme = resolvedTheme === "dark" ? "light" : "dark";
+        setTheme(newTheme);
+        
+        // Set cookie for immediate feedback
+        document.cookie = `theme=${newTheme}; path=/; max-age=31536000; SameSite=Lax`;
 
         // Use a single timeout with transitionend fallback
         const transitionTimeout = setTimeout(() => {

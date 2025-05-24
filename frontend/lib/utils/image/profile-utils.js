@@ -8,7 +8,9 @@ export const normalizeUserProducts = (products = []) => {
   
   return products.map(product => ({
     ...product,
-    _tempId: `temp-${product._id || Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    _tempId: typeof window !== 'undefined'
+      ? `temp-${product._id || Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      : `temp-${product._id || 'ssr'}-staticid`,
     links: {
       website: product.links?.website || product.link || '',
       github: product.links?.github || '',

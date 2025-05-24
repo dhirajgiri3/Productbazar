@@ -49,6 +49,7 @@ const CompleteProfileContainer = () => {
   const [roleDataLoaded, setRoleDataLoaded] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [hasAccessToken, setHasAccessToken] = useState(false);
 
   const totalSteps = user?.role && ["startupOwner", "investor", "agency", "freelancer", "jobseeker"].includes(user.role) ? 6 : 5;
 
@@ -88,6 +89,11 @@ const CompleteProfileContainer = () => {
       }
   };
 
+  // Check for access token in useEffect to prevent hydration mismatch
+  useEffect(() => {
+    setHasAccessToken(!!localStorage.getItem('accessToken'));
+  }, []);
+
   useEffect(() => {
     // Reset role data loaded state when auth state changes
     if (authLoading) {
@@ -96,7 +102,6 @@ const CompleteProfileContainer = () => {
     }
 
     // If we have an access token but no user data yet, try to refresh user data
-    const hasAccessToken = typeof window !== 'undefined' && localStorage.getItem('accessToken');
     if (!user && hasAccessToken && !authLoading) {
       // Try to refresh user data from the API
       const loadUserData = async () => {
@@ -617,8 +622,7 @@ const CompleteProfileContainer = () => {
     }, [totalSteps, user?.role]);
 
   // --- Render Logic ---
-  // Check if we have an access token but user data isn't loaded yet
-  const hasAccessToken = typeof window !== 'undefined' && localStorage.getItem('accessToken');
+  // hasAccessToken is now managed by state to prevent hydration mismatch
 
   // Show loading state while authentication is in progress or if we have a token but no user yet
   if (authLoading || (hasAccessToken && !user)) {

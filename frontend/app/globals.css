@@ -28,7 +28,7 @@
   --xxxxl: 4rem;
 
   /* Theme transition variables */
-  --theme-transition-duration: 400ms;
+  --theme-transition-duration: 300ms;
   --theme-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
   --theme-transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
 }
@@ -44,6 +44,8 @@
 .theme-transition-ready * {
   /* Only prepare critical properties for transition */
   backface-visibility: hidden; /* Reduce paint during transitions */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Apply transitions only to specific properties for better performance */
@@ -55,7 +57,7 @@
   * {
     transition-property: color, background-color, border-color, fill, stroke, opacity;
     transition-duration: var(--theme-transition-duration);
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); /* Smoother easing */
+    transition-timing-function: var(--theme-transition-timing);
   }
 
   /* Optimize background transitions with specific selectors */
@@ -64,7 +66,7 @@
   .dark\:bg-gray-700, .dark\:bg-gray-800, .dark\:bg-gray-900, .dark\:bg-black,
   [class*="bg-slate-"], [class*="bg-violet-"], [class*="bg-indigo-"],
   [class*="dark\:bg-slate-"], [class*="dark\:bg-violet-"], [class*="dark\:bg-indigo-"] {
-    transition: background-color var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing);
     will-change: background-color;
   }
 
@@ -74,28 +76,18 @@
   .text-violet-300, .text-violet-400, .text-violet-500, .text-violet-600,
   .dark\:text-violet-300, .dark\:text-violet-400, .dark\:text-violet-500, .dark\:text-violet-600,
   h1, h2, h3, h4, h5, h6, p, span, a, button {
-    transition: color var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
+    transition: color var(--theme-transition-duration) var(--theme-transition-timing);
     will-change: color;
   }
 
-  /* Border color transitions - optimized */
-  .border, [class*="border-gray-"], [class*="border-slate-"], [class*="border-violet-"],
-  [class*="dark\:border-gray-"], [class*="dark\:border-slate-"], [class*="dark\:border-violet-"] {
-    transition: border-color var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
+  /* Border transitions */
+  .border, .border-t, .border-r, .border-b, .border-l,
+  .border-gray-200, .border-gray-300, .border-gray-700, .border-gray-800,
+  .dark\:border-gray-600, .dark\:border-gray-700, .dark\:border-gray-800,
+  [class*="border-violet-"], [class*="dark\:border-violet-"],
+  [class*="ring-"], [class*="dark\:ring-"] {
+    transition: border-color var(--theme-transition-duration) var(--theme-transition-timing);
     will-change: border-color;
-  }
-
-  /* Shadow transitions - optimized */
-  .shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl,
-  .dark\:shadow-none, .dark\:shadow, .dark\:shadow-md {
-    transition: box-shadow var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: box-shadow;
-  }
-
-  /* SVG specific transitions */
-  svg, path, circle, rect {
-    transition: fill var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1),
-                stroke var(--theme-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -690,4 +682,23 @@ input[type="checkbox"]:checked,
 input[type="radio"]:checked {
   background-color: var(--primary) !important;
   border-color: var(--primary) !important;
+}
+
+/* Theme toggle specific styling */
+.theme-toggle {
+  z-index: 10;
+  position: relative;
+  transform: translateZ(0);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s ease;
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Additional transition optimization specific to theme toggle */
+html.theme-transition-active .theme-toggle * {
+  /* Ensure theme toggle icons transition smoothly */
+  transition: transform 0.3s ease, opacity 0.3s ease, fill 0.3s ease, stroke 0.3s ease !important;
 }

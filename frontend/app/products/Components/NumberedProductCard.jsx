@@ -31,7 +31,8 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
 
   // Store product ID in a ref to avoid re-subscriptions when only other props change
   const productIdRef = useRef(product?._id);
-  const componentId = useRef(`card-${Math.random().toString(36).substring(2, 9)}`);
+  // Use deterministic ID based on product ID and position to prevent hydration mismatch
+  const componentId = useRef(`card-${product?._id || 'unknown'}-${position}`);
 
   // Update the ref if the product ID changes
   useEffect(() => {
@@ -91,12 +92,12 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
         // Check if the API is likely to be available before making the request
         const apiHealthCheck = sessionStorage.getItem('api_health');
         const now = Date.now();
-        
+
         // If API was recently marked as down, skip this request
         if (apiHealthCheck && now - parseInt(apiHealthCheck) < 60000) {
           return; // Skip if API was marked unhealthy in the last minute
         }
-        
+
         const result = await recordInteraction(product._id, "view", {
           source: recommendationType || "home",
           position,
@@ -104,7 +105,7 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
           timestamp: new Date().toISOString(),
           silent: true // Set silent mode to prevent errors from disrupting UX
         });
-        
+
         // Silent error handling - only log if result indicates non-silent error
         if (result && !result.success && !result.silent && !result.rateLimited) {
           logger.debug(`View tracking failed for ${product._id}: ${result.error}`);
@@ -116,7 +117,7 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
         } catch (e) {
           // Ignore storage errors
         }
-        
+
         // Fail silently to ensure user experience isn't affected
         console.debug(`View tracking suppressed error for ${product?._id || 'unknown'}`);
       }

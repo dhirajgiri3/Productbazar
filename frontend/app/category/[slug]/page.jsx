@@ -5,6 +5,7 @@ export const metadata = {
   description: 'Browse products by category on Product Bazar',
 };
 
-export default function CategoryPage({ params }) {
-  return <CategoryPageClient slug={params.slug} />;
+export default async function CategoryPage({ params }) {
+  const { slug } = await params;
+  return <CategoryPageClient slug={slug} />;
 }

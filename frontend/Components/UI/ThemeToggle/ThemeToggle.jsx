@@ -6,27 +6,27 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/lib/contexts/theme-context";
 
 // Memoized ThemeToggle component with enhanced animations
-const ThemeToggle = memo(({ className = "", size = "default" }) => {
+const ThemeToggle = memo(({ className = "", size = "default", instanceId = "main" }) => {
   const { isDarkMode, toggleTheme, mounted } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
   const controls = useAnimationControls();
 
-  // Generate stars with improved positioning
+  // Generate stars with deterministic positioning to prevent hydration mismatch
   const [starsPositions] = useState(() =>
-    Array.from({ length: 5 }, () => ({
-      x: Math.random() * 80 - 40, // More concentrated around the moon
-      y: Math.random() * 80 - 40,
-      delay: Math.random() * 0.7, // More varied delays
-      size: Math.random() * 0.5 + 0.2 // More varied sizes
+    Array.from({ length: 5 }, (_, i) => ({
+      x: [20, -30, 35, -25, 15][i], // Deterministic positions
+      y: [-20, 25, -35, 30, -15][i],
+      delay: [0.1, 0.3, 0.5, 0.2, 0.4][i], // Deterministic delays
+      size: [0.3, 0.5, 0.4, 0.6, 0.35][i] // Deterministic sizes
     }))
   );
 
-  // Generate sun rays
+  // Generate sun rays with deterministic positioning
   const [sunRays] = useState(() =>
     Array.from({ length: 8 }, (_, i) => ({
       angle: (i * 45) % 360, // Evenly spaced around the sun
-      length: Math.random() * 0.4 + 0.8, // Varied lengths
-      delay: Math.random() * 0.3, // Slight delay variation
+      length: [1.0, 0.8, 1.2, 0.9, 1.1, 0.85, 1.15, 0.95][i], // Deterministic lengths
+      delay: [0.0, 0.1, 0.05, 0.15, 0.08, 0.12, 0.03, 0.18][i], // Deterministic delays
     }))
   );
 
@@ -135,12 +135,11 @@ const ThemeToggle = memo(({ className = "", size = "default" }) => {
 
   const currentIconSize = iconSizes[size] || iconSizes.default;
 
-  return (
-    <motion.button
+  return (      <motion.button
       onClick={toggleTheme}
       onHoverStart={handleHoverStart}
       onHoverEnd={handleHoverEnd}
-      className={`relative rounded-full flex items-center justify-center will-change-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-all duration-300 ease-out
+      className={`relative rounded-full flex items-center justify-center will-change-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-all duration-300 ease-out theme-toggle
         ${
           isDarkMode
             ? "bg-gradient-to-br from-gray-800 to-gray-900 text-violet-300 hover:from-gray-700 hover:to-gray-800 border border-gray-700 focus-visible:ring-violet-500 focus-visible:ring-offset-gray-900"
@@ -174,7 +173,7 @@ const ThemeToggle = memo(({ className = "", size = "default" }) => {
       <AnimatePresence initial={false} mode="wait">
         {isDarkMode ? (
           <motion.div
-            key="dark"
+            key={`dark-${instanceId}`}
             className="relative flex items-center justify-center"
             variants={iconVariants}
             initial="initial"
@@ -212,7 +211,7 @@ const ThemeToggle = memo(({ className = "", size = "default" }) => {
           </motion.div>
         ) : (
           <motion.div
-            key="light"
+            key={`light-${instanceId}`}
             className="relative flex items-center justify-center"
             variants={iconVariants}
             initial="initial"

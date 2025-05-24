@@ -3,6 +3,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
+// Add a seeded random generator for SSR
+function seededRandom(seed) {
+  let value = seed;
+  return () => {
+    value = (value * 9301 + 49297) % 233280;
+    return value / 233280;
+  };
+}
+
 const AnimatedBackground = () => {
   const canvasRef = useRef(null);
   const [isLowPerformance, setIsLowPerformance] = useState(false);
@@ -47,35 +56,35 @@ const AnimatedBackground = () => {
     };
     
     class Particle {
-      constructor(particleType = 'normal') {
-        this.reset(particleType);
+      constructor(particleType = 'normal', randomFn = Math.random) {
+        this.reset(particleType, randomFn);
         // Start particles at random positions
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
+        this.x = randomFn() * width;
+        this.y = randomFn() * height;
       }
       
-      reset(particleType) {
+      reset(particleType, randomFn = Math.random) {
         this.type = particleType;
         this.size = this.type === 'shiny' 
-          ? Math.random() * 3 + 2.5 
-          : Math.random() * 2.5 + 0.8;
+          ? randomFn() * 3 + 2.5 
+          : randomFn() * 2.5 + 0.8;
         
         // Slower movement for better aesthetics
-        this.speedX = (Math.random() * 0.6 - 0.3) * (this.type === 'shiny' ? 1.2 : 1);
-        this.speedY = (Math.random() * 0.6 - 0.3) * (this.type === 'shiny' ? 1.2 : 1);
+        this.speedX = (randomFn() * 0.6 - 0.3) * (this.type === 'shiny' ? 1.2 : 1);
+        this.speedY = (randomFn() * 0.6 - 0.3) * (this.type === 'shiny' ? 1.2 : 1);
         
         // Select color based on type
         const palette = this.type === 'shiny' 
           ? colorPalettes.highlight 
-          : (Math.random() > 0.7 ? colorPalettes.accent : colorPalettes.primary);
+          : (randomFn() > 0.7 ? colorPalettes.accent : colorPalettes.primary);
         
-        this.color = palette[Math.floor(Math.random() * palette.length)];
-        this.opacity = this.type === 'shiny' ? (Math.random() * 0.4 + 0.6) : (Math.random() * 0.3 + 0.2);
+        this.color = palette[Math.floor(randomFn() * palette.length)];
+        this.opacity = this.type === 'shiny' ? (randomFn() * 0.4 + 0.6) : (randomFn() * 0.3 + 0.2);
         
         // For shimmering effect
-        this.glowIntensity = this.type === 'shiny' ? (Math.random() * 10 + 10) : 0;
-        this.pulseSpeed = Math.random() * 0.02 + 0.01;
-        this.pulseValue = Math.random() * Math.PI * 2;
+        this.glowIntensity = this.type === 'shiny' ? (randomFn() * 10 + 10) : 0;
+        this.pulseSpeed = randomFn() * 0.02 + 0.01;
+        this.pulseValue = randomFn() * Math.PI * 2;
         
         // Cell coordinates for spatial partitioning
         this.cellX = Math.floor(this.x / cellSize);
@@ -144,9 +153,10 @@ const AnimatedBackground = () => {
       const particleCount = getParticleCount();
       
       // Create particles with occasional shiny ones
+      let randomFn = typeof window !== 'undefined' ? Math.random : seededRandom(2024);
       for (let i = 0; i < particleCount; i++) {
-        const isShiny = Math.random() < 0.15; // 15% chance of being a shiny particle
-        particles.push(new Particle(isShiny ? 'shiny' : 'normal'));
+        const isShiny = randomFn() < 0.15; // 15% chance of being a shiny particle
+        particles.push(new Particle(isShiny ? 'shiny' : 'normal', randomFn));
       }
     }
     

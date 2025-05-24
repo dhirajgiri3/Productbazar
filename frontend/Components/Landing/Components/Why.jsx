@@ -873,7 +873,7 @@ function Why() {
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6 md:gap-7 mb-14 sm:mb-16">
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {advantageData.map((item) => (
               <BentoCard
                 key={item.id}

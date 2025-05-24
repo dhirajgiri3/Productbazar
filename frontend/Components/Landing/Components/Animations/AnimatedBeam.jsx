@@ -12,7 +12,7 @@ export const AnimatedBeam = ({
   toRef,
   curvature = 0,
   reverse = false,
-  duration = Math.random() * 3 + 4,
+  duration: durationProp,
   delay = 0,
   pathColor = "gray",
   pathWidth = 2,
@@ -31,6 +31,13 @@ export const AnimatedBeam = ({
   const id = useId();
   const [pathD, setPathD] = useState("");
   const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
+  // SSR-safe: use a fixed duration for SSR, randomize on client
+  const [duration, setDuration] = useState(durationProp ?? 5);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && durationProp === undefined) {
+      setDuration(Math.random() * 3 + 4);
+    }
+  }, [durationProp]);
 
   // Enhanced gradient coordinates for smoother animation
   const gradientCoordinates = reverse

@@ -5,7 +5,7 @@ import logger from '@/lib/utils/logger';
 import { notFound } from 'next/navigation';
 
 export async function generateMetadata({ params }) {
-  const { username } = params;
+  const { username } = await params;
   
   try {
     const userResponse = await makePriorityRequest('get', `/auth/user/username/${username}`);
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function UserProfilePage({ params }) {
-  const { username } = params;
+  const { username } = await params;
 
   try {
     // Fetch user data

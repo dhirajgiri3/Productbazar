@@ -14,8 +14,17 @@ const BASE_OBSTACLE_SPEED = 2.2;
 const PLAYER_SIZE = 50;
 const PLAYER_X = 120;
 
+// Add a seeded random generator for SSR
+function seededRandom(seed) {
+  let value = seed;
+  return () => {
+    value = (value * 9301 + 49297) % 233280;
+    return value / 233280;
+  };
+}
+
 // Improved obstacle generation with better balance for error page game
-function generateObstacle(score, lastObstacle = null) {
+function generateObstacle(score, lastObstacle = null, seed = 12345) {
   const patterns = {
     // Early game - very easy and forgiving
     easy: [
@@ -55,32 +64,33 @@ function generateObstacle(score, lastObstacle = null) {
   else if (score >= 8) difficulty = 'medium';
 
   const availablePatterns = patterns[difficulty];
-  let selectedPattern = availablePatterns[Math.floor(Math.random() * availablePatterns.length)];
+  let randomFn = typeof window !== 'undefined' ? Math.random : seededRandom(seed);
+  let selectedPattern = availablePatterns[Math.floor(randomFn() * availablePatterns.length)];
 
   // Intelligent variation to prevent repetitive patterns
   if (lastObstacle) {
     const heightDiff = Math.abs(selectedPattern.gapY - lastObstacle.gapY);
     
     // If too similar to last obstacle, try to pick a more varied one
-    if (heightDiff < 50 && Math.random() > 0.4) {
+    if (heightDiff < 50 && randomFn() > 0.4) {
       const variedPatterns = availablePatterns.filter(p => 
         Math.abs(p.gapY - lastObstacle.gapY) > 70
       );
       if (variedPatterns.length > 0) {
-        selectedPattern = variedPatterns[Math.floor(Math.random() * variedPatterns.length)];
+        selectedPattern = variedPatterns[Math.floor(randomFn() * variedPatterns.length)];
       }
     }
   }
 
   // Add gentle randomness to the selected pattern
-  const gapVariation = (Math.random() - 0.5) * 20;
-  const sizeVariation = (Math.random() - 0.5) * 15;
+  const gapVariation = (randomFn() - 0.5) * 20;
+  const sizeVariation = (randomFn() - 0.5) * 15;
   
   return {
     gapY: Math.max(50, Math.min(GAME_HEIGHT - selectedPattern.gap - 50, 
       selectedPattern.gapY + gapVariation)),
     gap: Math.max(140, selectedPattern.gap + sizeVariation),
-    spacing: selectedPattern.spacing + (Math.random() - 0.5) * 30,
+    spacing: selectedPattern.spacing + (randomFn() - 0.5) * 30,
     pattern: difficulty
   };
 }
@@ -119,17 +129,18 @@ function GameParticles() {
   const [particles, setParticles] = useState([]);
 
   useEffect(() => {
+    let randomFn = typeof window !== 'undefined' ? Math.random : seededRandom(404);
     const particleCount = 12;
     const newParticles = [];
 
     for (let i = 0; i < particleCount; i++) {
       newParticles.push({
         id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 3 + 1,
-        duration: Math.random() * 8 + 12,
-        delay: Math.random() * 6,
+        x: randomFn() * 100,
+        y: randomFn() * 100,
+        size: randomFn() * 3 + 1,
+        duration: randomFn() * 8 + 12,
+        delay: randomFn() * 6,
       });
     }
 

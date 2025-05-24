@@ -868,7 +868,7 @@ export default function Home() {
             Quick Links
           </h2>
           <SuspenseWithErrorBoundary
-            fallbackType="quick links"
+            fallbackType="quick links" 
             testId="quick-links-skeleton"
             loadingHeight="h-36"
           >
@@ -882,7 +882,7 @@ export default function Home() {
   return (
     <motion.main
       {...mainAnimationProps}
-      className="min-h-screen bg-slate-50"
+      className="bg-slate-50"
       data-testid="home-page"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-6 relative">

@@ -654,7 +654,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
                   <AnimatePresence mode="wait">
                     {hasUnsavedChanges && (
                       <motion.span
-                        key="unsaved-changes"
+                        key="profile-unsaved-changes"
                         className="text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100 flex items-center gap-1 shadow-sm"
                         initial={{ opacity: 0, scale: 0.8, x: -10 }}
                         animate={{ opacity: 1, scale: 1, x: 0 }}
