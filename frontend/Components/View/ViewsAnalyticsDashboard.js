@@ -1619,7 +1619,7 @@ const ViewsAnalyticsDashboard = ({ productId }) => {
                                 <div className="w-4 mr-1 h-0.5 bg-gray-500"></div>
                                 0%
                               </div>
-                            ) : (
+                            )) : (
                               <div className="flex items-center text-gray-400">
                                 <div className="w-4 mr-1 h-0.5 bg-gray-500"></div>
                                 0%
