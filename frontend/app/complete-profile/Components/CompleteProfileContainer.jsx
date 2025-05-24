@@ -483,7 +483,7 @@ const CompleteProfileContainer = () => {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     setApiError(null); // Clear previous API errors
-    clearError(); // Clear auth context errors
+    if (clearError) clearError(); // Clear auth context errors
 
     if (!validateForm()) {
       toast.error("Please correct the errors in the form");
@@ -627,7 +627,7 @@ const CompleteProfileContainer = () => {
   // Show loading state while authentication is in progress or if we have a token but no user yet
   if (authLoading || (hasAccessToken && !user)) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <LoaderComponent text="Loading authentication data..." size="large" color="violet" />
       </div>
     );
@@ -636,7 +636,7 @@ const CompleteProfileContainer = () => {
   // Only show error if auth is initialized but no user is found and no token exists
   if (!user && !hasAccessToken) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6 text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white p-6 text-center">
         <h2 className="text-xl font-semibold text-red-600 mb-4">Authentication Error</h2>
         <p className="text-gray-700 mb-6">Could not load user data. You might need to log in again.</p>
         <button
@@ -652,7 +652,7 @@ const CompleteProfileContainer = () => {
   // Show loading while role data is being fetched
   if (!roleDataLoaded) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <LoaderComponent text="Loading profile data..." size="large" color="violet" />
       </div>
     );
@@ -660,7 +660,7 @@ const CompleteProfileContainer = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 pt-6 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white py-12 pt-6 px-4 sm:px-6 lg:px-8">
       {showConfetti && <SuccessConfetti trigger={true} duration={5000} />}
       <div className="max-w-3xl mx-auto">
         {/* Header Logo/Brand */}
@@ -673,7 +673,7 @@ const CompleteProfileContainer = () => {
 
         {/* Main Card */}
         <motion.div
-          className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-[80vh] max-h-[800px] border border-gray-200"
+          className="bg-white rounded-lg overflow-hidden flex flex-col h-[80vh] max-h-[800px] border border-gray-200"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
@@ -814,7 +814,7 @@ const CompleteProfileContainer = () => {
           </div>
 
           {/* Fixed Footer with Navigation */}
-          <div className="border-t border-gray-200 px-6 py-4 flex justify-between items-center flex-shrink-0 bg-white shadow-sm">
+          <div className="border-t border-gray-200 px-6 py-4 flex justify-between items-center flex-shrink-0 bg-white">
              <motion.div
                className="text-xs text-gray-500 flex items-center"
                initial={{ opacity: 0 }}

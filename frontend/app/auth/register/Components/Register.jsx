@@ -8,7 +8,7 @@ import AnimatedBackground from "./AnimatedBackground";
 
 function Register() {
   return (
-    <div className="min-h-screen h-full py-8 bg-gray-50 relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen h-full py-8 bg-white relative overflow-hidden flex items-center justify-center">
       {/* Animated background with improved visuals */}
       <AnimatedBackground />
 

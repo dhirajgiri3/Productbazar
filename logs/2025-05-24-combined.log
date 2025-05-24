@@ -1,0 +1,88 @@
+2025-05-24T11:58:11.050Z [INFO] [product-bazar]: Redis client connected successfully on localhost:6379
+2025-05-24T11:58:11.053Z [INFO] [product-bazar]: Redis client ready to process commands.
+2025-05-24T11:58:11.765Z [INFO] [product-bazar]: Connected to MongoDB. Starting seed process...
+2025-05-24T11:58:11.766Z [INFO] [product-bazar]: Clearing existing data...
+2025-05-24T11:58:12.860Z [INFO] [product-bazar]: Database cleared.
+2025-05-24T11:58:12.954Z [INFO] [product-bazar]: Admin user not found, creating...
+2025-05-24T11:58:13.736Z [INFO] [product-bazar]: Created initial admin user: test@admin.com (Username: test.admin)
+2025-05-24T11:58:13.738Z [INFO] [product-bazar]: Creating categories and tags...
+2025-05-24T11:58:22.810Z [INFO] [product-bazar]: Created/Found 68 tags.
+2025-05-24T11:58:25.731Z [INFO] [product-bazar]: Created/Found 15 top-level categories.
+2025-05-24T11:58:34.573Z [INFO] [product-bazar]: Created/Found 24 subcategories.
+2025-05-24T11:58:34.575Z [INFO] [product-bazar]: Creating 250 users...
+2025-05-24T11:58:34.656Z [INFO] [product-bazar]: Found existing admin user: test@admin.com
+2025-05-24T11:58:34.719Z [INFO] [product-bazar]: Creating test user: test@user.com (user)
+2025-05-24T11:58:35.195Z [INFO] [product-bazar]: --> Created test user with username: test.user
+2025-05-24T11:58:35.252Z [INFO] [product-bazar]: Creating test user: test@maker.com (maker)
+2025-05-24T11:58:35.680Z [INFO] [product-bazar]: --> Created test user with username: test.maker
+2025-05-24T11:58:35.730Z [INFO] [product-bazar]: Creating test user: test@jobseeker.com (jobseeker)
+2025-05-24T11:58:36.118Z [INFO] [product-bazar]: --> Created test user with username: test.jobseeker
+2025-05-24T11:58:36.190Z [INFO] [product-bazar]: Creating test user: test@freelancer.com (freelancer)
+2025-05-24T11:58:36.595Z [INFO] [product-bazar]: --> Created test user with username: test.freelancer
+2025-05-24T11:58:36.647Z [INFO] [product-bazar]: Creating test user: test@investor.com (investor)
+2025-05-24T11:58:37.081Z [INFO] [product-bazar]: --> Created test user with username: test.investor
+2025-05-24T11:58:37.131Z [INFO] [product-bazar]: Creating test user: test@agency.com (agency)
+2025-05-24T11:58:37.541Z [INFO] [product-bazar]: --> Created test user with username: test.agency
+2025-05-24T11:58:37.597Z [INFO] [product-bazar]: Creating test user: test@startup.com (startupOwner)
+2025-05-24T11:58:38.015Z [INFO] [product-bazar]: --> Created test user with username: test.startup
+2025-05-24T11:58:38.015Z [INFO] [product-bazar]: Processed 8 test users (found or created).
+2025-05-24T12:00:18.015Z [INFO] [product-bazar]: Created 242 random users.
+2025-05-24T12:00:18.016Z [INFO] [product-bazar]: Found/created 250 total users in this phase.
+2025-05-24T12:00:18.016Z [INFO] [product-bazar]: Fetching all users from DB for subsequent steps...
+2025-05-24T12:00:18.487Z [INFO] [product-bazar]: Fetched 250 users.
+2025-05-24T12:00:18.488Z [INFO] [product-bazar]: Creating/linking role-specific profiles...
+2025-05-24T12:00:20.550Z [INFO] [product-bazar]: Finished creating/linking role profiles (176 links updated/created).
+2025-05-24T12:00:20.551Z [INFO] [product-bazar]: Creating 350-450 products...
+2025-05-24T12:01:33.222Z [INFO] [product-bazar]: Created 385 products.
+2025-05-24T12:01:33.223Z [INFO] [product-bazar]: Creating 60 jobs...
+2025-05-24T12:01:40.292Z [INFO] [product-bazar]: Created 60 jobs.
+2025-05-24T12:01:40.294Z [INFO] [product-bazar]: Creating 86 projects...
+2025-05-24T12:01:45.932Z [INFO] [product-bazar]: Created 86 projects.
+2025-05-24T12:01:45.933Z [INFO] [product-bazar]: Creating interactions (views, upvotes, bookmarks, comments, rec interactions)...
+2025-05-24T12:01:48.501Z [INFO] [product-bazar]: Generated 20776 views, 5773 upvotes, 2995 bookmarks, 1105 comments, 30649 rec interactions.
+2025-05-24T12:01:48.501Z [INFO] [product-bazar]: Batch inserting interactions...
+2025-05-24T12:01:48.501Z [INFO] [product-bazar]: Inserting 20776 views...
+2025-05-24T12:01:52.021Z [INFO] [product-bazar]: Finished inserting views.
+2025-05-24T12:01:52.073Z [INFO] [product-bazar]: Inserting 5773 upvotes...
+2025-05-24T12:01:52.583Z [INFO] [product-bazar]: Finished inserting upvotes.
+2025-05-24T12:01:52.635Z [INFO] [product-bazar]: Inserting 2995 bookmarks...
+2025-05-24T12:01:53.026Z [INFO] [product-bazar]: Finished inserting bookmarks.
+2025-05-24T12:01:53.077Z [INFO] [product-bazar]: Inserting 1105 comments...
+2025-05-24T12:01:53.438Z [INFO] [product-bazar]: Finished inserting comments.
+2025-05-24T12:01:53.490Z [INFO] [product-bazar]: Inserting 30649 recommendation interactions...
+2025-05-24T12:02:02.910Z [INFO] [product-bazar]: Finished inserting recommendation interactions.
+2025-05-24T12:02:02.962Z [INFO] [product-bazar]: Finished inserting interactions.
+2025-05-24T12:02:02.963Z [INFO] [product-bazar]: Updating product interaction counts from DB...
+2025-05-24T12:02:07.297Z [INFO] [product-bazar]: Updated counts for 385 products.
+2025-05-24T12:02:07.299Z [INFO] [product-bazar]: Creating search history...
+2025-05-24T12:02:07.307Z [INFO] [product-bazar]: Attempting to upsert 1315 search history entries...
+2025-05-24T12:02:08.595Z [INFO] [product-bazar]: SearchHistory bulkWrite result: 0 inserted, 0 matched, 0 modified, 1315 upserted.
+2025-05-24T12:02:08.653Z [INFO] [product-bazar]: Finished search history seeding. Total entries now: 1315.
+2025-05-24T12:02:08.654Z [INFO] [product-bazar]: Creating/Updating recommendation profiles...
+2025-05-24T12:02:11.200Z [INFO] [product-bazar]: Processed 100 recommendation profiles...
+2025-05-24T12:02:12.026Z [INFO] [product-bazar]: Processed 200 recommendation profiles...
+2025-05-24T12:02:12.394Z [INFO] [product-bazar]: Finished creating/updating 250 recommendation profiles.
+2025-05-24T12:02:12.394Z [INFO] [product-bazar]: 
+Database seeding completed in 240 seconds.
+2025-05-24T12:02:12.394Z [INFO] [product-bazar]: --- Final Summary ---
+2025-05-24T12:02:12.442Z [INFO] [product-bazar]: - Users: 250
+2025-05-24T12:02:12.512Z [INFO] [product-bazar]: - Categories: 39
+2025-05-24T12:02:12.572Z [INFO] [product-bazar]: - Tags: 68
+2025-05-24T12:02:12.633Z [INFO] [product-bazar]: - Products: 385
+2025-05-24T12:02:12.694Z [INFO] [product-bazar]: - Jobs: 60
+2025-05-24T12:02:12.753Z [INFO] [product-bazar]: - Projects: 86
+2025-05-24T12:02:12.813Z [INFO] [product-bazar]: - Startups: 26
+2025-05-24T12:02:12.873Z [INFO] [product-bazar]: - Investors: 16
+2025-05-24T12:02:12.933Z [INFO] [product-bazar]: - Agencies: 11
+2025-05-24T12:02:12.993Z [INFO] [product-bazar]: - Freelancers: 72
+2025-05-24T12:02:13.054Z [INFO] [product-bazar]: - Jobseekers: 51
+2025-05-24T12:02:13.121Z [INFO] [product-bazar]: - Views: 14405
+2025-05-24T12:02:13.188Z [INFO] [product-bazar]: - Upvotes: 5773
+2025-05-24T12:02:13.259Z [INFO] [product-bazar]: - Bookmarks: 2995
+2025-05-24T12:02:13.334Z [INFO] [product-bazar]: - Comments: 1105
+2025-05-24T12:02:13.393Z [INFO] [product-bazar]: - Search History: 1315
+2025-05-24T12:02:13.459Z [INFO] [product-bazar]: - Recommendation Profiles: 250
+2025-05-24T12:02:13.547Z [INFO] [product-bazar]: - Recommendation Interactions: 27166
+2025-05-24T12:02:13.547Z [INFO] [product-bazar]: --------------------
+2025-05-24T12:02:13.547Z [INFO] [product-bazar]: Test user credentials:
+2025-05-24T12:02:13.664Z [INFO] [product-bazar]: - user        : test@user.com / password123 (Username: test.user)

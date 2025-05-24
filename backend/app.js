@@ -26,8 +26,17 @@ import adminRoutes from "./api/modules/user/admin.route.js";
 import "./models/analytics/analytic.model.js";
 
 // Import middlewares and utilities
-import { errorHandler, notFoundHandler } from "./api/middlewares/core/error.middleware.js";
-import { configureCors, corsOptions, logCorsHeaders } from "./api/middlewares/core/cors.middleware.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./api/middlewares/core/error.middleware.js";
+import {
+  configureCors,
+  corsOptions,
+  logCorsHeaders,
+} from "./api/middlewares/core/cors.middleware.js";
+import { verifyConnection } from "./utils/communication/mail.utils.js";
+import logger from "./utils/logging/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -35,28 +44,30 @@ const app = express();
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again later."
+  message: "Too many requests from this IP, please try again later.",
 });
 
 // IMPORTANT: Add CORS middleware early in the chain - before any other middleware
 app.use(configureCors);
 
 // Add CORS debugging in development environment
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   app.use(logCorsHeaders);
 }
 
 // Set preflight OPTIONS for all routes
-app.options('*', configureCors);
+app.options("*", configureCors);
 
 // Apply the rate limiting middleware to all requests
 app.use(limiter);
 
 // Middleware setup
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  })
+);
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -82,12 +93,12 @@ app.use("/api/v1/views", viewRoutes);
 app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/recommendations", recommendationRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
-app.use('/api/v1/analytics', analyticsRoutes);
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/user/bookmarks', bookmarksRoutes);
-app.use('/api/v1/jobs', jobRoutes);
-app.use('/api/v1/projects', projectRoutes);
-app.use('/api/v1/admin', adminRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/user/bookmarks", bookmarksRoutes);
+app.use("/api/v1/jobs", jobRoutes);
+app.use("/api/v1/projects", projectRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 // Root route
 app.get("/", (req, res) => {
@@ -100,16 +111,16 @@ app.get("/", (req, res) => {
 
 // CORS error handler - place before other error handlers
 app.use((err, req, res, next) => {
-  if (err.message === 'Not allowed by CORS') {
-    console.error('CORS Error:', {
+  if (err.message === "Not allowed by CORS") {
+    console.error("CORS Error:", {
       origin: req.headers.origin,
       path: req.path,
-      method: req.method
+      method: req.method,
     });
     return res.status(403).json({
       success: false,
-      message: 'CORS Error: Not allowed by CORS policy',
-      error: err.message
+      message: "CORS Error: Not allowed by CORS policy",
+      error: err.message,
     });
   }
   next(err);
@@ -118,5 +129,8 @@ app.use((err, req, res, next) => {
 // Error handling
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+// Verify SMTP connection
+verifyConnection()
 
 export default app;

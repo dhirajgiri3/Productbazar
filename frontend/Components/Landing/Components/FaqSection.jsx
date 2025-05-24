@@ -82,7 +82,7 @@ export default function FaqSection({ onHover, onLeave }) {
   return (
     <section
       ref={ref}
-      className={`relative py-12 sm:py-16 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"} transition-colors duration-300`}
+      className={`relative py-12 sm:py-16 ${isDarkMode ? "bg-gray-900" : "bg-white"} transition-colors duration-300`}
       id="faq"
     >
       <div className="container mx-auto px-4 relative z-10">

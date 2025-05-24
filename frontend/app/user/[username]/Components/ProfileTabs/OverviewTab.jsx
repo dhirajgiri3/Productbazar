@@ -477,7 +477,7 @@ export default function OverviewTab({ user, products = [] }) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {featuredProducts.map((product, index) => (
               <motion.div
-                key={product._id || index}
+                key={product._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 + 0.2, duration: 0.4 }}

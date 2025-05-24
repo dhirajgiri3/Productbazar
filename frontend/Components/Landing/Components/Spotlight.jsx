@@ -172,13 +172,15 @@ const ProductCard = ({
 const Spotlight = () => {
   const sectionRef = useRef(null);
   const carouselRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: false, amount: 0.1 }); // Adjust amount if needed
   const [width, setWidth] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(3);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Always call hooks in the same order
   const { isDarkMode } = useTheme();
-
+  const isInView = useInView(sectionRef, { once: false, amount: 0.1 });
+  
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"]
@@ -190,8 +192,8 @@ const Spotlight = () => {
     restDelta: 0.001
   });
 
+  // Define products array at the top to ensure it's always available for hooks
   const products = [
-    // ... (product data remains the same)
     { imageUrl: "https://images.unsplash.com/photo-1601158935942-52255782d322?q=80&w=2691&auto=format&fit=crop&ixlib=rb-4.0.3", category: "AI / Dev Tools", name: "CodePilot AI Assist", tagline: "Intelligent code completion and review powered by state-of-the-art ML models.", upvotes: 312, comments: 28, },
     { imageUrl: "https://plus.unsplash.com/premium_photo-1661962960694-0b4ed303744f?q=80&w=3135&auto=format&fit=crop&ixlib=rb-4.0.3", category: "SaaS / Productivity", name: "FlowState Task Manager", tagline: "Seamlessly manage projects with intuitive workflows and team collaboration.", upvotes: 280, comments: 19, },
     { imageUrl: "https://images.unsplash.com/photo-1639395241103-9c855f93a90c?q=80&w=2400&auto=format&fit=crop&ixlib=rb-4.0.3", category: "No-Code / Automation", name: "Connecta Bridge", tagline: "Visually integrate your favorite apps without code. 200+ integrations.", upvotes: 450, comments: 35, },
@@ -200,13 +202,37 @@ const Spotlight = () => {
     { imageUrl: "https://images.unsplash.com/photo-1601158935942-52255782d322?q=80&w=2691&auto=format&fit=crop&ixlib=rb-4.0.3", category: "Marketing / Automation", name: "GrowthPulse", tagline: "Automate marketing campaigns with smart triggers and personalized journeys.", upvotes: 328, comments: 31, },
   ];
 
-  // --- Hooks remain the same ---
-  const totalScrollDistance = products.length - cardsPerView;
+  // Calculate derived values that depend on products length
+  const totalScrollDistance = Math.max(0, products.length - cardsPerView);
+  
+  // Always call useTransform with consistent parameters
   const x = useTransform(
     smoothProgress,
-    [0.1, 0.9], // Start/end transform slightly inset from full scroll for smoother feel
-    [0, -(width + 20) * totalScrollDistance] // 20px gap
+    [0.1, 0.9],
+    [0, -(width + 20) * totalScrollDistance]
   );
+
+  // Always call these useTransform hooks, even if they won't be used on mobile
+  const progressOpacity = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0, 1, 1, 0]);
+  const progressWidth = useTransform(scrollYProgress, [0.1, 0.9], ["0%", "100%"]);
+
+  // Define animation variants before useEffect
+  const fadeInUp = {
+    opacity: 0,
+    y: 20,
+    transition: { duration: 0.6, ease: "easeOut" },
+  };
+  
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.2,
+      },
+    },
+  };
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -228,20 +254,19 @@ const Spotlight = () => {
 
       if (carouselRef.current) {
         const containerWidth = carouselRef.current.offsetWidth;
-        const gap = 20; // Corresponds to space-x-5 -> 1.25rem = 20px
-        // Calculate card width based on container width, gaps, and number of cards visible
+        const gap = 20;
         const cardWidth = (containerWidth - (gap * (newCardsPerView - 1))) / newCardsPerView;
         setWidth(cardWidth);
       }
 
       // Reset index if resizing causes current index to be out of bounds
-      setCurrentIndex(prev => Math.min(prev, products.length - newCardsPerView));
+      setCurrentIndex(prev => Math.min(prev, Math.max(0, products.length - newCardsPerView)));
     };
 
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
-  }, [products.length]); // Re-run if product list changes
+  }, []); // Remove products.length dependency to prevent hook order issues
 
 
   const handleNext = () => {
@@ -252,27 +277,10 @@ const Spotlight = () => {
     setCurrentIndex((prev) => Math.max(prev - 1, 0));
   };
 
-  // --- Animation Variants remain the same ---
-  const fadeInUp = {
-    opacity: 0,
-    y: 20,
-    transition: { duration: 0.6, ease: "easeOut" },
-  };
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
   return (
     <section
       ref={sectionRef}
-      className={`overflow-hidden py-12 sm:py-16`} // Added consistent vertical padding
+      className={`overflow-hidden py-12 sm:py-16 bg-white dark:bg-gray-900`} // Added consistent vertical padding
       aria-labelledby="spotlight-heading" // Accessibility
     >
       {/* Use flex column for main content flow and gap for spacing */}
@@ -334,14 +342,14 @@ const Spotlight = () => {
             className={`max-w-4xl mx-auto relative h-0.5 ${
               isDarkMode ? "bg-gray-700" : "bg-gray-100"
               } rounded-full overflow-hidden transition-colors duration-300`}
-            style={{ opacity: useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0, 1, 1, 0]) }}
+            style={{ opacity: progressOpacity }}
             aria-hidden="true" // Decorative element
           >
             <motion.div
               className={`absolute top-0 left-0 h-full ${
                 isDarkMode ? "bg-violet-400" : "bg-violet-500"
                 } rounded-full transition-colors duration-300`}
-              style={{ width: useTransform(scrollYProgress, [0.1, 0.9], ["0%", "100%"]) }} // Match transform range
+              style={{ width: progressWidth }}
             />
           </motion.div>
         )}

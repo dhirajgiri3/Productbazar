@@ -27,7 +27,7 @@ export default function HistoryLayout({ children }) {
   }, []);
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-white">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
         {children}
       </main>

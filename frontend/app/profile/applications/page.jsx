@@ -152,7 +152,7 @@ const ApplicationsPage = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           {/* Filters */}
           <ApplicationFilters
             filters={filters}

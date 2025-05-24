@@ -94,7 +94,7 @@ export default function EditJobPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 py-12 px-4">
+    <div className="min-h-screen bg-white py-12 px-4">
       <motion.div
         className="max-w-5xl mx-auto"
         initial={{ opacity: 0, y: 20 }}

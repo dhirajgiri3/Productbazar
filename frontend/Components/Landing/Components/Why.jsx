@@ -856,7 +856,7 @@ function Why() {
     <section
       ref={sectionRef}
       aria-labelledby={headingId}
-      className="relative overflow-hidden py-12 sm:py-16 transition-colors duration-30"
+      className="relative overflow-hidden py-12 sm:py-16 transition-colors duration-300 bg-white dark:bg-gray-900"
     >
       <Background
         scrollYProgress={smoothScrollYProgress}

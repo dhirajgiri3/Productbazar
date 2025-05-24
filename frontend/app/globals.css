@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: #f5f5ff;
+  --background: #ffffff;
   --foreground: #6e6e6e;
   --primary: #7c3aed;
   --secondary: #a78bfa;
@@ -31,6 +31,9 @@
   --theme-transition-duration: 300ms;
   --theme-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
   --theme-transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+
+  /* Hydration optimization */
+  color-scheme: light dark;
 }
 
 .dark {
@@ -89,6 +92,19 @@
     transition: border-color var(--theme-transition-duration) var(--theme-transition-timing);
     will-change: border-color;
   }
+}
+
+/* ======= BASE OPTIMIZATIONS ======= */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  visibility: visible;
+  opacity: 1;
 }
 
 /* ======= ANIMATIONS ======= */
@@ -652,9 +668,9 @@
   }
 }
 
-input, 
-select, 
-textarea, 
+input,
+select,
+textarea,
 .form-control,
 option,
 fieldset {
@@ -664,8 +680,8 @@ fieldset {
 }
 
 /* Override focus states while maintaining accessibility */
-input:focus, 
-select:focus, 
+input:focus,
+select:focus,
 textarea:focus {
   border-color: var(--primary) !important;
   box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2) !important;

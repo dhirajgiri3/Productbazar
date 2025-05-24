@@ -90,7 +90,7 @@ ErrorFallback.displayName = 'ErrorFallback';
 
 const SectionSkeleton = memo(({ height = 'h-64', testId = '' }) => (
   <div
-    className={`animate-pulse rounded-xl ${height} w-full bg-gray-100/60 shadow-sm overflow-hidden`}
+    className={`animate-pulse rounded-xl ${height} w-full bg-gray-100/60 overflow-hidden`}
     role="progressbar"
     aria-busy="true"
     aria-label="Loading content"
@@ -882,7 +882,7 @@ export default function Home() {
   return (
     <motion.main
       {...mainAnimationProps}
-      className="bg-slate-50"
+      className="bg-white"
       data-testid="home-page"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-6 relative">

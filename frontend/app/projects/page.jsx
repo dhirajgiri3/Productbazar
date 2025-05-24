@@ -36,7 +36,7 @@ export default function ProjectsPage() {
       {/* Minimalistic Hero Section */}
       <div className="relative bg-white">
         {/* Subtle background elements */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-white to-white pointer-events-none"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           {/* Clean, minimalistic header */}
@@ -78,7 +78,7 @@ export default function ProjectsPage() {
           >
             <motion.div
               variants={itemVariants}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-300 flex flex-col items-center text-center"
+              className="bg-white rounded-lg p-4 hover:bg-gray-100 transition-colors duration-300 flex flex-col items-center text-center"
             >
               <Briefcase className="text-violet-600 mb-3" size={20} />
               <h3 className="text-sm font-medium text-gray-800">Professional</h3>
@@ -86,7 +86,7 @@ export default function ProjectsPage() {
 
             <motion.div
               variants={itemVariants}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-300 flex flex-col items-center text-center"
+              className="bg-white rounded-lg p-4 hover:bg-gray-100 transition-colors duration-300 flex flex-col items-center text-center"
             >
               <Rocket className="text-violet-600 mb-3" size={20} />
               <h3 className="text-sm font-medium text-gray-800">Startup</h3>
@@ -94,7 +94,7 @@ export default function ProjectsPage() {
 
             <motion.div
               variants={itemVariants}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-300 flex flex-col items-center text-center"
+              className="bg-white rounded-lg p-4 hover:bg-gray-100 transition-colors duration-300 flex flex-col items-center text-center"
             >
               <Users className="text-violet-600 mb-3" size={20} />
               <h3 className="text-sm font-medium text-gray-800">Agency</h3>
@@ -102,7 +102,7 @@ export default function ProjectsPage() {
 
             <motion.div
               variants={itemVariants}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-300 flex flex-col items-center text-center"
+              className="bg-white rounded-lg p-4 hover:bg-gray-100 transition-colors duration-300 flex flex-col items-center text-center"
             >
               <Award className="text-violet-600 mb-3" size={20} />
               <h3 className="text-sm font-medium text-gray-800">Featured</h3>

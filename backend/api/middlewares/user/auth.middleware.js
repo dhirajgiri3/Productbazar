@@ -185,6 +185,31 @@ export const verifyAnyEmailOrPhone = (req, res, next) => {
   next();
 };
 
+// Custom middleware to verify user's account
+export const isVerified = (req, res, next) => {
+  if (!req.user) {
+    return next(new AppError("Authentication required", 401));
+  }
+
+  if (!req.user.isEmailVerified && !req.user.isPhoneVerified) {
+    return next(new AppError("Please verify your account to continue", 403));
+  }
+
+  next();
+};
+
+// Custom middleware for profile completion actions - allows unverified users to complete profile
+export const allowProfileCompletion = (req, res, next) => {
+  if (!req.user) {
+    return next(new AppError("Authentication required", 401));
+  }
+
+  // Allow profile completion actions for authenticated users regardless of verification status
+  // This is specifically for the onboarding flow where users need to complete their profile
+  // before being required to verify email/phone
+  next();
+};
+
 // Custom middleware for critical actions requiring recent authentication
 export const requireCriticalActionVerification = (req, res, next) => {
   if (!req.user) {
@@ -277,19 +302,6 @@ export const isResourceOwner = (resourceField) => (req, res, next) => {
     return next(
       new AppError("You do not have permission to access this resource", 403)
     );
-  }
-
-  next();
-};
-
-// Custom middleware to verify user's account
-export const isVerified = (req, res, next) => {
-  if (!req.user) {
-    return next(new AppError("Authentication required", 401));
-  }
-
-  if (!req.user.isEmailVerified && !req.user.isPhoneVerified) {
-    return next(new AppError("Please verify your account to continue", 403));
   }
 
   next();

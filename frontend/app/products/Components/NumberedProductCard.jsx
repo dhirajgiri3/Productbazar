@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ExternalLink,
@@ -28,6 +28,7 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
   const { isAuthenticated } = useAuth();
   const { recordInteraction } = useRecommendation();
   const { subscribeToProductUpdates } = useSocket();
+  const router = useRouter();
 
   // Store product ID in a ref to avoid re-subscriptions when only other props change
   const productIdRef = useRef(product?._id);
@@ -81,8 +82,15 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
 
   if (!product) return null;
 
-  // Handle product view interaction - memoize to prevent recreation on each render
+  // Handle product view interaction and navigation - memoize to prevent recreation on each render
   const handleProductView = useCallback(() => {
+    // Navigate to product page
+    const slug = product?.slug || product?._id;
+    if (slug) {
+      router.push(`/product/${slug}`);
+    }
+
+    // Record interaction if authenticated
     if (!isAuthenticated || !recordInteraction || !product?._id) return;
 
     // Use a non-blocking approach to avoid delaying navigation
@@ -128,7 +136,7 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
     } else {
       setTimeout(recordView, 10);
     }
-  }, [isAuthenticated, recordInteraction, product?._id, recommendationType, position]);
+  }, [isAuthenticated, recordInteraction, product?._id, product?.slug, recommendationType, position, router]);
 
   // Memoized empty success handler - the global cache handles updates
   // Using useCallback to prevent recreation on each render
@@ -158,7 +166,6 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
     "No description available";
   const truncatedTagline =
     tagline.length > 100 ? `${tagline.substring(0, 100)}...` : tagline;
-  const slug = product.slug || product._id;
 
   const categoryName =
     product.categoryNameVirtual ||
@@ -189,17 +196,16 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
       animate="visible"
       whileHover="hover"
       onClick={handleProductView}
-      className="group bg-white rounded-xl border border-gray-100 transition-all duration-300 overflow-hidden hover:border-violet-200"
+      className="group bg-white rounded-xl border border-gray-100 transition-all duration-300 overflow-hidden hover:border-violet-200 cursor-pointer"
     >
-      <div className="flex items-start p-4 sm:p-5">
-        {/* Left side - Number with enhanced styling */}
-        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600 font-bold flex items-center justify-center text-lg mr-3 sm:mr-4 shadow-sm">
-          {position + 1}
-        </div>
+        <div className="flex items-start p-4 sm:p-5">
+          {/* Left side - Number with enhanced styling */}
+          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600 font-bold flex items-center justify-center text-lg mr-3 sm:mr-4 shadow-sm">
+            {position + 1}
+          </div>
 
-        {/* Middle - Content with improved responsive layout */}
-        <div className="flex-1 min-w-0">
-          <Link href={`/product/${slug}`} className="block">
+          {/* Middle - Content with improved responsive layout */}
+          <div className="flex-1 min-w-0">
             <div className="flex items-center mb-2">
               {/* Product Image with enhanced styling */}
               <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 mr-3 shadow-sm group-hover:shadow transition-shadow duration-300">
@@ -232,68 +238,63 @@ const NumberedProductCard = React.memo(function NumberedProductCard({
               </span>
               {tags.slice(0, 2).map((tag, index) => (
                 <span
-                  key={index}
+                  key={`${product._id || product.productId}-${tag}-${index}`}
                   className="px-2 py-0.5 bg-gray-50 text-gray-500 text-xs rounded-full group-hover:bg-gray-100 transition-colors duration-200"
                 >
                   #{tag}
                 </span>
               ))}
               {tags.length > 2 && (
-                <span className="px-2 py-0.5 bg-gray-50 text-gray-500 text-xs rounded-full group-hover:bg-gray-100 transition-colors duration-200">
+                <span key={`${product._id || product.productId}-tags-more`} className="px-2 py-0.5 bg-gray-50 text-gray-500 text-xs rounded-full group-hover:bg-gray-100 transition-colors duration-200">
                   +{tags.length - 2}
                 </span>
               )}
             </div>
-          </Link>
 
-          {/* Action Row with improved responsive layout */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-y-2">
-            <div className="flex items-center gap-3">
-              {/* Upvote Button */}
-              <UpvoteButton
-                product={product}
-                size="sm"
-                source={recommendationType || "home"}
-                // Pass explicit counts to ensure proper initialization
-                upvoteCount={productData.upvoteCount}
-                hasUpvoted={productData.hasUpvoted}
-                onSuccess={handleInteractionSuccess}
-              />
+            {/* Action Row with improved responsive layout */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-y-2">
+              <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                {/* Upvote Button */}
+                <UpvoteButton
+                  product={product}
+                  size="sm"
+                  source={recommendationType || "home"}
+                  // Pass explicit counts to ensure proper initialization
+                  upvoteCount={productData.upvoteCount}
+                  hasUpvoted={productData.hasUpvoted}
+                  onSuccess={handleInteractionSuccess}
+                />
 
-              {/* Bookmark Button */}
-              <BookmarkButton
-                product={product}
-                size="sm"
-                source={recommendationType || "home"}
-                // Pass explicit counts to ensure proper initialization
-                bookmarkCount={productData.bookmarkCount}
-                hasBookmarked={productData.hasBookmarked}
-                onSuccess={handleInteractionSuccess}
-              />
+                {/* Bookmark Button */}
+                <BookmarkButton
+                  product={product}
+                  size="sm"
+                  source={recommendationType || "home"}
+                  // Pass explicit counts to ensure proper initialization
+                  bookmarkCount={productData.bookmarkCount}
+                  hasBookmarked={productData.hasBookmarked}
+                  onSuccess={handleInteractionSuccess}
+                />
 
-              {/* Comments Count */}
-              {product.commentCount > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <MessageCircle className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700">
-                    {product.commentCount}
-                  </span>
-                </div>
-              )}
+                {/* Comments Count */}
+                {product.commentCount > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <MessageCircle className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {product.commentCount}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* View Product Link with enhanced styling */}
+              <span className="text-sm text-violet-600 group-hover:text-violet-800 font-medium flex items-center bg-violet-50 group-hover:bg-violet-100 px-3 py-1 rounded-lg transition-colors duration-200">
+                View Product
+                <ExternalLink className="w-3.5 h-3.5 ml-1" />
+              </span>
             </div>
-
-            {/* View Product Link with enhanced styling */}
-            <Link
-              href={`/product/${slug}`}
-              className="text-sm text-violet-600 hover:text-violet-800 font-medium flex items-center bg-violet-50 hover:bg-violet-100 px-3 py-1 rounded-lg transition-colors duration-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              View Product
-              <ExternalLink className="w-3.5 h-3.5 ml-1" />
-            </Link>
           </div>
         </div>
-      </div>
 
       {/* External link if available - enhanced styling */}
       {product.links?.website && (

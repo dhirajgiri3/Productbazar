@@ -355,7 +355,7 @@ const ProfileProductCard = ({
               <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
                 {galleryImages.map((_, index) => (
                   <motion.button
-                    key={index}
+                    key={`${product._id}-image-${index}`}
                     aria-label={`Go to image ${index + 1}`}
                     className={`w-2 h-2 rounded-full transition-all duration-200 ${
                       currentImageIndex === index
@@ -403,7 +403,7 @@ const ProfileProductCard = ({
               <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
                 {productTags.map((tag, index) => (
                   <motion.span
-                    key={index}
+                    key={`${product._id}-tag-${index}-${tag}`}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
@@ -413,7 +413,7 @@ const ProfileProductCard = ({
                   </motion.span>
                 ))}
                 {productTagsAll.length > productTags.length && (
-                  <span className="text-[10px] px-2 py-0.5 bg-gray-50 text-gray-400 rounded-full border border-gray-100/30">
+                  <span key="more-tags" className="text-[10px] px-2 py-0.5 bg-gray-50 text-gray-400 rounded-full border border-gray-100/30">
                     +{productTagsAll.length - productTags.length} more
                   </span>
                 )}

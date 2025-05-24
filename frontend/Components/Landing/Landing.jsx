@@ -13,10 +13,12 @@ import TestimonialsSection from "./Components/TestimonialsSection";
 import FaqSection from "./Components/FaqSection";
 import { useTheme } from "@/lib/contexts/theme-context";
 
-// Section spacing component for consistent vertical rhythm
+// Section spacing component for consistent vertical rhythm and centering
 const SectionSpacing = ({ children, className = "", isFirst = false, isLast = false }) => (
-  <div className={className}>
-    {children}
+  <div className={`w-full flex flex-col items-center justify-center ${className}`}>
+    <div className="mx-auto w-full">
+      {children}
+    </div>
   </div>
 );
 
@@ -24,7 +26,7 @@ function Landing() {
   const { isDarkMode } = useTheme();
 
   return (
-    <div className="flex flex-col align-center justify-center bg-white dark:bg-gray-900 transition-colors duration-300 min-h-screen">
+    <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-300 min-h-screen w-full">
       <SectionSpacing isFirst={true}>
         <HeroSection isDarkMode={isDarkMode} />
       </SectionSpacing>

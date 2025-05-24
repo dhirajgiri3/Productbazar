@@ -930,8 +930,8 @@ export function ProductBazarEcosystemConnector() {
   ];
 
   return (
-    <div
-      className="relative flex w-full items-center justify-center overflow-hidden"
+    <section
+      className="relative w-full flex flex-col items-center justify-center min-h-[600px] md:min-h-[700px] lg:min-h-[800px] py-16 md:py-20 lg:py-24 bg-white dark:bg-gray-900"
       ref={containerRef}
       onMouseMove={handleMouseMove}
       aria-label="Product Bazar Ecosystem Visualization"
@@ -973,13 +973,13 @@ export function ProductBazarEcosystemConnector() {
             const pseudoRandom2 = (((seed + 1) * 9301 + 49297) % 233280) / 233280;
             const pseudoRandom3 = (((seed + 2) * 9301 + 49297) % 233280) / 233280;
             const pseudoRandom4 = (((seed + 3) * 9301 + 49297) % 233280) / 233280;
-            
+
             const width = pseudoRandom1 * 6 + 2;
             const height = pseudoRandom2 * 6 + 2;
             const left = pseudoRandom3 * 100;
             const top = pseudoRandom4 * 100;
             const opacity = (pseudoRandom1 * 0.3) + (isDarkMode ? 0.2 : 0.1);
-            
+
             return (
               <motion.div
                 key={i}
@@ -1046,317 +1046,71 @@ export function ProductBazarEcosystemConnector() {
         </div>
       )}
 
-      <div className="w-full max-w-5xl flex flex-col items-center pt-16 sm:pt-20 lg:pt-24 pb-16 sm:pb-20 lg:pb-24">
-        {/* Enhanced header with improved design, animations and accessibility */}
+      <div className="w-full max-w-6xl mx-auto flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+        {/* Header section */}
         <motion.div
-          className="text-center relative z-10 mb-16 sm:mb-20 md:mb-24 lg:mb-28"
-          style={{
-            scale: prefersReducedMotion ? 1 : headerScale,
-            y: prefersReducedMotion ? 0 : headerY,
-          }}
-          onMouseEnter={() => setIsHeaderHovered(true)}
-          onMouseLeave={() => setIsHeaderHovered(false)}
+          className="text-center relative z-10 mb-8 md:mb-12 w-full flex flex-col items-center justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          {/* Dynamic background elements with improved aesthetics */}
-          {!prefersReducedMotion && (
-            <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-full max-w-lg h-40 opacity-20 dark:opacity-15 -z-10 transition-opacity duration-300">
-              {[
-                {
-                  color: `${isDarkMode ? "bg-blue-500" : "bg-blue-300"}`,
-                  delay: 0,
-                  size: "w-28 h-28",
-                  pos: "top-0 left-1/4",
-                },
-                {
-                  color: `${isDarkMode ? "bg-purple-500" : "bg-purple-300"}`,
-                  delay: 1,
-                  size: "w-24 h-24",
-                  pos: "top-10 right-1/4",
-                },
-                {
-                  color: `${isDarkMode ? "bg-emerald-500" : "bg-emerald-300"}`,
-                  delay: 2,
-                  size: "w-20 h-20",
-                  pos: "bottom-0 left-1/3",
-                },
-                {
-                  color: `${isDarkMode ? "bg-rose-500" : "bg-rose-300"}`,
-                  delay: 1.5,
-                  size: "w-16 h-16",
-                  pos: "top-16 left-1/2",
-                },
-              ].map((blob, i) => (
-                <motion.div
-                  key={i}
-                  className={`absolute rounded-full ${blob.color} blur-xl ${blob.pos} ${blob.size} transition-colors duration-300`}
-                  animate={{
-                    scale: isHeaderHovered ? 1.2 : 1,
-                    opacity: isHeaderHovered
-                      ? isDarkMode
-                        ? 0.7
-                        : 0.5
-                      : isDarkMode
-                      ? 0.5
-                      : 0.3,
-                    x: isHeaderHovered ? 10 : 0,
-                    y: isHeaderHovered ? -5 : 0,
-                  }}
-                  transition={{
-                    duration: 8 + i,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                    delay: blob.delay,
-                    ease: "easeInOut",
-                  }}
-                />
-              ))}
-            </div>
-          )}
 
-          {/* Animated subtitle with enhanced design */}
-          <motion.div
-            className="mb-3"
-            initial={{
-              opacity: prefersReducedMotion ? 1 : 0,
-              y: prefersReducedMotion ? 0 : 10,
-            }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
+
+          {/* Subtitle */}
+          <div className="mb-3">
             <SectionLabel
               text="Connecting the Innovation Ecosystem"
               size="medium"
               alignment="center"
               variant="connector"
-              gradientText={!prefersReducedMotion}
-              glowEffect={!prefersReducedMotion}
-              animationStyle={prefersReducedMotion ? "none" : "slide"}
             />
-          </motion.div>
-
-          {/* Main title with enhanced styling, animation effects and contrast */}
-          <div className="mb-5">
-            <motion.h2
-              className={`text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold ${
-                isDarkMode ? "text-gray-50" : "text-gray-800"
-              } tracking-tight transition-colors duration-300`}
-              initial={{
-                opacity: prefersReducedMotion ? 1 : 0,
-                y: prefersReducedMotion ? 0 : 20,
-              }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: 0.2,
-                duration: 0.7,
-                type: "spring",
-                stiffness: 50,
-                damping: 12,
-              }}
-            >
-              <motion.span
-                className="inline-block relative"
-                whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                <motion.span
-                  className={`bg-clip-text text-transparent bg-gradient-to-r ${
-                    isDarkMode
-                      ? "from-violet-400 via-purple-400 to-violet-400"
-                      : "from-violet-600 via-purple-600 to-violet-600"
-                  } relative transition-colors duration-300`}
-                  animate={
-                    !prefersReducedMotion && isHeaderHovered
-                      ? {
-                          backgroundPosition: ["0% 50%", "100% 50%"],
-                        }
-                      : {}
-                  }
-                  transition={{
-                    duration: 3,
-                    ease: "easeInOut",
-                    repeat:
-                      isHeaderHovered && !prefersReducedMotion ? Infinity : 0,
-                    repeatType: "reverse",
-                  }}
-                >
-                  Product Bazar
-                </motion.span>
-
-                {/* Enhanced curvy SVG underline effect with animation */}
-                <div className="absolute -bottom-1 md:-bottom-2 left-0 w-full h-3 md:h-4 overflow-hidden -z-10">
-                  <motion.svg
-                    width="100%"
-                    height="100%"
-                    viewBox="0 0 200 15"
-                    preserveAspectRatio="none"
-                    initial={{ opacity: prefersReducedMotion ? 1 : 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6, duration: 0.4 }}
-                  >
-                    <motion.path
-                      d="M0,10 Q40,5 100,10 Q160,15 200,10"
-                      fill="none"
-                      stroke={`url(#underlineGradient${
-                        isDarkMode ? "Dark" : "Light"
-                      })`}
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                      initial={{
-                        pathLength: prefersReducedMotion ? 1 : 0,
-                        opacity: prefersReducedMotion ? 1 : 0,
-                      }}
-                      animate={{
-                        pathLength: 1,
-                        opacity: 1,
-                        d:
-                          isHeaderHovered && !prefersReducedMotion
-                            ? "M0,10 Q50,2 100,10 Q150,18 200,10"
-                            : "M0,10 Q40,5 100,10 Q160,15 200,10",
-                      }}
-                      transition={{
-                        pathLength: {
-                          delay: 0.7,
-                          duration: 0.8,
-                          ease: "easeOut",
-                        },
-                        opacity: { delay: 0.7, duration: 0.8 },
-                        d: { duration: 1, ease: "easeInOut" },
-                      }}
-                    />
-                    <defs>
-                      <linearGradient
-                        id="underlineGradientLight"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="0%"
-                      >
-                        <stop offset="0%" stopColor="#a78bfa" />
-                        <motion.stop
-                          offset="50%"
-                          stopColor="#8b5cf6"
-                          animate={{
-                            stopColor:
-                              isHeaderHovered && !prefersReducedMotion
-                                ? "#7c3aed"
-                                : "#8b5cf6",
-                          }}
-                          transition={{ duration: 0.5 }}
-                        />
-                        <stop offset="100%" stopColor="#a78bfa" />
-                      </linearGradient>
-                      <linearGradient
-                        id="underlineGradientDark"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="0%"
-                      >
-                        <stop offset="0%" stopColor="#c4b5fd" />
-                        <motion.stop
-                          offset="50%"
-                          stopColor="#ddd6fe"
-                          animate={{
-                            stopColor:
-                              isHeaderHovered && !prefersReducedMotion
-                                ? "#a78bfa"
-                                : "#ddd6fe",
-                          }}
-                          transition={{ duration: 0.5 }}
-                        />
-                        <stop offset="100%" stopColor="#c4b5fd" />
-                      </linearGradient>
-                    </defs>
-                  </motion.svg>
-                </div>
-              </motion.span>{" "}
-              <motion.span
-                className={`${
-                  isDarkMode ? "text-gray-200" : "text-gray-800"
-                } inline-block mt-1 md:mt-0 transition-colors duration-300`}
-                whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                Ecosystem
-              </motion.span>
-            </motion.h2>
           </div>
 
-          {/* Enhanced description with better animation, design and contrast */}
-          <motion.div
-            initial={{
-              opacity: prefersReducedMotion ? 1 : 0,
-              y: prefersReducedMotion ? 0 : 10,
-            }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="relative"
-          >
-            <motion.p
-              className={`${
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              } text-sm md:text-base max-w-lg mx-auto leading-relaxed transition-colors duration-300`}
-              whileHover={prefersReducedMotion ? {} : { y: -1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
-            >
+          {/* Main title */}
+          <div className="mb-5">
+            <h2 className={`text-3xl md:text-4xl lg:text-5xl font-bold ${
+              isDarkMode ? "text-gray-50" : "text-gray-800"
+            } tracking-tight transition-colors duration-300`}>
+              <span className={`bg-clip-text text-transparent bg-gradient-to-r ${
+                isDarkMode
+                  ? "from-violet-400 via-purple-400 to-violet-400"
+                  : "from-violet-600 via-purple-600 to-violet-600"
+              } transition-colors duration-300`}>
+                Product Bazar
+              </span>
+
+              {" "}
+              <span className={`${
+                isDarkMode ? "text-gray-200" : "text-gray-800"
+              } transition-colors duration-300`}>
+                Ecosystem
+              </span>
+            </h2>
+          </div>
+
+          {/* Description */}
+          <div className="relative">
+            <p className={`${
+              isDarkMode ? "text-gray-300" : "text-gray-600"
+            } text-sm md:text-base max-w-lg mx-auto leading-relaxed transition-colors duration-300`}>
               Connect with every part of our vibrant ecosystem to grow your
               product, find opportunities, and reach new heights in the tech
               innovation landscape
-            </motion.p>
-
-            {/* Animated decorative underline - improved for light theme */}
-            <motion.div
-              className={`h-0.5 bg-gradient-to-r from-transparent ${
-                isDarkMode
-                  ? "via-purple-500 to-transparent"
-                  : "via-purple-400 to-transparent"
-              } rounded-full mx-auto mt-6 transition-colors duration-300`}
-              initial={{
-                width: prefersReducedMotion ? "5rem" : 0,
-                opacity: prefersReducedMotion ? 1 : 0,
-              }}
-              animate={{ width: "5rem", opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-              whileHover={
-                prefersReducedMotion
-                  ? {}
-                  : {
-                      width: "8rem",
-                      background: isDarkMode
-                        ? "linear-gradient(to right, transparent, rgba(167, 139, 250, 0.7), transparent)"
-                        : "linear-gradient(to right, transparent, rgba(124, 58, 237, 0.5), transparent)",
-                    }
-              }
-            />
-          </motion.div>
+            </p>
+          </div>
         </motion.div>
 
-        {/* Main ecosystem diagram with improved physics, animations and accessibility */}
-        <motion.div
-          className="relative w-full max-w-[90vw] sm:max-w-md md:max-w-lg lg:max-w-xl z-10"
-          initial={{
-            opacity: prefersReducedMotion ? 1 : 0,
-            scale: prefersReducedMotion ? 1 : 0.95,
-          }}
-          animate={containerVisible ? { opacity: 1, scale: 1 } : {}}
-          transition={{
-            duration: 0.7,
-            delay: 0.2,
-            type: "spring",
-            stiffness: 100,
-            damping: 15,
-          }}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-        >
-          {/* Using CSS Grid with improved spacing for ecosystem layout */}
+        {/* Main ecosystem diagram */}
+        <div className="relative w-full max-w-[500px] mx-auto flex items-center justify-center">
           <div
-            className="grid grid-cols-3 grid-rows-3 h-full w-full place-items-center gap-6 md:gap-8"
+            className="grid grid-cols-3 grid-rows-3 w-full aspect-square place-items-center gap-4 sm:gap-6 md:gap-8"
             role="group"
             aria-label="Ecosystem members connected to Product Bazar"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
           >
             {/* Top row */}
-            <div className="col-start-1 col-span-1 row-start-1">
+            <div className="col-start-1 col-span-1 row-start-1 flex items-center justify-center">
               <Circle
                 ref={refs.startups}
                 tooltipText={ecosystemMembers[0].tooltip}
@@ -1368,7 +1122,7 @@ export function ProductBazarEcosystemConnector() {
               />
             </div>
 
-            <div className="col-start-3 col-span-1 row-start-1">
+            <div className="col-start-3 col-span-1 row-start-1 flex items-center justify-center">
               <Circle
                 ref={refs.innovators}
                 tooltipText={ecosystemMembers[4].tooltip}
@@ -1381,7 +1135,7 @@ export function ProductBazarEcosystemConnector() {
             </div>
 
             {/* Middle row */}
-            <div className="col-start-1 col-span-1 row-start-2">
+            <div className="col-start-1 col-span-1 row-start-2 flex items-center justify-center">
               <Circle
                 ref={refs.investors}
                 tooltipText={ecosystemMembers[1].tooltip}
@@ -1394,162 +1148,44 @@ export function ProductBazarEcosystemConnector() {
             </div>
 
             {/* Modernized center logo with automatic ripple effect but no rotating line */}
-            <div className="col-start-2 col-span-1 row-start-2">
-              <motion.div
+            <div className="col-start-2 col-span-1 row-start-2 flex items-center justify-center">
+              <div
                 ref={centerRef}
                 className={`z-10 flex items-center justify-center rounded-full ${
                   isDarkMode ? "bg-gray-800" : "bg-white"
-                }  relative sm:size-20 md:size-24 lg:size-28 will-change-transform perspective-1000 transition-colors duration-300`}
-                initial={{
-                  opacity: prefersReducedMotion ? 1 : 0,
-                  scale: prefersReducedMotion ? 1 : 0.9,
-                  rotateY: 0,
-                }}
-                animate={
-                  containerVisible
-                    ? {
-                        opacity: 1,
-                        scale: 1,
-                      }
-                    : {}
-                }
-                whileHover={
-                  prefersReducedMotion
-                    ? {}
-                    : {
-                        scale: 1.08,
-                        rotateY: 5,
-                        transition: {
-                          rotateY: {
-                            duration: 1.5,
-                            ease: "easeInOut",
-                            repeat: Infinity,
-                            repeatType: "reverse",
-                          },
-                        },
-                      }
-                }
-                transition={{
-                  duration: 0.3,
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 20,
-                }}
+                } relative size-20 md:size-24 lg:size-28 shadow-lg transition-colors duration-300`}
                 tabIndex={0}
                 role="button"
                 aria-label="Product Bazar - Central Hub"
               >
-                {/* Enhanced gradient border with 3D effect */}
+                {/* Gradient border */}
                 <div className="absolute inset-0 rounded-full p-[2px] overflow-hidden">
-                  <motion.div
-                    className={`absolute inset-0 rounded-full bg-gradient-to-br ${
-                      isDarkMode
-                        ? "from-violet-400 to-purple-600"
-                        : "from-violet-500 to-purple-700"
-                    }`}
-                    animate={
-                      !prefersReducedMotion
-                        ? {
-                            background: isHovering
-                              ? isDarkMode
-                                ? "linear-gradient(45deg, #8b5cf6, #7c3aed, #6d28d9, #8b5cf6)"
-                                : "linear-gradient(45deg, #8b5cf6, #7c3aed, #6d28d9, #8b5cf6)"
-                              : isDarkMode
-                              ? "linear-gradient(135deg, #8b5cf6, #6d28d9)"
-                              : "linear-gradient(135deg, #8b5cf6, #5b21b6)",
-                            backgroundSize: isHovering
-                              ? "300% 300%"
-                              : "100% 100%",
-                            backgroundPosition: isHovering
-                              ? ["0% 0%", "100% 100%"]
-                              : "0% 0%",
-                          }
-                        : {}
-                    }
-                    transition={{
-                      duration: 3,
-                      ease: "easeInOut",
-                      repeat:
-                        isHovering && !prefersReducedMotion ? Infinity : 0,
-                      repeatType: "reverse",
-                    }}
-                  >
-                    {/* Inner white/dark background for content */}
-                    <div
-                      className={`absolute inset-[2px] rounded-full ${
-                        isDarkMode ? "bg-gray-800" : "bg-white"
-                      } transition-colors duration-300`}
-                    />
-                  </motion.div>
+                  <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${
+                    isDarkMode
+                      ? "from-violet-400 to-purple-600"
+                      : "from-violet-500 to-purple-700"
+                  } transition-colors duration-300`}>
+                    <div className={`absolute inset-[2px] rounded-full ${
+                      isDarkMode ? "bg-gray-800" : "bg-white"
+                    } transition-colors duration-300`} />
+                  </div>
                 </div>
 
-                {/* Improved central content */}
-                <motion.div
-                  className="flex flex-col items-center justify-center z-10"
-                  animate={
-                    !prefersReducedMotion
-                      ? {
-                          y: [0, 1, 0],
-                        }
-                      : {}
-                  }
-                  transition={{
-                    y: {
-                      duration: 3,
-                      repeat: Infinity,
-                      repeatType: "reverse",
-                      ease: "easeInOut",
-                    },
-                  }}
-                >
-                  <motion.div
-                    className={`text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${
-                      isDarkMode
-                        ? "from-violet-400 to-purple-400"
-                        : "from-violet-600 to-purple-600"
-                    }`}
-                    animate={
-                      !prefersReducedMotion
-                        ? {
-                            backgroundPosition: [
-                              "0% 50%",
-                              "100% 50%",
-                              "0% 50%",
-                            ],
-                          }
-                        : {}
-                    }
-                    transition={{
-                      duration: 8,
-                      ease: "easeInOut",
-                      repeat: Infinity,
-                    }}
-                  >
+                {/* Central content */}
+                <div className="flex flex-col items-center justify-center z-10">
+                  <div className={`text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${
+                    isDarkMode
+                      ? "from-violet-400 to-purple-400"
+                      : "from-violet-600 to-purple-600"
+                  } transition-colors duration-300`}>
                     PB
-                  </motion.div>
-                  <motion.div
-                    className={`text-xs md:text-sm ${
-                      isDarkMode ? "text-gray-400" : "text-gray-500"
-                    } font-medium mt-0.5 transition-colors duration-300`}
-                    animate={
-                      !prefersReducedMotion
-                        ? {
-                            color: isHovering
-                              ? isDarkMode
-                                ? "#a78bfa"
-                                : "#6d28d9"
-                              : isDarkMode
-                              ? "#9ca3af"
-                              : "#6b7280",
-                            letterSpacing: isHovering ? "0.05em" : "normal",
-                          }
-                        : {}
-                    }
-                    transition={{ duration: 0.3 }}
-                  >
+                  </div>
+                  <div className={`text-xs md:text-sm ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  } font-medium mt-0.5 transition-colors duration-300`}>
                     connect
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
 
                 <motion.span
                   className={`text-xs md:text-sm font-medium absolute w-full text-center -bottom-8 ${
@@ -1605,7 +1241,7 @@ export function ProductBazarEcosystemConnector() {
                     ))}
                   </motion.div>
                 )}
-              </motion.div>
+              </div>
             </div>
 
             <div className="col-start-3 col-span-1 row-start-2">
@@ -1645,7 +1281,7 @@ export function ProductBazarEcosystemConnector() {
               />
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Enhanced animated beams with optimized effects and particle animation */}
         {containerVisible &&
@@ -1704,7 +1340,7 @@ export function ProductBazarEcosystemConnector() {
           </ul>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

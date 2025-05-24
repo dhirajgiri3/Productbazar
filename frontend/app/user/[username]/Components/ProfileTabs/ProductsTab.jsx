@@ -283,10 +283,10 @@ export default function ProductsTab({
               exit={{ opacity: 0 }}
               className="grid gap-6 grid-cols-1 sm:grid-cols-2"
             >
-              {products.map((product) =>
+              {products.map((product, index) =>
                 product && product._id ? (
                   <ProfileProductCard
-                    key={product._id}
+                    key={`${product._id}-${index}`}
                     product={product}
                     onEdit={currentUserIsOwner ? handleEditProduct : undefined}
                     onDelete={

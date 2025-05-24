@@ -249,26 +249,29 @@ const AuthSection = ({ userMenuRef, setIsUserMenuOpen, isUserMenuOpen, handleLog
               <div className="py-1">
                 {[
                   {
+                    id: "profile",
                     href: user.username
                       ? `/user/${user.username}`
                       : user._id
                       ? `/user/profile/${user._id}`
-                      : "/app",
+                      : "/user/profile",
                     label: "Your Profile",
                     icon: User,
                     delay: 0.03,
                   },
                   {
+                    id: "products",
                     href: user.username
                       ? `/user/${user.username}/products`
                       : user._id
                       ? `/user/profile/${user._id}/products`
-                      : "/app",
+                      : "/user/products",
                     label: "Your Products",
                     icon: Briefcase,
                     delay: 0.06,
                   },
                   {
+                    id: "history",
                     href: "/user/history",
                     label: "View History",
                     icon: Clock,
@@ -277,6 +280,7 @@ const AuthSection = ({ userMenuRef, setIsUserMenuOpen, isUserMenuOpen, handleLog
                   ...(user.roleCapabilities?.canApplyToJobs
                     ? [
                         {
+                          id: "applications",
                           href: "/profile/applications",
                           label: "My Applications",
                           icon: FileText,
@@ -288,6 +292,7 @@ const AuthSection = ({ userMenuRef, setIsUserMenuOpen, isUserMenuOpen, handleLog
                   ...(user.roleCapabilities?.canPostJobs
                     ? [
                         {
+                          id: "myjobs",
                           href: "/user/myjobs",
                           label: "My Jobs",
                           icon: Briefcase,
@@ -298,6 +303,7 @@ const AuthSection = ({ userMenuRef, setIsUserMenuOpen, isUserMenuOpen, handleLog
                   ...(user.roleCapabilities?.canShowcaseProjects
                     ? [
                         {
+                          id: "myprojects",
                           href: "/projects",
                           label: "My Projects",
                           icon: Layers,
@@ -306,6 +312,7 @@ const AuthSection = ({ userMenuRef, setIsUserMenuOpen, isUserMenuOpen, handleLog
                       ]
                     : []),
                   {
+                    id: "settings",
                     href: "/user/settings",
                     label: "Settings",
                     icon: Settings,
@@ -313,7 +320,7 @@ const AuthSection = ({ userMenuRef, setIsUserMenuOpen, isUserMenuOpen, handleLog
                   },
                 ].map((item) => (
                   <motion.div
-                    key={item.href}
+                    key={item.id}
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: item.delay }}
@@ -402,6 +409,7 @@ const AuthSection = ({ userMenuRef, setIsUserMenuOpen, isUserMenuOpen, handleLog
 const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
   const {
     user,
     isAuthenticated,
@@ -412,6 +420,10 @@ const Header = () => {
     refreshNextStep,
     refreshUserData,
   } = useAuth();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const {} = useProduct();
   const { categories = [] } = useCategories();
 

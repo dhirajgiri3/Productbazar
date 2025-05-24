@@ -61,6 +61,82 @@ const TABS_DATA = [
   { name: "Settings", icon: <Settings size={16} /> },
 ];
 
+// --- Color Map for Tailwind Classes ---
+const colorMap = {
+  indigo: {
+    bg: "bg-indigo-100",
+    text: "text-indigo-500",
+    border: "border-indigo-200",
+    darkBg: "bg-indigo-900/50",
+    darkText: "text-indigo-400",
+    darkBorder: "border-indigo-700/50",
+    gradFrom: "from-indigo-500",
+    gradTo: "to-indigo-400",
+    darkGradFrom: "from-indigo-600",
+    darkGradTo: "to-indigo-500",
+  },
+  violet: {
+    bg: "bg-violet-100",
+    text: "text-violet-500",
+    border: "border-violet-200",
+    darkBg: "bg-violet-900/50",
+    darkText: "text-violet-400",
+    darkBorder: "border-violet-700/50",
+    gradFrom: "from-violet-500",
+    gradTo: "to-violet-400",
+    darkGradFrom: "from-violet-600",
+    darkGradTo: "to-violet-500",
+  },
+  emerald: {
+    bg: "bg-emerald-100",
+    text: "text-emerald-500",
+    border: "border-emerald-200",
+    darkBg: "bg-emerald-900/50",
+    darkText: "text-emerald-400",
+    darkBorder: "border-emerald-700/50",
+    gradFrom: "from-emerald-500",
+    gradTo: "to-emerald-400",
+    darkGradFrom: "from-emerald-600",
+    darkGradTo: "to-emerald-500",
+  },
+  amber: {
+    bg: "bg-amber-100",
+    text: "text-amber-500",
+    border: "border-amber-200",
+    darkBg: "bg-amber-900/50",
+    darkText: "text-amber-400",
+    darkBorder: "border-amber-700/50",
+    gradFrom: "from-amber-500",
+    gradTo: "to-amber-400",
+    darkGradFrom: "from-amber-600",
+    darkGradTo: "to-amber-500",
+  },
+  blue: {
+    bg: "bg-blue-100",
+    text: "text-blue-500",
+    border: "border-blue-200",
+    darkBg: "bg-blue-900/50",
+    darkText: "text-blue-400",
+    darkBorder: "border-blue-700/50",
+    gradFrom: "from-blue-500",
+    gradTo: "to-blue-400",
+    darkGradFrom: "from-blue-600",
+    darkGradTo: "to-blue-500",
+  },
+  slate: {
+    bg: "bg-slate-100",
+    text: "text-slate-500",
+    border: "border-slate-200",
+    darkBg: "bg-slate-900/50",
+    darkText: "text-slate-400",
+    darkBorder: "border-slate-700/50",
+    gradFrom: "from-slate-500",
+    gradTo: "to-slate-400",
+    darkGradFrom: "from-slate-600",
+    darkGradTo: "to-slate-500",
+  },
+};
+
 const DashboardPreview = () => {
   const [activeTab, setActiveTab] = useState(0);
   const { isDarkMode, toggleTheme } = useTheme(); // Use shared theme context
@@ -244,7 +320,7 @@ const DashboardPreview = () => {
   });
 
   return (
-    <div className="py-12 sm:py-16">
+    <div className="py-12 sm:py-16 bg-white dark:bg-gray-900">
       <div className="flex justify-center mb-8">
         <SectionLabel
           text="Dashboard Preview"
@@ -540,16 +616,17 @@ const HeaderButton = ({ children, label, onClick, isDarkMode, variants, rotateHo
 
 const MetricCard = ({ item, isDarkMode, cardVariants, itemVariants }) => {
   const progressValue = (item.label.length * 5) % 30 + 65;
+  const color = colorMap[item.color] || colorMap.slate;
   return (
     <motion.div
       variants={cardVariants || itemVariants}
       whileHover="hover"
-      className={` ${isDarkMode ? "bg-slate-800/60 border-slate-700/50" : "bg-white/60 border-slate-200/50"} backdrop-blur-xl rounded-lg p-3.5 shadow-lg border cursor-default group`} // Enhanced blur and shadow
+      className={` ${isDarkMode ? "bg-slate-800/60 border-slate-700/50" : "bg-white/60 border-slate-200/50"} backdrop-blur-xl rounded-lg p-3.5 shadow-lg border cursor-default group`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center">
           <motion.span
-            className={`flex items-center justify-center w-7 h-7 rounded-lg mr-2.5 ${isDarkMode ? `bg-${item.color}-900/50 text-${item.color}-400` : `bg-${item.color}-100 text-${item.color}-500`} shadow-sm group-hover:shadow-md transition-all duration-300`}
+            className={`flex items-center justify-center w-7 h-7 rounded-lg mr-2.5 ${isDarkMode ? `${color.darkBg} ${color.darkText}` : `${color.bg} ${color.text}`} shadow-sm group-hover:shadow-md transition-all duration-300`}
             whileHover={{ scale: 1.12, rotate: 6 }} transition={{ type: "spring", stiffness: 350, damping: 15 }}
           >{item.icon}</motion.span>
           <span className={`text-xs font-medium ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>{item.label}</span>
@@ -559,10 +636,10 @@ const MetricCard = ({ item, isDarkMode, cardVariants, itemVariants }) => {
           whileHover={{ scale: 1.06 }}
         ><ArrowUp size={10} className="mr-0.5" />{item.change}</motion.span>
       </div>
-      <p className={`text-xl font-bold ${isDarkMode ? "text-slate-50" : `text-${item.color}-600`} ml-10 group-hover:ml-9 group-hover:text-${item.color}-${isDarkMode ? '300' : '500'} transition-all duration-300`}>{item.value}</p> {/* Added color change on hover */}
+      <p className={`text-xl font-bold ${isDarkMode ? "text-slate-50" : color.text} ml-10 group-hover:ml-9 group-hover:${color.text} transition-all duration-300`}>{item.value}</p>
       <div className={`w-full h-1.5 mt-3 rounded-full ${isDarkMode ? "bg-slate-700/50" : "bg-slate-200/50"} overflow-hidden`}>
         <motion.div
-          className={`h-1.5 rounded-full bg-gradient-to-r ${isDarkMode ? `from-${item.color}-600 to-${item.color}-500` : `from-${item.color}-500 to-${item.color}-400`}`}
+          className={`h-1.5 rounded-full bg-gradient-to-r ${isDarkMode ? `${color.darkGradFrom} ${color.darkGradTo}` : `${color.gradFrom} ${color.gradTo}`}`}
           initial={{ width: "0%" }} animate={{ width: `${progressValue}%` }} transition={{ delay: 0.3, duration: 0.9, ease: "circOut" }}
         />
       </div>
@@ -570,31 +647,34 @@ const MetricCard = ({ item, isDarkMode, cardVariants, itemVariants }) => {
   );
 };
 
-const AnalyticsCard = ({ item, isDarkMode, cardVariants, itemVariants }) => (
-  <motion.div
-    variants={cardVariants || itemVariants}
-    whileHover="hover"
-    className={` ${isDarkMode ? "bg-slate-800/60 border-slate-700/50" : "bg-white/60 border-slate-200/50"} backdrop-blur-xl rounded-lg p-4 shadow-lg border cursor-default group`}
-  >
-    <div className="flex items-center mb-3">
-      <motion.span
-        className={`flex items-center justify-center w-9 h-9 rounded-lg mr-3 ${isDarkMode ? `bg-${item.color}-900/50 text-${item.color}-400 group-hover:bg-${item.color}-800/70` : `bg-${item.color}-100 text-${item.color}-500 group-hover:bg-${item.color}-200`} shadow-sm group-hover:shadow-md transition-all duration-300`}
-        whileHover={{ scale: 1.12, rotate: 6 }} transition={{ type: "spring", stiffness: 350, damping: 15 }}
-      >{item.icon}</motion.span>
-      <div>
-        <span className={`text-xs font-medium ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>{item.name}</span>
-        <p className={`text-lg font-bold ${isDarkMode ? "text-slate-50" : `text-${item.color}-600`} group-hover:translate-x-0.5 transition-transform duration-300`}>{item.value}</p>
+const AnalyticsCard = ({ item, isDarkMode, cardVariants, itemVariants }) => {
+  const color = colorMap[item.color] || colorMap.slate;
+  return (
+    <motion.div
+      variants={cardVariants || itemVariants}
+      whileHover="hover"
+      className={` ${isDarkMode ? "bg-slate-800/60 border-slate-700/50" : "bg-white/60 border-slate-200/50"} backdrop-blur-xl rounded-lg p-4 shadow-lg border cursor-default group`}
+    >
+      <div className="flex items-center mb-3">
+        <motion.span
+          className={`flex items-center justify-center w-9 h-9 rounded-lg mr-3 ${isDarkMode ? `${color.darkBg} ${color.darkText}` : `${color.bg} ${color.text}`} shadow-sm group-hover:shadow-md transition-all duration-300`}
+          whileHover={{ scale: 1.12, rotate: 6 }} transition={{ type: "spring", stiffness: 350, damping: 15 }}
+        >{item.icon}</motion.span>
+        <div>
+          <span className={`text-xs font-medium ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>{item.name}</span>
+          <p className={`text-lg font-bold ${isDarkMode ? "text-slate-50" : color.text} group-hover:translate-x-0.5 transition-transform duration-300`}>{item.value}</p>
+        </div>
       </div>
-    </div>
-    <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed border-opacity-30 ${isDarkMode ? 'border-slate-600' : 'border-slate-300'}">
-      <motion.span
-        className={`text-xs font-medium flex items-center ${isDarkMode ? "text-emerald-400" : "text-emerald-500"} px-1.5 py-0.5 rounded-full ${isDarkMode ? "bg-emerald-900/30" : "bg-emerald-100/70"} group-hover:shadow-sm transition-all duration-300`}
-        whileHover={{ scale: 1.06 }}
-      ><ArrowUp size={10} className="mr-0.5" />{item.change}</motion.span>
-      <span className={`text-[10px] ${isDarkMode ? "text-slate-500" : "text-slate-400"} italic`}>{item.period}</span>
-    </div>
-  </motion.div>
-);
+      <div className={`flex items-center justify-between mt-2 pt-2 border-t border-dashed border-opacity-30 ${isDarkMode ? 'border-slate-600' : 'border-slate-300'}`}>
+        <motion.span
+          className={`text-xs font-medium flex items-center ${isDarkMode ? "text-emerald-400" : "text-emerald-500"} px-1.5 py-0.5 rounded-full ${isDarkMode ? "bg-emerald-900/30" : "bg-emerald-100/70"} group-hover:shadow-sm transition-all duration-300`}
+          whileHover={{ scale: 1.06 }}
+        ><ArrowUp size={10} className="mr-0.5" />{item.change}</motion.span>
+        <span className={`text-[10px] ${isDarkMode ? "text-slate-500" : "text-slate-400"} italic`}>{item.period}</span>
+      </div>
+    </motion.div>
+  );
+};
 
 const RevenueCard = ({ isDarkMode, cardVariants }) => {
   const lineData = [12, 19, 15, 22, 27, 25, 32, 35, 41, 46, 39, 45];

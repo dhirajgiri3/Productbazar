@@ -30,7 +30,7 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+export default function ProductLayout({ children }) {
   return (
     <>
       {children}

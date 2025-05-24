@@ -14,7 +14,7 @@ const SectionWrapper = ({
       case "gradient":
         return "bg-gradient-to-b from-violet-100/30 to-fuchsia-100/30 dark:from-violet-900/20 dark:to-fuchsia-900/20 backdrop-blur-[1px]";
       case "light":
-        return "bg-gray-50/80 dark:bg-gray-800/60 backdrop-blur-[1px]";
+        return "bg-white/80 dark:bg-gray-900/80 backdrop-blur-[1px]";
       case "dark":
         return "bg-gray-900/95 text-white dark:bg-gray-900/95 dark:text-white backdrop-blur-[1px]";
       case "transparent":

@@ -37,8 +37,6 @@ services:
         value: https://productbazar-frontend.onrender.com
       - key: SERVER_URL
         value: https://productbazar-backend.onrender.com
-      - key: PORT
-        value: 5004
       - key: JWT_ACCESS_SECRET
         sync: false
       - key: JWT_REFRESH_SECRET

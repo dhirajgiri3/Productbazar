@@ -89,7 +89,7 @@ const Footer = () => {
   return (
     <footer
       ref={footerRef}
-      className="bg-[#0a0a0a] text-white py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-16 w-full relative z-10 overflow-hidden font-['clash',sans-serif]"
+      className="bg-[#0a0a0a] text-white py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-16 w-full relative z-10 overflow-hidden font-['clash',sans-serif] transition-colors duration-300"
     >
       {/* Gradient background */}
       <div className="absolute inset-0 overflow-hidden">

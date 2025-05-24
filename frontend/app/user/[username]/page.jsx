@@ -1,7 +1,6 @@
 import { makePriorityRequest } from '@/lib/api/api';
 import ProfilePage from './Components/ProfileTabs/ProfilePage';
 import logger from '@/lib/utils/logger';
-// Import the notFound function
 import { notFound } from 'next/navigation';
 
 export async function generateMetadata({ params }) {

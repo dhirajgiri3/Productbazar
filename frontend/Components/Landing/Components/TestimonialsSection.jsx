@@ -183,7 +183,7 @@ export default function TestimonialsSection() {
   return (
     <section
       ref={sectionRef}
-      className={`relative overflow-hidden ${isDarkMode ? "bg-gray-900" : "bg-gray-50"} transition-colors duration-300`}
+      className={`relative overflow-hidden ${isDarkMode ? "bg-gray-900" : "bg-white"} transition-colors duration-300`}
       id="testimonials"
     >
       {/* Gradient background */}
@@ -191,7 +191,7 @@ export default function TestimonialsSection() {
         <div className={`absolute inset-0 ${
           isDarkMode
             ? "bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900"
-            : "bg-gradient-to-br from-gray-50 via-gray-50 to-gray-50"
+            : "bg-gradient-to-br from-white via-white to-white"
         }`}>
           <div className={`absolute top-1/4 right-1/3 w-96 h-96 ${
             isDarkMode
@@ -376,10 +376,10 @@ export default function TestimonialsSection() {
         <div className="relative overflow-hidden py-8 mb-12">
           {/* Gradient fade effect on sides */}
           <div className={`absolute left-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-r ${
-            isDarkMode ? "from-gray-900" : "from-gray-50"
+            isDarkMode ? "from-gray-900" : "from-white"
           } to-transparent z-10 transition-colors duration-300`}></div>
           <div className={`absolute right-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-l ${
-            isDarkMode ? "from-gray-900" : "from-gray-50"
+            isDarkMode ? "from-gray-900" : "from-white"
           } to-transparent z-10 transition-colors duration-300`}></div>
 
           <motion.div

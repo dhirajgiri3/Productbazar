@@ -317,13 +317,11 @@ function UserProductsPage() {
       {/* Products Grid/List */}
       {products.length > 0 ? (
         <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'} gap-6`}>
-          {products.map((product) => (
+          {products.map((product, index) => (
             <ProductCard
-              key={product._id}
+              key={`${product._id || product.productId}-${index}`}
               product={product}
               viewMode={viewMode}
-              onUpvote={() => handleUpvote(product._id)}
-              onBookmark={() => handleBookmark(product._id)}
             />
           ))}
         </div>

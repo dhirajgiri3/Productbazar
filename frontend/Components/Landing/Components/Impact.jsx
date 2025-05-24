@@ -663,7 +663,7 @@ const Impact = () => {
         containerRef.current = el;
         mainContainerRef.current = el; // Assign ref for visibility hook
       }}
-      className="relative bg-white dark:bg-gray-900 overflow-hidden py-12 sm:py-16"
+      className="relative bg-white dark:bg-gray-900 overflow-hidden py-12 sm:py-16 transition-colors duration-300"
       id="impact-section"
     >
       {/* Header section */}

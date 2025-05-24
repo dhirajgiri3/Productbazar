@@ -9,9 +9,9 @@ const UnauthorizedPage = () => {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <motion.div 
-        className="bg-white rounded-xl shadow-md p-8 max-w-md w-full"
+        className="bg-white rounded-xl p-8 max-w-md w-full"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}

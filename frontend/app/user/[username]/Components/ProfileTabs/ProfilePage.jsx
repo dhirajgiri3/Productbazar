@@ -168,12 +168,12 @@ export default function ProfilePage({ initialUser, initialProducts, initialInter
 
   if (!initialUser) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-xl shadow-md p-8 max-w-md w-full border border-gray-100 text-center"
+          className="bg-white rounded-xl p-8 max-w-md w-full border border-gray-100 text-center"
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -227,7 +227,7 @@ export default function ProfilePage({ initialUser, initialProducts, initialInter
               whileHover={{ scale: 1.03, backgroundColor: '#f9fafb' }}
               whileTap={{ scale: 0.98 }}
               onClick={() => window.history.back()}
-              className="px-5 py-2.5 bg-gray-50 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-200 shadow-sm"
+              className="px-5 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors border border-gray-200 shadow-sm"
             >
               Go Back
             </motion.button>
@@ -239,7 +239,7 @@ export default function ProfilePage({ initialUser, initialProducts, initialInter
 
   return (
     <motion.div
-      className="min-h-screen bg-gray-50"
+      className="min-h-screen bg-white"
       initial="hidden"
       animate="visible"
       variants={pageVariants}

@@ -80,8 +80,8 @@ const PopularProducts = ({ limit = 6, timeframe = 7, title = 'Popular Products' 
       </Box>
 
       <Grid container spacing={3}>
-        {products.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.productId}>
+        {products.map((product, index) => (
+          <Grid item xs={12} sm={6} md={4} key={`${product.productId || product._id}-${index}`}>
             <Card variant="outlined" sx={{ height: '100%' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

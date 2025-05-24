@@ -16,7 +16,8 @@ import {
   optionalAuth,
   restrictTo,
   verifyAnyEmailOrPhone,
-  requireCriticalActionVerification
+  requireCriticalActionVerification,
+  allowProfileCompletion
 } from "../../middlewares/user/auth.middleware.js";
 import { cloudinaryUploader } from "../../../utils/storage/cloudinary.utils.js";
 import rateLimit from "express-rate-limit";
@@ -130,8 +131,8 @@ router.post(
 // Token Refresh
 router.post("/refresh-token", baseController.refreshToken);
 
-// Logout (can be called publicly to clear cookies, but usually needs auth context)
-router.post("/logout", protect, baseController.logout); // Make logout require auth to revoke server-side tokens properly
+// Logout (basic auth via protect middleware is sufficient)
+router.post("/logout", baseController.logout);
 
 // OAuth Routes
 router.get("/google", accountController.googleAuth);
@@ -155,10 +156,10 @@ router.get("/profile", profileController.getProfile);
 router.get("/check-username", profileController.checkUsernameAvailability);
 
 // --- Profile Completion & Update ---
-// Complete profile often happens before full verification, so middleware might need adjustment
+// Complete profile for new users - no verification required for initial setup
 router.post(
   "/complete-profile",
-  // authenticateToken is already applied by router.use()
+  allowProfileCompletion, // Allow unverified users to complete initial profile
   uploadSingle("profileImage"), // Handle single file upload for profile pic
   handleMulterError,
   cloudinaryUploader("profile"), // Process the uploaded file via Cloudinary
@@ -166,48 +167,49 @@ router.post(
   profileController.completeProfile
 );
 
-// General profile update (requires some verification)
+// General profile update (requires verification for established users)
 router.put(
   "/profile",
-  verifyAnyEmailOrPhone, // Require at least email OR phone verified
+  verifyAnyEmailOrPhone, // Require at least email OR phone verified for profile updates
   authValidator.validateProfileUpdate, // Validator for general profile fields
   profileController.updateProfile
 );
 
-// --- Image Updates (Require some verification) ---
-// Route for updating profile picture (new route name)
+// --- Image Updates ---
+// Route for updating profile picture (requires verification for established users)
 router.post(
   "/update-profile-picture",
-  verifyAnyEmailOrPhone,
+  verifyAnyEmailOrPhone, // Require verification for profile picture updates
   uploadSingle("profileImage"), // Expect 'profileImage' field name
   handleMulterError,
   cloudinaryUploader("profile"), // Upload to 'profile' folder
   profileController.updateProfilePicture
 );
 
-// Legacy route for backward compatibility
+// Profile update route for initial setup or completion - allows unverified users
 router.post(
   "/update-profile",
-  verifyAnyEmailOrPhone,
+  allowProfileCompletion, // Allow unverified users to complete their profile during onboarding
   uploadSingle("profileImage"), // Expect 'profileImage' field name
   handleMulterError,
   cloudinaryUploader("profile"), // Upload to 'profile' folder
   profileController.updateProfilePicture
 );
 
+// Banner image update (requires verification)
 router.post(
   "/update-banner",
-  verifyAnyEmailOrPhone,
+  verifyAnyEmailOrPhone, // Require verification for banner updates
   uploadSingle("bannerImage"), // Expect 'bannerImage' field name
   handleMulterError,
   cloudinaryUploader("banner"), // Upload to 'banner' folder
   profileController.updateBannerImage
 );
 
-// Update multiple images (e.g., profile + banner)
+// Update multiple images (e.g., profile + banner) - requires verification
 router.post(
-  "/update-profile-images", // More specific route name
-  verifyAnyEmailOrPhone,
+  "/update-profile-images",
+  verifyAnyEmailOrPhone, // Require verification for multiple image updates
   uploadMultiple([
     // Define expected fields and counts
     { name: "profileImage", maxCount: 1 },
@@ -219,24 +221,27 @@ router.post(
   profileController.processProfileImages
 );
 
-// --- Settings Updates (Require some verification) ---
+// --- Settings Updates ---
+// Notification preferences (basic auth sufficient for user preferences)
 router.put(
   "/notification-preferences",
-  verifyAnyEmailOrPhone,
+  // No additional verification needed - just basic auth via protect middleware
   // Add validation middleware if needed
   accountController.updateNotificationPreferences
 );
 
+// Privacy settings (basic auth sufficient for privacy preferences)
 router.put(
   "/privacy-settings",
-  verifyAnyEmailOrPhone,
+  // No additional verification needed - just basic auth via protect middleware
   // Add validation middleware if needed
   accountController.updatePrivacySettings
 );
 
+// Security settings (require verification for security-related changes)
 router.put(
   "/security-settings",
-  verifyAnyEmailOrPhone, // Basic verification sufficient? Or require critical?
+  verifyAnyEmailOrPhone, // Require verification for security settings
   // Add validation middleware if needed
   accountController.updateSecuritySettings
 );
@@ -265,37 +270,40 @@ router.post(
 );
 
 // --- Critical Actions (Require Recent/Stronger Verification) ---
+// Change password (require critical verification for security)
 router.put(
   "/change-password",
-  // requireCriticalActionVerification, // Use if password re-entry is needed
+  requireCriticalActionVerification, // Require recent password/OTP verification for password changes
   authValidator.validateChangePassword,
   passwordController.changePassword
 );
 
+// Account deletion request (require critical verification)
 router.post(
   "/request-deletion",
   requireCriticalActionVerification, // Requires recent password/OTP check
   accountController.requestAccountDeletion
 );
 
+// Cancel account deletion (basic auth sufficient)
 router.post(
-  // Cancel doesn't need critical verification usually
   "/cancel-deletion",
-  // verifyAnyEmailOrPhone, // Basic auth is enough
+  // No additional verification needed - just basic auth via protect middleware
   accountController.cancelAccountDeletion
 );
 
+// Revoke access tokens (require critical verification for security)
 router.post(
-  "/revoke-access", // Revoking sessions
-  requireCriticalActionVerification, // Requires recent password/OTP check
+  "/revoke-access",
+  requireCriticalActionVerification, // Requires recent password/OTP check for revoking access
   // Add validation for tokenId/revokeAll
   accountController.revokeAccess
 );
 
-// Logout all other sessions (except current one)
+// Logout all other sessions (basic auth sufficient - current session remains)
 router.post(
   "/logout-all",
-  protect, // Only need basic authentication
+  // Only need basic authentication via protect middleware
   (req, res, next) => {
     // Set revokeAll to true and pass to the existing controller
     req.body.revokeAll = true;

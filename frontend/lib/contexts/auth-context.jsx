@@ -212,6 +212,11 @@ export const AuthProvider = ({ children }) => {
   const fetchingUserDataRef = React.useRef(false);
   const lastFetchTimeRef = React.useRef(0);
 
+  // Clear error function
+  const clearError = useCallback(() => {
+    setError('');
+  }, []);
+
   // Fetch user data from the server with debouncing
   const fetchUserData = useCallback(
     async token => {
@@ -409,6 +414,67 @@ export const AuthProvider = ({ children }) => {
             success: false,
             message: 'Invalid email or password. Please check your credentials and try again.',
             unauthorized: true,
+          };
+        } else if (err.response?.status === 500) {
+          return {
+            success: false,
+            message:
+              'Server error. Please try again later or contact support if the problem persists.',
+            serverError: true,
+          };
+        }
+
+        return { success: false, message: errorMessage };
+      } finally {
+        setAuthLoading(false);
+      }
+    },
+    [handleAuthSuccess]
+  );
+
+  // Register with email
+  const registerWithEmail = useCallback(
+    async ({ email, password, role, roleDetails }) => {
+      setAuthLoading(true);
+      setError('');
+
+      try {
+        const response = await api.post('/auth/register/email', {
+          email,
+          password,
+          role,
+          roleDetails: role === 'user' ? undefined : roleDetails, // Only send roleDetails if not "user"
+        });
+
+        if (response.data.status === 'success' || response.data.success) {
+          handleAuthSuccess(response.data);
+          return { success: true };
+        }
+
+        setError(response.data.message || 'Registration failed');
+        return { success: false, message: response.data.message };
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || 'Registration failed';
+        setError(errorMessage);
+
+        // Enhanced error handling
+        if (err.response?.status === 429) {
+          return {
+            success: false,
+            message: 'Too many registration attempts. Please try again later.',
+            rateLimited: true,
+          };
+        } else if (err.response?.status === 400) {
+          return {
+            success: false,
+            message: errorMessage,
+            validation: true,
+          };
+        } else if (err.response?.status === 409) {
+          return {
+            success: false,
+            message: 'Email already registered. Please try logging in instead.',
+            conflict: true,
           };
         } else if (err.response?.status === 500) {
           return {
@@ -1304,10 +1370,12 @@ export const AuthProvider = ({ children }) => {
     accessToken,
     authLoading,
     error,
+    clearError,
     nextStep,
     isInitialized,
     isAuthenticated: !!user,
     loginWithEmail,
+    registerWithEmail,
     registerWithPhone,
     verifyOtpForRegister,
     loginWithPhone,
@@ -1334,10 +1402,12 @@ export const AuthProvider = ({ children }) => {
     user, 
     accessToken, 
     authLoading, 
-    error, 
+    error,
+    clearError,
     nextStep, 
     isInitialized,
     loginWithEmail,
+    registerWithEmail,
     registerWithPhone,
     verifyOtpForRegister,
     loginWithPhone,

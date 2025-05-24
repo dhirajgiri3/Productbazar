@@ -84,10 +84,10 @@ const VerifyEmailContent = ({ token }) => {
             </Link>
           )}
           <Link 
-            href="/user" 
+            href="/products" 
             className="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors"
           >
-            Go to Dashboard
+            Go to Homepage
           </Link>
         </div>
       </div>

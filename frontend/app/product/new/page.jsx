@@ -136,8 +136,8 @@ export default function AddProductPage() {
             className="mb-10 text-center max-w-3xl mx-auto"
             variants={itemVariants}
           >
-            <div className="inline-flex items-center justify-center p-2 mb-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-full border border-violet-100">
-              <span className="px-4 py-1.5 text-sm font-medium text-violet-700 bg-white rounded-full shadow-sm flex items-center">
+            <div className="inline-flex items-center justify-center p-2 mb-4 bg-gradient-to-r from-violet-50 via-purple-50 to-white rounded-full border border-violet-100">
+              <span className="px-4 py-1.5 text-sm font-medium text-violet-700 bg-white rounded-full flex items-center">
                 <Sparkles size={16} className="mr-2 text-violet-500" />
                 Create & Share Your Innovation
               </span>

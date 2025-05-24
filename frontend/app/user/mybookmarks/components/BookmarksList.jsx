@@ -108,24 +108,21 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
         const statusBadge = getStatusBadge();
 
         return (
-          <motion.div
-            key={_id}
-            variants={itemVariants}
-            className="group bg-white rounded-xl border border-gray-100 overflow-hidden transition-all duration-300 p-5"
-          >
-            <div className="flex flex-col sm:flex-row gap-5">
+          <Link key={_id} href={`/product/${slug}`} className="block">
+            <motion.div
+              variants={itemVariants}
+              className="group bg-white rounded-xl border border-gray-100 overflow-hidden transition-all duration-300 p-5 hover:shadow-md cursor-pointer"
+            >
+              <div className="flex flex-col sm:flex-row gap-5">
               {/* Product Image */}
-              <Link
-                href={`/product/${slug}`}
-                className="block relative w-full sm:w-48 h-36 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300"
-              >
+              <div className="block relative w-full sm:w-48 h-36 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300 cursor-pointer group/image">
                 {thumbnail ? (
                   <Image
                     src={thumbnail}
                     alt={name}
                     fill
                     sizes="(max-width: 640px) 100vw, 192px"
-                    className="object-cover transition-transform duration-500"
+                    className="object-cover transition-transform duration-500 group-hover/image:scale-105"
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
@@ -146,27 +143,28 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
                 )}
 
                 {/* View button on hover */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 z-20">
-                  <Link
-                    href={`/product/${slug}`}
-                    className="bg-white/90 hover:bg-white text-violet-700 font-medium px-3 py-1.5 rounded-full flex items-center transition-all duration-300 transform translate-y-2 shadow-md text-sm"
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 z-20">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.href = `/product/${slug}`;
+                    }}
+                    className="bg-white/90 hover:bg-white text-violet-700 font-medium px-3 py-1.5 rounded-full flex items-center transition-all duration-300 transform translate-y-2 group-hover/image:translate-y-0 shadow-md text-sm"
                   >
                     <FiExternalLink size={14} className="mr-1.5" />
                     View
-                  </Link>
+                  </button>
                 </div>
-              </Link>
+              </div>
 
               {/* Content */}
               <div className="flex-grow">
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <div className="flex items-center mb-1">
-                      <Link href={`/product/${slug}`} className="block">
-                        <h3 className="text-lg font-semibold text-gray-900 hover:text-violet-600 transition-colors">
-                          {name}
-                        </h3>
-                      </Link>
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">
+                        {name}
+                      </h3>
                       <div className="flex items-center text-xs text-gray-500 ml-3">
                         <FiClock className="mr-1" size={12} />
                         <span>
@@ -182,25 +180,30 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
                     </p>
                   </div>
 
-                  <BookmarkButton
-                    product={product}
-                    size="sm"
-                    source="bookmarks_page"
-                    onSuccess={handleRemoveBookmark}
-                    showText={true}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <BookmarkButton
+                      product={product}
+                      size="sm"
+                      source="bookmarks_page"
+                      onSuccess={handleRemoveBookmark}
+                      showText={true}
+                    />
+                  </div>
                 </div>
 
                 {/* Category and Tags */}
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {category && (
-                    <Link
-                      href={`/category/${category.slug}`}
-                      className="text-xs bg-violet-50 text-violet-700 px-2 py-1 rounded-full hover:bg-violet-100 transition-colors border border-violet-100 flex items-center"
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `/category/${category.slug}`;
+                      }}
+                      className="text-xs bg-violet-50 text-violet-700 px-2 py-1 rounded-full hover:bg-violet-100 transition-colors border border-violet-100 flex items-center cursor-pointer"
                     >
                       <FiTag size={10} className="mr-1" />
                       {category.name}
-                    </Link>
+                    </div>
                   )}
                   {tags.slice(0, 3).map((tag, index) => (
                     <span
@@ -222,7 +225,7 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
                 <div className="flex flex-wrap justify-between items-center">
                   {/* Stats */}
                   <div className="flex items-center gap-4 mb-2 sm:mb-0">
-                    <div className="flex items-center bg-violet-50 text-violet-700 px-2.5 py-1 rounded-lg border border-violet-100">
+                    <div className="flex items-center bg-violet-50 text-violet-700 px-2.5 py-1 rounded-lg border border-violet-100" onClick={(e) => e.stopPropagation()}>
                       <UpvoteButton
                         product={product}
                         source="bookmarks_page"
@@ -237,7 +240,7 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
                         {views?.count || 0}
                       </span>
                     </div>
-                    <div className="flex items-center bg-gray-50 text-gray-700 px-2.5 py-1 rounded-lg border border-gray-100">
+                    <div className="flex items-center bg-gray-50 text-gray-700 px-2.5 py-1 rounded-lg border border-gray-100" onClick={(e) => e.stopPropagation()}>
                       <BookmarkButton
                         product={product}
                         source="bookmarks_page"
@@ -251,9 +254,12 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
                   <div className="flex items-center gap-4">
                     {/* Maker */}
                     {maker && (
-                      <Link
-                        href={`/user/${maker.username || maker._id}`}
-                        className="flex items-center group/maker"
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/user/${maker.username || maker._id}`;
+                        }}
+                        className="flex items-center group/maker cursor-pointer hover:text-violet-700 transition-colors"
                       >
                         <div className="w-6 h-6 rounded-full overflow-hidden mr-2 border border-gray-200">
                           {maker.profilePicture?.url ? (
@@ -288,7 +294,7 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
                           )}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs font-medium text-gray-900 transition-colors">
+                          <span className="text-xs font-medium text-gray-900 group-hover/maker:text-violet-700 transition-colors">
                             {maker.firstName} {maker.lastName}
                           </span>
                           {maker.headline && (
@@ -297,7 +303,7 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
                             </span>
                           )}
                         </div>
-                      </Link>
+                      </div>
                     )}
 
                     {/* Date */}
@@ -310,6 +316,7 @@ const BookmarksList = ({ bookmarks, onRefresh }) => {
               </div>
             </div>
           </motion.div>
+          </Link>
         );
       })}
     </motion.div>

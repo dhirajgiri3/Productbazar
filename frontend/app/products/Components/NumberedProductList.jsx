@@ -52,7 +52,7 @@ const NumberedProductList = ({
           {[...Array(3)].map((_, i) => (
             <div
               key={`skel-${i}`}
-              className="bg-white rounded-xl shadow-sm h-24 animate-pulse border border-gray-100 overflow-hidden"
+              className="bg-white rounded-xl h-24 animate-pulse border border-gray-100 overflow-hidden"
             >
               <div className="flex p-5">
                 <div className="w-12 h-12 rounded-lg bg-gray-200 mr-4"></div>
@@ -97,7 +97,7 @@ const NumberedProductList = ({
           </div>
         )}
         <motion.div
-          className="text-center py-8 px-6 bg-gray-50 rounded-xl border border-gray-100 shadow-sm"
+          className="text-center py-8 px-6 bg-white rounded-xl border border-gray-100"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -216,7 +216,7 @@ const NumberedProductList = ({
       >
         {normalizedProducts.map((product, index) => (
           <NumberedProductCard
-            key={product._id || `product-${index}`}
+            key={`${product._id || 'unknown'}-${index}`}
             product={product}
             position={index}
             recommendationType={recommendationType}
