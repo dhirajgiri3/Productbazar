@@ -235,7 +235,7 @@ export const searchProducts = async (req, res, next) => {
         const categoryIds = [
           categoryObj._id,
           ...subcategories.map((sub) => sub._id),
-        ].map((id) => mongoose.Types.ObjectId(id.toString()));
+        ].map((id) => new mongoose.Types.ObjectId(id.toString()));
 
         aggregationPipeline.push({
           $match: { category: { $in: categoryIds } },
@@ -298,7 +298,7 @@ export const searchProducts = async (req, res, next) => {
     // Filter by maker (creator)
     if (maker) {
       if (mongoose.Types.ObjectId.isValid(maker)) {
-        searchCriteria.maker = mongoose.Types.ObjectId(maker);
+        searchCriteria.maker = new mongoose.Types.ObjectId(maker);
       } else {
         // Attempt to find user by other means like username
         const user = await User.findOne({

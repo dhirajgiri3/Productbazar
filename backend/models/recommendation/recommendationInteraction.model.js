@@ -295,7 +295,7 @@ recommendationInteractionSchema.statics.getInteractionStats = async function (
     return await this.aggregate([
       {
         $match: {
-          user: mongoose.Types.ObjectId(userId),
+          user: new mongoose.Types.ObjectId(userId),
           timestamp: { $gte: startDate },
         },
       },

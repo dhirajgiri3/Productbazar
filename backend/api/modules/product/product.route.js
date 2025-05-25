@@ -54,14 +54,23 @@ const router = express.Router();
 const createProductLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 5 /* ... */,
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true,
 });
 const commentLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50 /* ... */,
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true,
 });
 const interactionLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
   max: 100 /* ... */,
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true,
 });
 
 // --- Public Routes ---

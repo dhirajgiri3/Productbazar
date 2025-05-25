@@ -990,7 +990,7 @@ class RecommendationService {
         excludedCategoryIds = Object.entries(preferences.scores?.categories || {})
           .sort((a, b) => b[1] - a[1])
           .slice(0, 3)
-          .map(([categoryId]) => mongoose.Types.ObjectId(categoryId));
+          .map(([categoryId]) => new mongoose.Types.ObjectId(categoryId));
       }
 
       // Find categories with good engagement but not over-represented in the user's feed

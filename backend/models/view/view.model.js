@@ -299,7 +299,7 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
     // Only sync if it's been more than 10 seconds since the last sync
     // This leverages the debounce mechanism we added to syncViewsWithProduct
     const totalInViews = await this.countDocuments({
-      product: mongoose.Types.ObjectId(productId),
+      product: new new mongoose.Types.ObjectId(productId),
       createdAt: { $gte: startDate, $lte: endDate },
       isBot: false,
     });
@@ -327,7 +327,7 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
       const dailyData = await this.aggregate([
         {
           $match: {
-            product: mongoose.Types.ObjectId(productId),
+            product: new mongoose.Types.ObjectId(productId),
             createdAt: { $gte: startDate, $lte: endDate },
             isBot: false,
           },
@@ -364,7 +364,7 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
       const geoData = await this.aggregate([
         {
           $match: {
-            product: mongoose.Types.ObjectId(productId),
+            product: new mongoose.Types.ObjectId(productId),
             createdAt: { $gte: startDate, $lte: endDate },
             country: { $ne: null, $exists: true },
             isBot: false,
@@ -391,7 +391,7 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
       const referrerData = await this.aggregate([
         {
           $match: {
-            product: mongoose.Types.ObjectId(productId),
+            product: new mongoose.Types.ObjectId(productId),
             createdAt: { $gte: startDate, $lte: endDate },
             referrer: { $ne: null, $exists: true },
             isBot: false,
@@ -418,7 +418,7 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
       const sourceData = await this.aggregate([
         {
           $match: {
-            product: mongoose.Types.ObjectId(productId),
+            product: new mongoose.Types.ObjectId(productId),
             createdAt: { $gte: startDate, $lte: endDate },
             isBot: false,
           },
@@ -444,7 +444,7 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
       const hourlyData = await this.aggregate([
         {
           $match: {
-            product: mongoose.Types.ObjectId(productId),
+            product: new mongoose.Types.ObjectId(productId),
             createdAt: { $gte: startDate, $lte: endDate },
             isBot: false,
           },
@@ -467,13 +467,13 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
 
       // Calculate totals
       const totalViews = await this.countDocuments({
-        product: mongoose.Types.ObjectId(productId),
+        product: new mongoose.Types.ObjectId(productId),
         createdAt: { $gte: startDate, $lte: endDate },
         isBot: false,
       });
 
       const uniqueViewers = await this.distinct("user", {
-        product: mongoose.Types.ObjectId(productId),
+        product: new mongoose.Types.ObjectId(productId),
         createdAt: { $gte: startDate, $lte: endDate },
         isBot: false,
       });
@@ -503,7 +503,7 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
       const deviceData = await this.aggregate([
         {
           $match: {
-            product: mongoose.Types.ObjectId(productId),
+            product: new mongoose.Types.ObjectId(productId),
             createdAt: { $gte: startDate, $lte: endDate },
             isBot: false,
           },
@@ -588,7 +588,7 @@ viewSchema.statics.getProductStats = async function (productId, days = 30) {
   if (!mongoose.Types.ObjectId.isValid(productId)) {
     throw new Error("Invalid Product ID format provided to getProductStats.");
   }
-  const productIdObj = new mongoose.Types.ObjectId(productId);
+  const productIdObj = new new mongoose.Types.ObjectId(productId);
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
   startDate.setHours(0, 0, 0, 0); // Start at the beginning of the day
@@ -1048,7 +1048,7 @@ viewSchema.statics.calculateEngagementMetrics = async function (productId, days 
     const metrics = await this.aggregate([
       {
         $match: {
-          product: new mongoose.Types.ObjectId(productId),
+          product: new new mongoose.Types.ObjectId(productId),
           createdAt: { $gte: startDate },
           isBot: false
         }

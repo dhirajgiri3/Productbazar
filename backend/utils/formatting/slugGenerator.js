@@ -46,7 +46,7 @@ export const generateUniqueSlug = async (name, existingId = null) => {
     
     // Exclude current product if updating
     if (existingId) {
-      query._id = { $ne: mongoose.Types.ObjectId(existingId) };
+      query._id = { $ne: new mongoose.Types.ObjectId(existingId) };
     }
     
     existingProduct = await Product.findOne(query);

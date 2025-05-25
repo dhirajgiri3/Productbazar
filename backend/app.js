@@ -52,6 +52,7 @@ const limiter = rateLimit({
   // Add proper configuration for proxy environment
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 // IMPORTANT: Add CORS middleware early in the chain - before any other middleware

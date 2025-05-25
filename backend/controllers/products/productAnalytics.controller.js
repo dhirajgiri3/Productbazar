@@ -379,7 +379,7 @@ export const getTrendingProducts = async (req, res, next) => {
     // Convert excluded IDs to ObjectIds, filtering out invalid ones
     const excludedObjectIds = excludedIds
       .filter((id) => mongoose.Types.ObjectId.isValid(id))
-      .map((id) => mongoose.Types.ObjectId(id));
+      .map((id) => new mongoose.Types.ObjectId(id));
 
     // Calculate date range for trending period
     const startDate = new Date();

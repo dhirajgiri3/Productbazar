@@ -388,7 +388,7 @@ recommendationSchema.statics.findSimilarUsers = async function (
   const similarUsers = await this.aggregate([
     {
       $match: {
-        user: { $ne: mongoose.Types.ObjectId(userId) },
+        user: { $ne: new mongoose.Types.ObjectId(userId) },
         $or: [
           {
             "categories.category": {

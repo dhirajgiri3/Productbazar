@@ -296,7 +296,7 @@ class StrategyRecommendationService {
 
       // Get all users
       const allUsers = await User.find({
-        _id: { $ne: mongoose.Types.ObjectId(userId) }
+        _id: { $ne: new mongoose.Types.ObjectId(userId) }
       })
       .select('_id firstName lastName')
       .limit(100) // Limit to 100 users for performance
