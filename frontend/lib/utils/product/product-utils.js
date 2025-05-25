@@ -200,7 +200,7 @@ export const calculatePopularityScore = (product) => {
  * @param {string} sortBy - Sorting criterion
  * @returns {Array} - Sorted products
  */
-export const sortProducts = (products, sortBy = 'trending') => {
+export const sortProducts = (products, sortBy = 'newest') => {
   if (!products || !Array.isArray(products)) return [];
 
   const sortedProducts = [...products];
@@ -213,10 +213,6 @@ export const sortProducts = (products, sortBy = 'trending') => {
     case 'popular':
       return sortedProducts.sort((a, b) =>
         b.upvotes.count - a.upvotes.count
-      );
-    case 'trending':
-      return sortedProducts.sort((a, b) =>
-        calculatePopularityScore(b) - calculatePopularityScore(a)
       );
     case 'views':
       return sortedProducts.sort((a, b) =>

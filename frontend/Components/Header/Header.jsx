@@ -109,14 +109,15 @@ const AuthSection = ({
           </div>
         </button>
 
-        {isUserMenuOpen && (
-          <div
-            className={`absolute right-0 mt-4 w-80 bg-white/95 backdrop-blur-xl border border-gray-200/60 rounded-3xl shadow-2xl z-20 overflow-hidden transition-all duration-150 ease-out ${
-              isUserMenuOpen
-                ? 'opacity-100 translate-y-0 scale-100'
-                : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
-            }`}
-          >
+        <AnimatePresence>
+          {isUserMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute right-0 mt-4 w-80 bg-white/95 backdrop-blur-xl border border-gray-200/60 rounded-3xl z-20 overflow-hidden"
+            >
               {/* User Info Header with enhanced design */}
               <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-violet-50/80 via-purple-50/80 to-indigo-50/80 relative overflow-hidden">
                 {/* Background decoration */}
@@ -260,8 +261,9 @@ const AuthSection = ({
                   <ArrowRight size={14} className="text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-150 group-hover:translate-x-1" />
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -314,11 +316,14 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [isFeaturesMenuOpen, setIsFeaturesMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
+  const featuresMenuRef = useRef(null);
 
   useOnClickOutside(userMenuRef, () => setIsUserMenuOpen(false));
   useOnClickOutside(categoryMenuRef, () => setIsCategoryMenuOpen(false));
+  useOnClickOutside(featuresMenuRef, () => setIsFeaturesMenuOpen(false));
 
   useEffect(() => {
     const handleKeyDown = e => {
@@ -501,9 +506,9 @@ const Header = () => {
             <div ref={categoryMenuRef} className="relative">
               <motion.button
                 onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl border border-transparent ${
+                className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent ${
                   pathname.startsWith('/category')
-                    ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50 shadow-sm'
+                    ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50'
                     : 'text-gray-600 hover:text-violet-700 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50 hover:border-violet-200/30'
                 }`}
                 aria-expanded={isCategoryMenuOpen}
@@ -527,7 +532,7 @@ const Header = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl shadow-xl z-20"
+                    className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl z-20"
                   >
                     <div className="p-4 border-b border-gray-100">
                       <div className="flex items-center gap-3">
@@ -550,10 +555,10 @@ const Header = () => {
                               href={`/category/${
                                 category.slug || category.name.toLowerCase().replace(/\s+/g, '-')
                               }`}
-                              className="flex items-center px-4 py-3 text-sm text-gray-600 hover:bg-violet-50 hover:text-violet-600 transition-all duration-200 group"
+                              className="flex items-center px-4 py-3 text-sm text-gray-600 hover:bg-violet-50 hover:text-violet-600 group"
                               onClick={() => setIsCategoryMenuOpen(false)}
                             >
-                              <div className="w-8 h-8 bg-gray-100 group-hover:bg-violet-100 rounded-lg flex items-center justify-center mr-3 transition-colors">
+                              <div className="w-8 h-8 bg-gray-100 group-hover:bg-violet-100 rounded-lg flex items-center justify-center mr-3">
                                 <CategoryIcon
                                   icon={category.icon}
                                   name={category.name}
@@ -593,15 +598,15 @@ const Header = () => {
                   href="/user/mybookmarks"
                   icon={<Bookmark size={16} />}
                 />
-                <div className="relative">
+                <div ref={featuresMenuRef} className="relative">
                   <motion.button
-                    onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                    className={`flex items-center px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl border border-transparent ${
+                    onClick={() => setIsFeaturesMenuOpen(!isFeaturesMenuOpen)}
+                    className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent ${
                       getRoleBasedNavItems().some(item => item.isActive)
-                        ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50 shadow-sm'
+                        ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50'
                         : 'text-gray-600 hover:text-violet-700 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50 hover:border-violet-200/30'
                     }`}
-                    aria-expanded={isCategoryMenuOpen}
+                    aria-expanded={isFeaturesMenuOpen}
                     aria-label="Features"
                     whileHover={{ y: -2 }}
                     whileTap={{ y: 0 }}
@@ -609,20 +614,20 @@ const Header = () => {
                     <Folder size={16} className="mr-2" />
                     Features
                     <motion.div
-                      animate={{ rotate: isCategoryMenuOpen ? 180 : 0 }}
+                      animate={{ rotate: isFeaturesMenuOpen ? 180 : 0 }}
                       transition={{ duration: 0.3 }}
                     >
                       <ChevronDown size={14} className="ml-2" />
                     </motion.div>
                   </motion.button>
                   <AnimatePresence>
-                    {isCategoryMenuOpen && (
+                    {isFeaturesMenuOpen && (
                       <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl shadow-xl z-20"
+                        className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl z-20"
                       >
                         <div className="p-4 border-b border-gray-100">
                           <div className="flex items-center gap-3">
@@ -643,14 +648,14 @@ const Header = () => {
                               >
                                 <Link
                                   href={item.href}
-                                  className={`flex items-center px-4 py-3 text-sm transition-all duration-200 group ${
+                                  className={`flex items-center px-4 py-3 text-sm group ${
                                     item.isActive
                                       ? 'bg-violet-50 text-violet-600'
                                       : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
                                   }`}
-                                  onClick={() => setIsCategoryMenuOpen(false)}
+                                  onClick={() => setIsFeaturesMenuOpen(false)}
                                 >
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-colors ${
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${
                                     item.isActive
                                       ? 'bg-violet-100'
                                       : 'bg-gray-100 group-hover:bg-violet-100'
@@ -1022,6 +1027,23 @@ const Header = () => {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+        }
+
+        /* Remove list styling to prevent bullet points */
+        ul, ol, li {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        /* Ensure dropdown menus have no list styling */
+        .dropdown-menu ul,
+        .dropdown-menu ol,
+        .dropdown-menu li {
+          list-style: none !important;
+          list-style-type: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
       `}</style>
     </>

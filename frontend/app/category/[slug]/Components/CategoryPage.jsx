@@ -146,9 +146,9 @@ export default function CategoryPageClient({ slug }) {
         params.limit,
         params.sort,
         false, // Don't force refresh to avoid rate limiting
-        { // Only pass filter parameters, not pagination/sort again
-          pricing_type: params.pricing_type,
-          subcategory: params.subcategory
+        { // Pass all filter parameters
+          ...(params.pricing_type && { pricing_type: params.pricing_type }),
+          ...(params.subcategory && { subcategory: params.subcategory })
         }
       );
 
@@ -197,10 +197,14 @@ export default function CategoryPageClient({ slug }) {
         setIsLoaded(true);
       }
     }
-  }, [slug, fetchProductsByCategory, prepareQueryParams]);
+  }, [slug, fetchProductsByCategory, sort, filters.price, filters.subcategory, pagination.page, pagination.limit]);
 
   // Load products when slug changes or sort/filters change
   useEffect(() => {
+    // Reset products and pagination when filters or sort change
+    setProducts([]);
+    setPagination(prev => ({ ...prev, page: 1 }));
+    
     // Add a small delay to prevent multiple simultaneous requests
     const timer = setTimeout(() => {
       loadProducts();
@@ -210,7 +214,7 @@ export default function CategoryPageClient({ slug }) {
     return () => {
       clearTimeout(timer);
     };
-  }, [loadProducts]);
+  }, [slug, sort, filters.price, filters.subcategory]); // Add filter dependencies
 
   // Load more products when scrolling to the bottom
   const loadMoreProducts = useCallback(async () => {
@@ -229,9 +233,9 @@ export default function CategoryPageClient({ slug }) {
         params.limit,
         params.sort,
         false, // Don't force refresh to avoid rate limiting
-        { // Only pass filter parameters, not pagination/sort again
-          pricing_type: params.pricing_type,
-          subcategory: params.subcategory
+        { // Pass all filter parameters
+          ...(params.pricing_type && { pricing_type: params.pricing_type }),
+          ...(params.subcategory && { subcategory: params.subcategory })
         }
       );
 
@@ -288,17 +292,11 @@ export default function CategoryPageClient({ slug }) {
   // Handle sort change with memoization
   const handleSortChange = useCallback((newSort) => {
     if (newSort === sort) return;
-    setProducts([]); // Clear products before loading with new sort
     setSort(newSort);
-    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page
   }, [sort]);
 
   // Handle price filter change with memoization
   const handlePriceFilterChange = useCallback((priceType) => {
-    // Batch state updates for better performance
-    setProducts([]); // Clear products before loading with new filters
-    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page
-
     setFilters(prev => {
       const newPriceFilters = [...prev.price];
 
@@ -319,10 +317,6 @@ export default function CategoryPageClient({ slug }) {
 
   // Handle subcategory filter change with memoization
   const handleSubcategoryFilterChange = useCallback((subcategorySlug) => {
-    // Batch state updates for better performance
-    setProducts([]); // Clear products before loading with new filters
-    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page
-
     setFilters(prev => ({
       ...prev,
       subcategory: prev.subcategory === subcategorySlug ? null : subcategorySlug
@@ -331,10 +325,6 @@ export default function CategoryPageClient({ slug }) {
 
   // Clear all filters with memoization
   const clearAllFilters = useCallback(() => {
-    // Batch state updates for better performance
-    setProducts([]); // Clear products before loading with new filters
-    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page
-
     setFilters({
       price: [],
       subcategory: null
@@ -347,7 +337,6 @@ export default function CategoryPageClient({ slug }) {
   const sortOptions = useMemo(
     () => [
       { value: "newest", label: "Newest", icon: <Clock size={16} /> },
-      { value: "trending", label: "Trending", icon: <TrendingUp size={16} /> },
       { value: "most_viewed", label: "Most Viewed", icon: <Eye size={16} /> },
       { value: "name_asc", label: "Name (A-Z)", icon: <SortAsc size={16} /> },
       { value: "name_desc", label: "Name (Z-A)", icon: <SortDesc size={16} /> },
