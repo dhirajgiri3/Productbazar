@@ -111,7 +111,7 @@ const Footer = () => {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-3xl md:text-4xl font-bold mb-2"
+            className="text-3xl font-bold mb-2"
           >
             Elevate your{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-500">

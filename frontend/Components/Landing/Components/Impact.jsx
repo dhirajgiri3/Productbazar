@@ -597,7 +597,7 @@ const Impact = () => {
             />
           </motion.div>
           <motion.h2
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-5 text-gray-900 relative inline-block text-center px-4"
+            className="text-4xl font-bold mb-5 text-gray-900 relative inline-block text-center px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
@@ -633,7 +633,7 @@ const Impact = () => {
             </span>
           </motion.h2>
           <motion.p
-            className="text-base md:text-lg text-gray-600 max-w-3xl text-center leading-relaxed px-4"
+            className="text-base text-gray-600 max-w-3xl text-center leading-relaxed px-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
@@ -675,7 +675,7 @@ const Impact = () => {
             ].map((stat, idx) => (
               <motion.div
                 key={idx}
-                className="flex flex-col items-center gap-2 px-6 py-6 relative overflow-hidden bg-white/50 rounded-xl border border-gray-200/80 shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out group"
+                className="flex flex-col items-center gap-2 px-6 py-6 relative overflow-hidden bg-white/50 rounded-xl border border-gray-200/80  transition-all duration-300 ease-in-out group"
                 whileHover={{
                   y: prefersReducedMotion ? 0 : -6,
                   scale: prefersReducedMotion ? 1 : 1.03,
@@ -802,7 +802,7 @@ const Impact = () => {
 
       <div
         className="hidden md:block absolute left-1/2 transform -translate-x-1/2 z-0 timeline-container"
-        style={{ top: '480px', bottom: '380px', width: '3px' }}
+        style={{ top: '520px', bottom: '380px', width: '3px' }}
         aria-hidden="true"
       >
         <div className="relative w-full h-full">
@@ -857,7 +857,6 @@ const Impact = () => {
           const [stepSectionRef, stepSectionInView] = useElementInView({
             threshold: 0.3,
           });
-
           return (
             <div
               key={index}

@@ -369,10 +369,12 @@ export default function FeaturesSection({ onHover, onLeave }) {
           className="relative inline-block"
           variants={shouldReduceMotion ? {} : headerVariants}
         >
-          <h2
-            className={`text-5xl md:text-6xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-fuchsia-700 transition-colors duration-300`}
-          >
-            <span className="relative z-10">
+          <h2 className="text-4xl font-extrabold mb-6 relative">
+            <span className="relative z-10 bg-gradient-to-r from-violet-700 via-fuchsia-600 to-violet-700 bg-clip-text text-transparent [background-size:200%_100%] animate-gradient-x">
+              Powerful features to simplify your
+            </span>
+            {/* Fallback for browsers that don't support bg-clip-text */}
+            <span className="absolute inset-0 text-gray-900 opacity-0 [.no-bg-clip-text_&]:opacity-100 [.no-bg-clip-text_&]:text-violet-700">
               Powerful features to simplify your
             </span>
           </h2>
@@ -412,10 +414,16 @@ export default function FeaturesSection({ onHover, onLeave }) {
         </motion.div>
 
         <motion.h2
-          className={`text-5xl md:text-6xl font-extrabold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-fuchsia-700 transition-colors duration-300`}
+          className="text-4xl font-extrabold mb-8 relative"
           variants={shouldReduceMotion ? {} : headerVariants}
         >
-          web building experience
+          <span className="relative z-10 bg-gradient-to-r from-violet-700 via-fuchsia-600 to-violet-700 bg-clip-text text-transparent [background-size:200%_100%] animate-gradient-x">
+            web building experience
+          </span>
+          {/* Fallback for browsers that don't support bg-clip-text */}
+          <span className="absolute inset-0 text-gray-900 opacity-0 [.no-bg-clip-text_&]:opacity-100 [.no-bg-clip-text_&]:text-violet-700">
+            web building experience
+          </span>
         </motion.h2>
 
         <motion.p

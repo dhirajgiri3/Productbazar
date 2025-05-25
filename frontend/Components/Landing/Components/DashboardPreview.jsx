@@ -1,49 +1,77 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  TrendingUp,
-  Package,
-  Settings,
-  Search,
-  Bell,
-  User,
-  ChevronRight,
-  Shield,
-  Sparkles,
-  ArrowUp,
-  Clock,
-  Plus,
-  Lock,
-  BellIcon,
-  BarChart3,
-  Users,
-  DollarSign,
-  Activity,
-  Zap,
-  Code,
-  Target,
-  LineChart,
-  LayoutDashboard,
+  TrendingUp, Package, Settings, Search, Bell, User, ChevronRight, Shield, Sparkles,
+  ArrowUp, Clock, Plus, Lock, BellIcon, BarChart3, Users, DollarSign, Activity,
+  Code, Target, LineChart, LayoutDashboard,
 } from 'lucide-react';
 import Link from 'next/link';
 import SectionLabel from './Animations/SectionLabel';
 
-// --- Helper: Debounce ---
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
+// Error Boundary
+class DashboardErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('DashboardPreview Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="py-12 sm:py-16 bg-white">
+          <div className="flex justify-center mb-8">
+            <div className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-full">
+              Dashboard Preview
+            </div>
+          </div>
+          <div className="relative w-full max-w-6xl mx-auto rounded-xl overflow-hidden h-[85vh] flex items-center justify-center bg-gradient-to-br from-slate-50 via-gray-50 to-white border border-slate-200/70 shadow-2xl shadow-slate-300/40">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto">
+                <LayoutDashboard size={24} className="text-violet-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">Dashboard Preview</h3>
+                <p className="text-sm text-slate-600 max-w-md">
+                  Experience our intuitive dashboard interface with real-time analytics.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
-// --- Tabs Data ---
+// Loading Fallback
+const DashboardLoadingFallback = () => (
+  <div className="py-12 sm:py-16 bg-white">
+    <div className="flex justify-center mb-8">
+      <div className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-full animate-pulse">
+        Dashboard Preview
+      </div>
+    </div>
+    <div className="relative w-full max-w-6xl mx-auto rounded-xl overflow-hidden h-[85vh] flex items-center justify-center bg-gradient-to-br from-slate-50 via-gray-50 to-white border border-slate-200/70 shadow-2xl shadow-slate-300/40">
+      <div className="text-center space-y-4">
+        <div className="animate-spin w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full mx-auto"></div>
+        <p className="text-sm text-slate-500">Loading dashboard preview...</p>
+      </div>
+    </div>
+  </div>
+);
+
+// Tabs configuration
 const TABS_DATA = [
   { name: 'Dashboard', icon: <LayoutDashboard size={16} /> },
   { name: 'Products', icon: <Package size={16} /> },
@@ -51,132 +79,45 @@ const TABS_DATA = [
   { name: 'Settings', icon: <Settings size={16} /> },
 ];
 
-// --- Color Map for Tailwind Classes ---
+// Simplified color system
 const colorMap = {
-  indigo: {
-    bg: 'bg-indigo-100',
-    text: 'text-indigo-500',
-    border: 'border-indigo-200',
-    gradFrom: 'from-indigo-500',
-    gradTo: 'to-indigo-400',
-  },
-  violet: {
-    bg: 'bg-violet-100',
-    text: 'text-violet-500',
-    border: 'border-violet-200',
-    gradFrom: 'from-violet-500',
-    gradTo: 'to-violet-400',
-  },
-  emerald: {
-    bg: 'bg-emerald-100',
-    text: 'text-emerald-500',
-    border: 'border-emerald-200',
-    gradFrom: 'from-emerald-500',
-    gradTo: 'to-emerald-400',
-  },
-  amber: {
-    bg: 'bg-amber-100',
-    text: 'text-amber-500',
-    border: 'border-amber-200',
-    gradFrom: 'from-amber-500',
-    gradTo: 'to-amber-400',
-  },
-  blue: {
-    bg: 'bg-blue-100',
-    text: 'text-blue-500',
-    border: 'border-blue-200',
-    gradFrom: 'from-blue-500',
-    gradTo: 'to-blue-400',
-  },
-  slate: {
-    bg: 'bg-slate-100',
-    text: 'text-slate-500',
-    border: 'border-slate-200',
-    gradFrom: 'from-slate-500',
-    gradTo: 'to-slate-400',
-  },
+  indigo: { bg: 'bg-indigo-100', text: 'text-indigo-500', gradFrom: 'from-indigo-500', gradTo: 'to-indigo-400' },
+  violet: { bg: 'bg-violet-100', text: 'text-violet-500', gradFrom: 'from-violet-500', gradTo: 'to-violet-400' },
+  emerald: { bg: 'bg-emerald-100', text: 'text-emerald-500', gradFrom: 'from-emerald-500', gradTo: 'to-emerald-400' },
+  amber: { bg: 'bg-amber-100', text: 'text-amber-500', gradFrom: 'from-amber-500', gradTo: 'to-amber-400' },
+  blue: { bg: 'bg-blue-100', text: 'text-blue-500', gradFrom: 'from-blue-500', gradTo: 'to-blue-400' },
+  slate: { bg: 'bg-slate-100', text: 'text-slate-500', gradFrom: 'from-slate-500', gradTo: 'to-slate-400' },
 };
 
-const DashboardPreview = () => {
+// Main Dashboard Preview Component
+const DashboardPreviewCore = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const [isHovering, setIsHovering] = useState(false);
-  const containerRef = useRef(null);
-  const intervalRef = useRef(null);
-  const tabs = TABS_DATA;
-  const autoSwitchInterval = 7000;
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const debouncedMouseMove = useRef(
-    debounce(e => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        mouseX.set(e.clientX - rect.left);
-        mouseY.set(e.clientY - rect.top);
-      }
-    }, 16)
-  ).current;
-
-  const handleMouseMove = e => {
-    debouncedMouseMove(e.nativeEvent);
-  };
-
-  const handleMouseEnter = () => setIsHovering(true);
-  const handleMouseLeave = () => {
-    setIsHovering(false);
-    if (containerRef.current) {
-      mouseX.set(containerRef.current.offsetWidth / 2);
-      mouseY.set(containerRef.current.offsetHeight / 2);
-    }
-  };
-
-  useEffect(() => {
-    if (containerRef.current) {
-      mouseX.set(containerRef.current.offsetWidth / 2);
-      mouseY.set(containerRef.current.offsetHeight / 2);
-    }
-  }, []);
-
-  const springConfig = { stiffness: 120, damping: 20, mass: 1 };
-
-  const rotateX = useSpring(
-    useTransform(mouseY, () => [0, containerRef.current?.offsetHeight ?? 600], [7, -7]),
-    springConfig
-  );
-  const rotateY = useSpring(
-    useTransform(mouseX, () => [0, containerRef.current?.offsetWidth ?? 1000], [-7, 7]),
-    springConfig
-  );
-
-  const imageTranslateY = useSpring(
-    useTransform(mouseY, () => [0, containerRef.current?.offsetHeight ?? 600], [-12, 12]),
-    springConfig
-  );
-  const imageTranslateX = useSpring(
-    useTransform(mouseX, () => [0, containerRef.current?.offsetWidth ?? 1000], [-8, 8]),
-    springConfig
-  );
-
+  const [isClient, setIsClient] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [twoFactorAuthEnabled, setTwoFactorAuthEnabled] = useState(true);
+  
+  const intervalRef = useRef(null);
 
-  const dashboardScreen =
-    'https://res.cloudinary.com/dgak25skk/image/upload/v1745437791/Screenshot_2025-04-23_at_4.49.11_PM_d3oqjt.png';
-  const productsScreen =
-    'https://res.cloudinary.com/dgak25skk/image/upload/v1745437942/Screenshot_2025-04-24_at_1.22.02_AM_rpkjsn.png';
-  const analyticsScreen =
-    'https://res.cloudinary.com/dgak25skk/image/upload/v1745406725/Screenshot_2025-04-23_at_4.40.17_PM_tslhhj.png';
-  const settingsScreen =
-    'https://res.cloudinary.com/dgak25skk/image/upload/v1745437793/Screenshot_2025-04-23_at_4.48.44_PM_sdwqzb.png';
-  const dashboardScreens = [dashboardScreen, productsScreen, analyticsScreen, settingsScreen];
+  // Client-side mounting
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
+  // Dashboard screens
+  const dashboardScreens = [
+    'https://res.cloudinary.com/dgak25skk/image/upload/f_auto,q_auto,w_1200,c_limit,dpr_auto/v1745437791/Screenshot_2025-04-23_at_4.49.11_PM_d3oqjt.png',
+    'https://res.cloudinary.com/dgak25skk/image/upload/f_auto,q_auto,w_1200,c_limit,dpr_auto/v1745437942/Screenshot_2025-04-24_at_1.22.02_AM_rpkjsn.png',
+    'https://res.cloudinary.com/dgak25skk/image/upload/f_auto,q_auto,w_1200,c_limit,dpr_auto/v1745406725/Screenshot_2025-04-23_at_4.40.17_PM_tslhhj.png',
+    'https://res.cloudinary.com/dgak25skk/image/upload/f_auto,q_auto,w_1200,c_limit,dpr_auto/v1745437793/Screenshot_2025-04-23_at_4.48.44_PM_sdwqzb.png'
+  ];
+
+  // Auto-switch tabs
   const startAutoSwitch = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setActiveTab(prevTab => (prevTab + 1) % tabs.length);
-    }, autoSwitchInterval);
-  }, [tabs.length, autoSwitchInterval]);
+      setActiveTab(prev => (prev + 1) % TABS_DATA.length);
+    }, 7000);
+  }, []);
 
   useEffect(() => {
     startAutoSwitch();
@@ -185,505 +126,379 @@ const DashboardPreview = () => {
     };
   }, [startAutoSwitch]);
 
-  const handleTabClick = index => {
+  const handleTabClick = (index) => {
     setActiveTab(index);
     startAutoSwitch();
   };
 
+  // Static data for dashboard content
   const performanceData = [
-    {
-      label: 'Total Users',
-      value: '14.2k',
-      change: '+27%',
-      color: 'indigo',
-      icon: <Users size={14} />,
-    },
-    {
-      label: 'Revenue',
-      value: '$92.8k',
-      change: '+18%',
-      color: 'violet',
-      icon: <DollarSign size={14} />,
-    },
-    {
-      label: 'Engagement',
-      value: '94%',
-      change: '+5%',
-      color: 'emerald',
-      icon: <Activity size={14} />,
-    },
-    { label: 'Conversion', value: '3.8%', change: '+12%', color: 'amber', icon: <Zap size={14} /> },
-  ];
-  const productsData = [
-    {
-      name: 'AI Code Assistant',
-      icon: <Code size={16} />,
-      progress: 80,
-      change: '+24%',
-      users: '16,482',
-      target: '20,000',
-      color: 'violet',
-    },
-    {
-      name: 'Marketing Suite',
-      icon: <Target size={16} />,
-      progress: 60,
-      change: '+12%',
-      users: '9,217',
-      target: '15,000',
-      color: 'indigo',
-    },
-    {
-      name: 'Data Analytics Platform',
-      icon: <BarChart3 size={16} />,
-      progress: 45,
-      change: '+8%',
-      users: '5,103',
-      target: '10,000',
-      color: 'blue',
-    },
-  ];
-  const analyticsData = [
-    {
-      name: 'User Growth',
-      value: '14,256',
-      change: '+27%',
-      period: 'vs last month',
-      color: 'emerald',
-      icon: <Users size={16} />,
-    },
-    {
-      name: 'Revenue',
-      value: '$92,845',
-      change: '+18%',
-      period: 'vs last month',
-      color: 'blue',
-      icon: <DollarSign size={16} />,
-    },
-    {
-      name: 'Active Sessions',
-      value: '8,492',
-      change: '+32%',
-      period: 'vs last month',
-      color: 'violet',
-      icon: <Activity size={16} />,
-    },
-    {
-      name: 'Avg. Session Duration',
-      value: '4m 32s',
-      change: '+12%',
-      period: 'vs last month',
-      color: 'indigo',
-      icon: <Clock size={16} />,
-    },
+    { label: 'Total Users', value: '14.2k', change: '+27%', color: 'indigo', icon: <Users size={14} /> },
+    { label: 'Revenue', value: '$92.8k', change: '+18%', color: 'violet', icon: <DollarSign size={14} /> },
+    { label: 'Engagement', value: '94%', change: '+5%', color: 'emerald', icon: <Activity size={14} /> },
+    { label: 'Conversion', value: '3.8%', change: '+12%', color: 'amber', icon: <ArrowUp size={14} /> },
   ];
 
+  const productsData = [
+    { name: 'AI Code Assistant', icon: <Code size={16} />, progress: 80, change: '+24%', users: '16,482', target: '20,000', color: 'violet' },
+    { name: 'Marketing Suite', icon: <Target size={16} />, progress: 60, change: '+12%', users: '9,217', target: '15,000', color: 'indigo' },
+    { name: 'Data Analytics Platform', icon: <BarChart3 size={16} />, progress: 45, change: '+8%', users: '5,103', target: '10,000', color: 'blue' },
+  ];
+
+  const analyticsData = [
+    { name: 'User Growth', value: '14,256', change: '+27%', period: 'vs last month', color: 'emerald', icon: <Users size={16} /> },
+    { name: 'Revenue', value: '$92,845', change: '+18%', period: 'vs last month', color: 'blue', icon: <DollarSign size={16} /> },
+    { name: 'Active Sessions', value: '8,492', change: '+32%', period: 'vs last month', color: 'violet', icon: <Activity size={16} /> },
+    { name: 'Avg. Session Duration', value: '4m 32s', change: '+12%', period: 'vs last month', color: 'indigo', icon: <Clock size={16} /> },
+  ];
+
+  // Simplified animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.15 } },
   };
+
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
   };
+
   const cardVariants = {
     hidden: { opacity: 0, y: 12, scale: 0.97 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { type: 'spring', stiffness: 300, damping: 28, mass: 0.9 },
-    },
-    hover: {
-      y: -4,
-      scale: 1.015,
-      boxShadow: '0 10px 25px -5px rgba(124,58,237,0.08), 0 8px 10px -6px rgba(124,58,237,0.05)',
-      transition: { type: 'spring', stiffness: 300, damping: 20 },
-    },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 28 } },
+    hover: { y: -4, scale: 1.015, transition: { type: 'spring', stiffness: 300, damping: 20 } },
   };
-
-  const switchVariants = { on: { x: 18 }, off: { x: 2 } };
-  const switchContainerVariants = {
-    on: custom => ({
-      backgroundColor: custom === 'violet' ? '#7c3aed' : '#10b981',
-      transition: { duration: 0.25 },
-    }),
-    off: () => ({
-      backgroundColor: '#e5e7eb',
-      transition: { duration: 0.25 },
-    }),
-  };
-
-  const [particles, setParticles] = useState([]);
-  useEffect(() => {
-    const newParticles = Array.from({ length: 15 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 0.5,
-      duration: Math.random() * 35 + 25,
-      delay: Math.random() * 10,
-      driftX: (Math.random() - 0.5) * 30,
-      driftY: (Math.random() - 0.5) * 30,
-    }));
-    setParticles(newParticles);
-  }, []);
-
-  const handleNotificationToggle = () => setNotificationsEnabled(!notificationsEnabled);
-  const handle2FAToggle = () => setTwoFactorAuthEnabled(!twoFactorAuthEnabled);
-
-  const currentDate = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
 
   return (
     <div className="py-12 sm:py-16 bg-white">
       <div className="flex justify-center mb-8">
-        <SectionLabel
-          text="Dashboard Preview"
-          size="medium"
-          alignment="center"
-          variant="dashboard"
-          glowEffect={true}
-          animationStyle="fade"
-          gradientText={true}
-        />
+        {isClient ? (
+          <SectionLabel
+            text="Dashboard Preview"
+            size="medium"
+            alignment="center"
+            variant="dashboard"
+            glowEffect={true}
+            animationStyle="fade"
+            gradientText={true}
+          />
+        ) : (
+          <div className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-full">
+            Dashboard Preview
+          </div>
+        )}
       </div>
+
       <motion.div
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        style={{ transformStyle: 'preserve-3d', perspective: '1200px' }}
         className="relative w-full max-w-6xl mx-auto rounded-xl overflow-hidden h-[85vh] flex flex-col bg-gradient-to-br from-slate-50 via-gray-50 to-white border border-slate-200/70 shadow-2xl shadow-slate-300/40"
         initial={{ opacity: 0, scale: 0.95, y: 30 }}
         whileInView={{ opacity: 1, scale: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
-        <motion.div
-          className="absolute inset-0 opacity-25 bg-grid-slate-300/[0.15] [mask-image:linear-gradient(0deg,transparent,black_60%)] z-0"
-          style={{ backgroundSize: '28px 28px' }}
-          aria-hidden="true"
-        />
-        <div
-          className="absolute inset-0 opacity-5 bg-white z-0 pointer-events-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23bbb' fill-opacity='0.1'%3E%3Cpath d='M0 0h40v40H0zM40 40h40v40H40z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '80px 80px',
-          }}
-          aria-hidden="true"
-        />
-        {isHovering && (
-          <motion.div
-            className="absolute inset-0 pointer-events-none z-[1] overflow-hidden rounded-xl"
-            style={{
-              background: `radial-gradient(900px circle at ${mouseX}px ${mouseY}px, rgba(139,92,246,0.03), transparent 65%)`,
-              transition: 'background 0.25s ease-out',
-            }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.45 }}
+        <div className="flex flex-col h-full relative z-10">
+          {/* Browser Header */}
+          <BrowserHeader />
+          
+          {/* App Header */}
+          <AppHeader />
+          
+          {/* Tab Navigation */}
+          <TabNavigation 
+            tabs={TABS_DATA}
+            activeTab={activeTab}
+            onTabClick={handleTabClick}
+            isClient={isClient}
           />
-        )}
-        {particles.map(particle => (
-          <motion.div
-            key={particle.id}
-            className="absolute rounded-full bg-violet-500/8 pointer-events-none z-[1]"
-            style={{
-              left: `${particle.x}%`,
-              top: `${particle.y}%`,
-              width: `${particle.size}px`,
-              height: `${particle.size}px`,
-              opacity: 0,
-            }}
-            animate={{
-              x: [0, particle.driftX, 0],
-              y: [0, particle.driftY, 0],
-              opacity: [0, 0.6, 0],
-              scale: [0.6, 1, 0.6],
-              rotate: [0, Math.random() * 40 - 20, 0],
-            }}
-            transition={{
-              duration: particle.duration,
-              delay: particle.delay,
-              repeat: Infinity,
-              repeatType: 'loop',
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
 
-        <motion.div
-          className="flex flex-col h-full relative z-10"
-          style={{ rotateX, rotateY, transition: 'transform 0.1s ease-out' }}
-        >
-          <div className="flex-shrink-0">
-            <div className="bg-white/70 backdrop-blur-lg px-4 py-2 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30">
-              <div className="flex space-x-1.5">
-                {['red-500', 'yellow-500', 'green-500'].map(color => (
-                  <motion.div
-                    key={color}
-                    className={`w-2 h-2 bg-${color} rounded-full`}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-                  />
-                ))}
-              </div>
-              <div className="flex-grow text-center">
-                <motion.div
-                  className="mx-auto bg-slate-100/60 rounded-md flex items-center justify-center px-3 py-0.5 text-xs text-slate-500 border border-slate-300/50 shadow-xs transition-colors duration-300"
-                  whileHover={{ y: -1, boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}
-                >
-                  <Lock size={9} className="mr-1.5 text-violet-500" /> productbazar.in/dashboard
-                </motion.div>
-              </div>
-              <div className="w-16 text-right">
-                <span className="font-medium whitespace-nowrap text-[9px] text-slate-400 hidden md:inline">
-                  {currentDate.split(',')[0]}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-shrink-0">
-            <motion.div
-              className="bg-white/70 backdrop-blur-lg px-5 py-3 border-b border-slate-100/60 flex items-center justify-between"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div className="flex items-center" variants={itemVariants}>
-                <motion.div
-                  className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold rounded-lg flex items-center justify-center text-sm w-8 h-8 p-1 mr-3 shadow-md shadow-violet-300/50"
-                  whileHover={{
-                    scale: 1.08,
-                    transition: { type: 'spring', stiffness: 300, damping: 12 },
-                  }}
-                >
-                  PB
-                </motion.div>
-                <div>
-                  <h2 className="text-sm font-semibold text-slate-800 tracking-tight">
-                    ProductBazar
-                  </h2>
-                  <p className="text-xs text-violet-600 mt-0.5">Dashboard</p>
-                </div>
-              </motion.div>
-              <div className="flex items-center space-x-1.5">
-                <HeaderButton variants={itemVariants} label="Search">
-                  <Search size={15} />
-                </HeaderButton>
-                <HeaderButton variants={itemVariants} label="Notifications">
-                  <Bell size={15} />
-                  <motion.span
-                    className="absolute top-0.5 right-0.5 block w-1.5 h-1.5 bg-red-500 rounded-full border border-white"
-                    animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }}
-                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                  />
-                </HeaderButton>
-                <motion.button
-                  className="flex items-center p-1.5 rounded-full transition-colors duration-200 hover:bg-slate-100/70 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-1 focus:ring-offset-white"
-                  whileHover="hover"
-                  variants={itemVariants}
-                  aria-label="User Profile"
-                >
-                  <motion.div
-                    className="w-6 h-6 bg-gradient-to-br from-violet-100 to-violet-200 text-violet-600 rounded-full flex items-center justify-center shadow-sm"
-                    variants={{ hover: { scale: 1.08 } }}
-                  >
-                    <User size={12} />
-                  </motion.div>
-                </motion.button>
-              </div>
-            </motion.div>
-          </div>
-
-          <div className="flex-shrink-0">
-            <div className="flex border-b border-slate-200/70 bg-white/60 backdrop-blur-md px-4">
-              {tabs.map((tab, index) => (
-                <motion.button
-                  key={tab.name}
-                  onClick={() => handleTabClick(index)}
-                  className={`relative flex items-center px-4 py-3 text-xs font-medium transition-colors duration-200 ease-out outline-none focus-visible:ring-1 focus-visible:ring-violet-400 focus-visible:ring-offset-1 focus-visible:ring-offset-white ${
-                    activeTab === index ? 'text-violet-600' : 'text-slate-500 hover:text-violet-600'
-                  }`}
-                  whileHover={{ y: -1.5 }}
-                  whileTap={{ scale: 0.97, y: 0 }}
-                >
-                  <motion.span
-                    className={`mr-1.5 transition-colors duration-200 ${
-                      activeTab === index ? 'text-violet-500' : 'text-slate-400'
-                    }`}
-                    animate={{ scale: activeTab === index ? 1.1 : 1, opacity: 1 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  >
-                    {tab.icon}
-                  </motion.span>
-                  {tab.name}
-                  {activeTab === index && (
-                    <motion.div
-                      className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-violet-500 to-purple-600 rounded-t-full shadow-[0_0_8px_rgba(139,92,246,0.5)]"
-                      layoutId="activeTabIndicator"
-                      transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-                    />
-                  )}
-                </motion.button>
-              ))}
-            </div>
-          </div>
-
+          {/* Main Content */}
           <div className="flex-grow relative overflow-hidden">
-            <AnimatePresence initial={false}>
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, scale: 0.97, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.97, y: -10 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0 h-full"
-              >
-                <motion.img
-                  src={dashboardScreens[activeTab]}
-                  alt={`${tabs[activeTab].name} Background`}
-                  style={{ y: imageTranslateY, x: imageTranslateX, scale: 1.08 }}
-                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 opacity-40 filter contrast-100 brightness-100"
-                  key={`bg-${activeTab}`}
-                />
-                <div className="absolute inset-0 p-4 sm:p-5 pointer-events-none overflow-y-auto">
-                  {activeTab === 0 && (
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
-                    >
-                      {performanceData.map(item => (
-                        <MetricCard
-                          key={item.label}
-                          item={item}
-                          cardVariants={cardVariants}
-                          itemVariants={itemVariants}
-                        />
-                      ))}
-                      <div className="sm:col-span-2 lg:col-span-4">
-                        <RevenueCard cardVariants={cardVariants} />
-                      </div>
-                    </motion.div>
-                  )}
-                  {activeTab === 1 && (
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      className="grid grid-cols-1 md:grid-cols-3 gap-3"
-                    >
-                      <ProductListCard
-                        productsData={productsData}
-                        cardVariants={cardVariants}
-                        itemVariants={itemVariants}
-                      />
-                      <FeaturedLaunchCard cardVariants={cardVariants} />
-                    </motion.div>
-                  )}
-                  {activeTab === 2 && (
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
-                    >
-                      {analyticsData.map(item => (
-                        <AnalyticsCard
-                          key={item.name}
-                          item={item}
-                          cardVariants={cardVariants}
-                          itemVariants={itemVariants}
-                        />
-                      ))}
-                    </motion.div>
-                  )}
-                  {activeTab === 3 && (
-                    <SettingsCard
+            {isClient ? (
+              <AnimatePresence initial={false}>
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, scale: 0.97, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.97, y: -10 }}
+                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0 h-full"
+                >
+                  <motion.img
+                    src={dashboardScreens[activeTab]}
+                    alt={`${TABS_DATA[activeTab]?.name || 'Dashboard'} Background`}
+                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 opacity-40"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  
+                  <div className="absolute inset-0 p-4 sm:p-5 pointer-events-none overflow-y-auto">
+                    <TabContent 
+                      activeTab={activeTab}
+                      performanceData={performanceData}
+                      productsData={productsData}
+                      analyticsData={analyticsData}
                       notificationsEnabled={notificationsEnabled}
                       twoFactorAuthEnabled={twoFactorAuthEnabled}
-                      handleNotificationToggle={handleNotificationToggle}
-                      handle2FAToggle={handle2FAToggle}
+                      onNotificationToggle={() => setNotificationsEnabled(!notificationsEnabled)}
+                      on2FAToggle={() => setTwoFactorAuthEnabled(!twoFactorAuthEnabled)}
+                      containerVariants={containerVariants}
                       cardVariants={cardVariants}
                       itemVariants={itemVariants}
-                      switchVariants={switchVariants}
-                      switchContainerVariants={switchContainerVariants}
                     />
-                  )}
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="flex-shrink-0">
-            <div className="bg-white/60 border-slate-200/60 backdrop-blur-md px-5 py-2.5 border-t flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-4 text-slate-500">
-                <motion.div className="flex items-center" whileHover={{ x: 1.5 }}>
-                  <motion.div
-                    className="w-2 h-2 bg-emerald-500 rounded-full mr-1.5 shadow-[0_0_7px_rgba(16,185,129,0.8)]"
-                    animate={{ scale: [1, 1.25, 1], opacity: [0.7, 1, 0.7] }}
-                    transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                  />{' '}
-                  All systems operational
+                  </div>
                 </motion.div>
-                <div className="hidden sm:flex items-center text-[10px]">
-                  <Clock size={9} className="mr-1" /> Last update:{' '}
-                  <span className="font-medium ml-1 text-slate-600">Just now</span>
+              </AnimatePresence>
+            ) : (
+              <div className="absolute inset-0 h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
+                <div className="text-center space-y-4">
+                  <div className="animate-spin w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-sm text-slate-500">Loading dashboard preview...</p>
                 </div>
               </div>
-              <Link href="/product/new">
-                <motion.button
-                  className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white text-[10px] font-medium py-1.5 px-3 rounded-md transition-all flex items-center shadow-md shadow-violet-300/50 focus:outline-none focus:ring-1 focus:ring-violet-500 focus:ring-offset-1 focus:ring-offset-white"
-                  whileHover={{
-                    scale: 1.04,
-                    y: -1.5,
-                    boxShadow: '0 5px 15px rgba(124,58,237,0.2)',
-                  }}
-                  whileTap={{ scale: 0.97, y: 0 }}
-                >
-                  <Plus size={12} className="mr-1 -ml-0.5" /> Add Product
-                </motion.button>
-              </Link>
-            </div>
+            )}
           </div>
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-1/4 bg-purple-500/3 rounded-full blur-3xl -z-10 pointer-events-none" />
-        </motion.div>
+
+          {/* Footer */}
+          <DashboardFooter />
+        </div>
       </motion.div>
     </div>
   );
 };
 
-// --- Reusable Sub-components ---
+// Optimized Sub-components
+const BrowserHeader = () => (
+  <div className="bg-white/70 backdrop-blur-lg px-4 py-2 border-b border-slate-200/60 flex items-center justify-between sticky top-0 z-30">
+    <div className="flex space-x-1.5">
+      {['red-500', 'yellow-500', 'green-500'].map(color => (
+        <motion.div
+          key={color}
+          className={`w-2 h-2 bg-${color} rounded-full`}
+          whileHover={{ scale: 1.2 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+        />
+      ))}
+    </div>
+    <div className="flex-grow text-center">
+      <motion.div
+        className="mx-auto bg-slate-100/60 rounded-md flex items-center justify-center px-3 py-0.5 text-xs text-slate-500 border border-slate-300/50"
+        whileHover={{ y: -1 }}
+      >
+        <Lock size={9} className="mr-1.5 text-violet-500" /> productbazar.in/dashboard
+      </motion.div>
+    </div>
+    <div className="w-16 text-right">
+      <span className="font-medium whitespace-nowrap text-[9px] text-slate-400 hidden md:inline">
+        {new Date().toLocaleDateString('en-US', { weekday: 'long' }).split(',')[0]}
+      </span>
+    </div>
+  </div>
+);
 
-const HeaderButton = ({ children, label, variants }) => (
+const AppHeader = () => (
+  <motion.div
+    className="bg-white/70 backdrop-blur-lg px-5 py-3 border-b border-slate-100/60 flex items-center justify-between"
+    initial="hidden"
+    animate="visible"
+    variants={{
+      hidden: { opacity: 0 },
+      visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
+    }}
+  >
+    <motion.div 
+      className="flex items-center"
+      variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
+    >
+      <motion.div
+        className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold rounded-lg flex items-center justify-center text-sm w-8 h-8 p-1 mr-3 shadow-md shadow-violet-300/50"
+        whileHover={{ scale: 1.08 }}
+      >
+        PB
+      </motion.div>
+      <div>
+        <h2 className="text-sm font-semibold text-slate-800 tracking-tight">ProductBazar</h2>
+        <p className="text-xs text-violet-600 mt-0.5">Dashboard</p>
+      </div>
+    </motion.div>
+    <div className="flex items-center space-x-1.5">
+      <HeaderButton label="Search">
+        <Search size={15} />
+      </HeaderButton>
+      <HeaderButton label="Notifications">
+        <Bell size={15} />
+        <motion.span
+          className="absolute top-0.5 right-0.5 block w-1.5 h-1.5 bg-red-500 rounded-full border border-white"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </HeaderButton>
+      <motion.button
+        className="flex items-center p-1.5 rounded-full transition-colors duration-200 hover:bg-slate-100/70 focus:outline-none focus:ring-1 focus:ring-violet-500"
+        whileHover={{ scale: 1.05 }}
+        aria-label="User Profile"
+      >
+        <div className="w-6 h-6 bg-gradient-to-br from-violet-100 to-violet-200 text-violet-600 rounded-full flex items-center justify-center shadow-sm">
+          <User size={12} />
+        </div>
+      </motion.button>
+    </div>
+  </motion.div>
+);
+
+const HeaderButton = ({ children, label }) => (
   <motion.button
-    className="relative p-2 rounded-full transition-colors duration-200 text-slate-500 hover:bg-violet-100/70 hover:text-violet-600 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-white"
+    className="relative p-2 rounded-full transition-colors duration-200 text-slate-500 hover:bg-violet-100/70 hover:text-violet-600 focus:outline-none focus:ring-2 focus:ring-violet-400"
     whileHover={{ scale: 1.18 }}
     whileTap={{ scale: 0.92 }}
-    variants={variants}
     aria-label={label}
-    style={{
-      willChange: 'transform',
-      transform: 'translateZ(0)',
-    }}
-    transition={{
-      type: 'spring',
-      stiffness: 400,
-      damping: 25,
-      duration: 0.25,
-    }}
   >
     {children}
   </motion.button>
+);
+
+const TabNavigation = ({ tabs, activeTab, onTabClick, isClient }) => (
+  <div className="flex border-b border-slate-200/70 bg-white/60 backdrop-blur-md px-4">
+    {isClient && tabs ? (
+      tabs.map((tab, index) => (
+        <motion.button
+          key={`${tab.name}-${index}`}
+          onClick={() => onTabClick(index)}
+          className={`relative flex items-center px-4 py-3 text-xs font-medium transition-colors duration-200 ${
+            activeTab === index ? 'text-violet-600' : 'text-slate-500 hover:text-violet-600'
+          }`}
+          whileHover={{ y: -1.5 }}
+          whileTap={{ scale: 0.97 }}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1, duration: 0.3 }}
+        >
+          <motion.span
+            className={`mr-1.5 transition-colors duration-200 ${
+              activeTab === index ? 'text-violet-500' : 'text-slate-400'
+            }`}
+            animate={{ scale: activeTab === index ? 1.1 : 1 }}
+          >
+            {tab.icon}
+          </motion.span>
+          {tab.name}
+          {activeTab === index && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-violet-500 to-purple-600 rounded-t-full"
+              layoutId="activeTabIndicator"
+              transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+            />
+          )}
+        </motion.button>
+      ))
+    ) : (
+      <div className="flex">
+        {[1, 2, 3, 4].map((item) => (
+          <div key={item} className="px-4 py-3 text-xs text-slate-400 animate-pulse">
+            Loading...
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+const TabContent = ({ 
+  activeTab, 
+  performanceData, 
+  productsData, 
+  analyticsData,
+  notificationsEnabled,
+  twoFactorAuthEnabled,
+  onNotificationToggle,
+  on2FAToggle,
+  containerVariants,
+  cardVariants,
+  itemVariants 
+}) => {
+  switch (activeTab) {
+    case 0:
+      return (
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+        >
+          {performanceData.map(item => (
+            <MetricCard key={item.label} item={item} cardVariants={cardVariants} />
+          ))}
+          <div className="sm:col-span-2 lg:col-span-4">
+            <RevenueCard cardVariants={cardVariants} />
+          </div>
+        </motion.div>
+      );
+    case 1:
+      return (
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 md:grid-cols-3 gap-3"
+        >
+          <ProductListCard productsData={productsData} cardVariants={cardVariants} itemVariants={itemVariants} />
+          <FeaturedLaunchCard cardVariants={cardVariants} />
+        </motion.div>
+      );
+    case 2:
+      return (
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"
+        >
+          {analyticsData.map(item => (
+            <AnalyticsCard key={item.name} item={item} cardVariants={cardVariants} />
+          ))}
+        </motion.div>
+      );
+    case 3:
+      return (
+        <SettingsCard
+          notificationsEnabled={notificationsEnabled}
+          twoFactorAuthEnabled={twoFactorAuthEnabled}
+          onNotificationToggle={onNotificationToggle}
+          on2FAToggle={on2FAToggle}
+          cardVariants={cardVariants}
+          itemVariants={itemVariants}
+        />
+      );
+    default:
+      return null;
+  }
+};
+
+const DashboardFooter = () => (
+  <div className="bg-white/60 border-slate-200/60 backdrop-blur-md px-5 py-2.5 border-t flex items-center justify-between text-xs">
+    <div className="flex items-center space-x-4 text-slate-500">
+      <motion.div className="flex items-center" whileHover={{ x: 1.5 }}>
+        <motion.div
+          className="w-2 h-2 bg-emerald-500 rounded-full mr-1.5"
+          animate={{ scale: [1, 1.25, 1], opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        All systems operational
+      </motion.div>
+      <div className="hidden sm:flex items-center text-[10px]">
+        <Clock size={9} className="mr-1" /> Last update:
+        <span className="font-medium ml-1 text-slate-600">Just now</span>
+      </div>
+    </div>
+    <Link href="/product/new">
+      <motion.button
+        className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-600 text-white text-[10px] font-medium py-1.5 px-3 rounded-md transition-all flex items-center shadow-md shadow-violet-300/50 focus:outline-none focus:ring-1 focus:ring-violet-500"
+        whileHover={{ scale: 1.04, y: -1.5 }}
+        whileTap={{ scale: 0.97 }}
+      >
+        <Plus size={12} className="mr-1 -ml-0.5" /> Add Product
+      </motion.button>
+    </Link>
+  </div>
 );
 
 const MetricCard = ({ item, cardVariants, itemVariants }) => {
@@ -930,65 +745,58 @@ const ProductListCard = ({ productsData, cardVariants, itemVariants }) => (
       </span>
     </div>
     <div className="space-y-3">
-      {productsData.map((product, index) => (
-        <motion.div
-          key={product.name}
-          variants={itemVariants}
-          className={`flex items-center p-3 rounded-lg border bg-${product.color}-50/40 border-${product.color}-200/50 shadow-md group relative overflow-hidden`}
-          whileHover={{ y: -2.5, backgroundColor: 'rgba(238,242,255,0.5)' }}
-          transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-        >
-          <div
-            className={`absolute -right-5 -bottom-5 w-14 h-14 rounded-full blur-xl bg-${product.color}-300/20 group-hover:bg-${product.color}-300/35 transition-all duration-300`}
-          />
+      {productsData.map((product, index) => {
+        const color = colorMap[product.color] || colorMap.slate;
+        return (
           <motion.div
-            className={`w-10 h-10 rounded-lg bg-gradient-to-br from-${product.color}-100 to-${product.color}-200 text-${product.color}-600 flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg transition-all duration-300`}
-            whileHover={{ scale: 1.12, rotate: 6 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 12 }}
+            key={product.name}
+            variants={itemVariants}
+            className="flex items-center p-3 rounded-lg border border-slate-200/50 bg-white/60 shadow-md group relative overflow-hidden"
+            whileHover={{ y: -2.5, backgroundColor: 'rgba(238,242,255,0.5)' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 18 }}
           >
-            {product.icon}
-          </motion.div>
-          <div className="flex-grow">
-            <div className="flex justify-between items-baseline">
-              <p
-                className={`font-medium text-xs text-slate-700 group-hover:text-${product.color}-600 transition-colors duration-300`}
-              >
-                {product.name}
-              </p>
-              <motion.span
-                className="text-xs font-medium flex items-center px-1.5 py-0.5 rounded-full bg-emerald-100/70 text-emerald-600 group-hover:shadow-sm transition-all duration-300"
-                whileHover={{ scale: 1.06 }}
-              >
-                <ArrowUp size={9} className="mr-0.5" />
-                {product.change}
-              </motion.span>
-            </div>
-            <div className="relative mt-2">
-              <div className="w-full bg-slate-200/50 rounded-full h-1.5">
-                <motion.div
-                  className={`h-1.5 rounded-full bg-gradient-to-r from-${product.color}-500 to-${product.color}-400`}
-                  initial={{ width: '0%' }}
-                  animate={{ width: `${product.progress}%` }}
-                  transition={{ delay: 0.35 + index * 0.12, duration: 0.9, ease: 'circOut' }}
-                />
-                <motion.div
-                  className={`absolute -right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full border-2 bg-${product.color}-500 border-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                  style={{ left: `${product.progress}%`, transform: `translate(-50%, -50%)` }}
-                  whileHover={{ scale: 1.25 }}
-                />
+            <motion.div
+              className={`w-10 h-10 rounded-lg bg-gradient-to-br ${color.bg} ${color.text} flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg transition-all duration-300`}
+              whileHover={{ scale: 1.12, rotate: 6 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 12 }}
+            >
+              {product.icon}
+            </motion.div>
+            <div className="flex-grow">
+              <div className="flex justify-between items-baseline">
+                <p className="font-medium text-xs text-slate-700">
+                  {product.name}
+                </p>
+                <motion.span
+                  className="text-xs font-medium flex items-center px-1.5 py-0.5 rounded-full bg-emerald-100/70 text-emerald-600 group-hover:shadow-sm transition-all duration-300"
+                  whileHover={{ scale: 1.06 }}
+                >
+                  <ArrowUp size={9} className="mr-0.5" />
+                  {product.change}
+                </motion.span>
+              </div>
+              <div className="relative mt-2">
+                <div className="w-full bg-slate-200/50 rounded-full h-1.5">
+                  <motion.div
+                    className={`h-1.5 rounded-full bg-gradient-to-r ${color.gradFrom} ${color.gradTo}`}
+                    initial={{ width: '0%' }}
+                    animate={{ width: `${product.progress}%` }}
+                    transition={{ delay: 0.35 + index * 0.12, duration: 0.9, ease: 'circOut' }}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between mt-2 text-[9px] text-slate-500">
+                <span className="flex items-center">
+                  <Users size={9} className="mr-1" /> {product.users}
+                </span>
+                <span className="flex items-center">
+                  <Target size={9} className="mr-1" /> {product.target}
+                </span>
               </div>
             </div>
-            <div className="flex justify-between mt-2 text-[9px] text-slate-500">
-              <span className="flex items-center">
-                <Users size={9} className="mr-1" /> {product.users}
-              </span>
-              <span className="flex items-center">
-                <Target size={9} className="mr-1" /> {product.target}
-              </span>
-            </div>
-          </div>
-        </motion.div>
-      ))}
+          </motion.div>
+        );
+      })}
     </div>
   </motion.div>
 );
@@ -1040,12 +848,10 @@ const FeaturedLaunchCard = ({ cardVariants }) => (
 const SettingsCard = ({
   notificationsEnabled,
   twoFactorAuthEnabled,
-  handleNotificationToggle,
-  handle2FAToggle,
+  onNotificationToggle,
+  on2FAToggle,
   cardVariants,
   itemVariants,
-  switchVariants,
-  switchContainerVariants,
 }) => (
   <motion.div
     variants={cardVariants}
@@ -1069,9 +875,7 @@ const SettingsCard = ({
       >
         <ToggleButton
           checked={notificationsEnabled}
-          onChange={handleNotificationToggle}
-          switchVariants={switchVariants}
-          switchContainerVariants={switchContainerVariants}
+          onChange={onNotificationToggle}
           activeColor="violet"
         />
       </SettingsRow>
@@ -1084,9 +888,7 @@ const SettingsCard = ({
       >
         <ToggleButton
           checked={twoFactorAuthEnabled}
-          onChange={handle2FAToggle}
-          switchVariants={switchVariants}
-          switchContainerVariants={switchContainerVariants}
+          onChange={on2FAToggle}
           activeColor="emerald"
         />
       </SettingsRow>
@@ -1094,62 +896,66 @@ const SettingsCard = ({
   </motion.div>
 );
 
-const SettingsRow = ({ label, description, icon, children, variants, iconColor = 'slate' }) => (
-  <motion.div
-    variants={variants}
-    className="flex items-center justify-between p-3 rounded-lg border border-slate-200/70 hover:bg-violet-50/40 group"
-    whileHover={{ x: 2.5 }}
-  >
-    <div className="flex items-center">
-      <motion.div
-        className={`w-8 h-8 rounded-lg bg-${iconColor}-100 text-${iconColor}-500 flex items-center justify-center mr-3 shadow-sm group-hover:shadow-md transition-all duration-300`}
-        whileHover={{ scale: 1.12, rotate: 6 }}
-        transition={{ type: 'spring', stiffness: 350, damping: 15 }}
-      >
-        {icon}
-      </motion.div>
-      <div>
-        <p className="text-xs font-medium text-slate-700">{label}</p>
-        {description && <p className="text-[9px] text-slate-500 mt-0.5">{description}</p>}
-      </div>
-    </div>
-    <div className="pointer-events-auto">{children}</div>
-  </motion.div>
-);
-
-const ToggleButton = ({
-  checked,
-  onChange,
-  switchVariants,
-  switchContainerVariants,
-  activeColor = 'indigo',
-}) => (
-  <motion.button
-    onClick={onChange}
-    aria-pressed={checked}
-    variants={switchContainerVariants}
-    animate={checked ? 'on' : 'off'}
-    custom={activeColor}
-    className="w-10 h-5 rounded-full relative cursor-pointer flex items-center p-0.5 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-white"
-    style={{
-      willChange: 'background-color',
-      transform: 'translateZ(0)',
-    }}
-  >
+const SettingsRow = ({ label, description, icon, children, variants, iconColor = 'slate' }) => {
+  const color = colorMap[iconColor] || colorMap.slate;
+  return (
     <motion.div
-      className="w-4 h-4 bg-white rounded-full shadow-md"
-      variants={switchVariants}
-      transition={{
-        type: 'spring',
-        stiffness: 600,
-        damping: 30,
-      }}
-      style={{
-        willChange: 'transform',
-        transform: 'translateZ(0)',
-      }}
-    />
-  </motion.button>
-);
+      variants={variants}
+      className="flex items-center justify-between p-3 rounded-lg border border-slate-200/70 hover:bg-violet-50/40 group"
+      whileHover={{ x: 2.5 }}
+    >
+      <div className="flex items-center">
+        <motion.div
+          className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm group-hover:shadow-md transition-all duration-300 ${color.bg} ${color.text}`}
+          whileHover={{ scale: 1.12, rotate: 6 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 15 }}
+        >
+          {icon}
+        </motion.div>
+        <div>
+          <p className="text-xs font-medium text-slate-700">{label}</p>
+          {description && <p className="text-[9px] text-slate-500 mt-0.5">{description}</p>}
+        </div>
+      </div>
+      <div className="pointer-events-auto">{children}</div>
+    </motion.div>
+  );
+};
+
+const ToggleButton = ({ checked, onChange, activeColor = 'violet' }) => {
+  const activeColors = {
+    violet: 'bg-violet-500',
+    emerald: 'bg-emerald-500',
+    indigo: 'bg-indigo-500',
+  };
+
+  return (
+    <motion.button
+      onClick={onChange}
+      aria-pressed={checked}
+      className={`w-10 h-5 rounded-full relative cursor-pointer flex items-center p-0.5 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 focus:ring-offset-white transition-colors duration-200 ${
+        checked ? activeColors[activeColor] || activeColors.violet : 'bg-slate-300'
+      }`}
+    >
+      <motion.div
+        className="w-4 h-4 bg-white rounded-full shadow-md"
+        initial={false}
+        animate={{ x: checked ? 16 : 0 }}
+        transition={{ type: 'spring', stiffness: 600, damping: 30 }}
+      />
+    </motion.button>
+  );
+};
+
+// Production-safe wrapper component
+const DashboardPreview = () => {
+  return (
+    <DashboardErrorBoundary>
+      <Suspense fallback={<DashboardLoadingFallback />}>
+        <DashboardPreviewCore />
+      </Suspense>
+    </DashboardErrorBoundary>
+  );
+};
 
 export default DashboardPreview;

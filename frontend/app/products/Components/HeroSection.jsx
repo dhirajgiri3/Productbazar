@@ -116,14 +116,14 @@ const HeroSection = ({ onSearch }) => {
         </motion.div>
 
         <motion.h1
-          className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 md:mb-8 leading-tight tracking-tight"
+          className="text-3xl font-bold text-white mb-6 md:mb-8 leading-tight tracking-tight"
           variants={itemVariants}
         >
           {heroContent.headline}
         </motion.h1>
 
         <motion.p
-          className="text-lg md:text-xl text-white/80 mx-auto mb-8 md:mb-10 max-w-2xl leading-relaxed"
+          className="text-lg text-white/80 mx-auto mb-8 md:mb-10 max-w-2xl leading-relaxed"
           variants={itemVariants}
         >
           {heroContent.subheadline}

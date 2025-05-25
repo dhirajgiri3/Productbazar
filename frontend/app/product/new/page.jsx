@@ -143,11 +143,11 @@ export default function AddProductPage() {
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600">
+            <h1 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600">
               Launch Your Product
             </h1>
 
-            <p className="mt-6 text-md sm:text-md text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="mt-6 text-md text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Share your creation with our community of makers and early
               adopters. The journey from idea to launch is just a few steps
               away.

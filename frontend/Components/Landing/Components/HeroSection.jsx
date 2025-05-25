@@ -483,7 +483,7 @@ const HeroSection = () => {
                   duration: 0.7,
                   ease: [0.25, 0.1, 0.25, 1.0],
                 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-gray-900"
+                className="text-4xl font-bold leading-tight tracking-tight text-gray-900"
               >
                 <span>The Ecosystem for</span>
               </motion.h1>
@@ -497,7 +497,7 @@ const HeroSection = () => {
                   ease: [0.25, 0.1, 0.25, 1.0],
                 }}
               >
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
+                <h1 className="text-4xl font-bold leading-tight tracking-tight">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-600 to-purple-500 font-semibold italic">
                     Tech Innovation
                   </span>

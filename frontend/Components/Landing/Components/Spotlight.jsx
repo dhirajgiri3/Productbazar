@@ -303,7 +303,7 @@ const Spotlight = () => {
           <motion.h2
             id="spotlight-heading"
             variants={fadeInUp}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight"
+            className="text-3xl font-bold text-gray-900 tracking-tight"
           >
             <span className="relative inline-block">
               Innovation

@@ -146,7 +146,7 @@ export default function EditProjectPage() {
       >
         <div className="text-center mb-12">
           <motion.h1
-            className="text-4xl md:text-5xl font-bold text-gray-900"
+            className="text-4xl font-bold text-gray-900"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}

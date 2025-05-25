@@ -41,6 +41,17 @@ html {
   text-rendering: optimizeLegibility;
 }
 
+/* ======= GRADIENT TEXT SUPPORT DETECTION ======= */
+@supports not (-webkit-background-clip: text) {
+  html {
+    --no-bg-clip-text: true;
+  }
+
+  .no-bg-clip-text {
+    /* Fallback styles for browsers that don't support background-clip: text */
+  }
+}
+
 body {
   visibility: visible;
   opacity: 1;

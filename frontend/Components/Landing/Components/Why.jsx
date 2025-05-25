@@ -555,7 +555,7 @@ const SectionHeader = memo(
           variants={titleVariants}
           style={{ y: prefersReducedMotion ? 0 : titleY }}
         >
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 sm:mb-5 text-slate-900 tracking-tighter">
+          <h2 className="text-4xl font-extrabold mb-4 sm:mb-5 text-slate-900 tracking-tighter">
             {title}
           </h2>
           <motion.div
