@@ -41,10 +41,17 @@ import logger from "./utils/logging/logger.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
+// Trust proxy - MUST be set before any rate limiting middleware
+// This is essential for apps deployed behind proxies (like Render, Heroku, etc.)
+app.set('trust proxy', 1);
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later.",
+  // Add proper configuration for proxy environment
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // IMPORTANT: Add CORS middleware early in the chain - before any other middleware

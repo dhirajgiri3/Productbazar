@@ -10,6 +10,8 @@ export const rateLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Properly handle proxy environments
+  trustProxy: true,
 });
 
 // Helper function to convert time format like '15m' or '1h' into milliseconds
@@ -36,6 +38,7 @@ export const otpRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 /**
@@ -55,6 +58,7 @@ export const verifyEmailRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 /**
@@ -72,6 +76,7 @@ export const sendEmailRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 /**
@@ -89,6 +94,7 @@ export const profileRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 /**
@@ -106,6 +112,7 @@ export const tokenRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 /**
@@ -124,6 +131,7 @@ export const passwordResetRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 /**
@@ -142,6 +150,7 @@ export const loginRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 /**
@@ -162,6 +171,7 @@ export const emailRegistrationRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 export const phoneRegistrationRateLimiter = rateLimit({
@@ -178,6 +188,7 @@ export const phoneRegistrationRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 export const phoneVerificationRateLimiter = rateLimit({
@@ -194,6 +205,7 @@ export const phoneVerificationRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 export const viewRateLimiter = rateLimit({
@@ -204,6 +216,9 @@ export const viewRateLimiter = rateLimit({
     // Skip rate limiting for authenticated users
     return !!req.user;
   },
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true,
 });
 
 export const recommendationRateLimiter = rateLimit({
@@ -218,6 +233,7 @@ export const recommendationRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });
 
 export const searchLimiter = rateLimit({
@@ -232,4 +248,5 @@ export const searchLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true,
 });

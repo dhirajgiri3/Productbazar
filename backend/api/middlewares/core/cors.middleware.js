@@ -3,7 +3,6 @@ import cors from "cors";
 // Define allowed origins
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://product-bazar.vercel.app',
   'https://productbazar-frontend.onrender.com'
   // Add other production/staging domains here
 ];
