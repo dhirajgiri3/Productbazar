@@ -11,9 +11,6 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import { useRef, useState, memo, useMemo } from "react";
-// Make sure this path is correct for your project structure
-import { useTheme } from "@/lib/contexts/theme-context";
-// Import specific icons instead of the entire library
 import {
   Target,
   MessageSquare,
@@ -29,7 +26,6 @@ import {
   LineChart,
   ArrowRight,
 } from "lucide-react";
-// Make sure this path is correct for your project structure
 import GlobalButton from "../../UI/Buttons/GlobalButton";
 import SectionLabel from "./Animations/SectionLabel";
 
@@ -50,7 +46,7 @@ const LucideIconsMap = {
   ArrowRight,
 };
 
-// Enhanced Advantage Data
+// Advantage Data
 const advantageData = [
   {
     id: "targeted",
@@ -60,13 +56,9 @@ const advantageData = [
     gridClass: "col-span-2 row-span-1 md:col-span-2 sm:col-span-1",
     color: {
       bg: "from-indigo-50/90 to-indigo-100/90",
-      darkBg: "dark:from-indigo-900/40 dark:to-indigo-800/40", // Slightly increased opacity for base
       text: "text-indigo-900",
-      darkText: "dark:text-indigo-100",
       accent: "#818cf8", // Indigo-400
-      darkAccent: "#a5b4fc", // Indigo-300
       border: "#c7d2fe", // Indigo-200
-      darkBorder: "#6366f1", // Indigo-500
     },
     icon: "Target",
     badgeIcon: "Zap",
@@ -81,13 +73,9 @@ const advantageData = [
     gridClass: "col-span-1 row-span-1 md:col-span-1 sm:col-span-1",
     color: {
       bg: "from-amber-50/90 to-amber-100/90",
-      darkBg: "dark:from-amber-900/40 dark:to-amber-800/40",
       text: "text-amber-900",
-      darkText: "dark:text-amber-100",
       accent: "#fbbf24", // Amber-400
-      darkAccent: "#fcd34d", // Amber-300
       border: "#fde68a", // Amber-200
-      darkBorder: "#f59e0b", // Amber-500
     },
     icon: "MessageSquare",
     badgeIcon: "MessageCircle",
@@ -102,13 +90,9 @@ const advantageData = [
     gridClass: "col-span-1 row-span-1 md:col-span-1 sm:col-span-1",
     color: {
       bg: "from-emerald-50/90 to-emerald-100/90",
-      darkBg: "dark:from-emerald-900/40 dark:to-emerald-800/40",
       text: "text-emerald-900",
-      darkText: "dark:text-emerald-100",
       accent: "#34d399", // Emerald-400
-      darkAccent: "#6ee7b7", // Emerald-300
       border: "#a7f3d0", // Emerald-200
-      darkBorder: "#10b981", // Emerald-500
     },
     icon: "Shield",
     badgeIcon: "Award",
@@ -123,13 +107,9 @@ const advantageData = [
     gridClass: "col-span-2 row-span-1 md:col-span-2 sm:col-span-1",
     color: {
       bg: "from-blue-50/90 to-blue-100/90",
-      darkBg: "dark:from-blue-900/40 dark:to-blue-800/40",
       text: "text-blue-900",
-      darkText: "dark:text-blue-100",
       accent: "#60a5fa", // Blue-400
-      darkAccent: "#93c5fd", // Blue-300
       border: "#bfdbfe", // Blue-200
-      darkBorder: "#3b82f6", // Blue-500
     },
     icon: "Brain",
     badgeIcon: "Sparkles",
@@ -144,13 +124,9 @@ const advantageData = [
     gridClass: "col-span-2 row-span-1 md:col-span-2 sm:col-span-1",
     color: {
       bg: "from-violet-50/90 to-violet-100/90",
-      darkBg: "dark:from-violet-900/40 dark:to-violet-800/40",
       text: "text-violet-900",
-      darkText: "dark:text-violet-100",
       accent: "#a78bfa", // Violet-400
-      darkAccent: "#c4b5fd", // Violet-300
       border: "#ddd6fe", // Violet-200
-      darkBorder: "#8b5cf6", // Violet-500
     },
     icon: "Network",
     badgeIcon: "Users",
@@ -165,13 +141,9 @@ const advantageData = [
     gridClass: "col-span-1 row-span-1 md:col-span-1 sm:col-span-1",
     color: {
       bg: "from-rose-50/90 to-rose-100/90",
-      darkBg: "dark:from-rose-900/40 dark:to-rose-800/40",
       text: "text-rose-900",
-      darkText: "dark:text-rose-100",
       accent: "#fb7185", // Rose-400
-      darkAccent: "#fda4af", // Rose-300
       border: "#fecdd3", // Rose-200
-      darkBorder: "#f43f5e", // Rose-500
     },
     icon: "TrendingUp",
     badgeIcon: "LineChart",
@@ -181,39 +153,29 @@ const advantageData = [
 ];
 
 const CategoryBadge = memo(
-  ({
-    category,
-    accentColor,
-    darkAccentColor,
-    badgeIcon,
-    isHovered,
-    borderColor,
-    darkBorderColor,
-  }) => {
+  ({ category, accentColor, badgeIcon, isHovered, borderColor }) => {
     const BadgeIcon = LucideIconsMap[badgeIcon];
     const prefersReducedMotion = useReducedMotion();
-    const { isDarkMode } = useTheme();
 
     const shadowValues = useMemo(() => {
-      const currentColor = isDarkMode ? darkAccentColor : accentColor;
       if (
-        !currentColor ||
-        typeof currentColor !== "string" ||
-        !currentColor.startsWith("#")
+        !accentColor ||
+        typeof accentColor !== "string" ||
+        !accentColor.startsWith("#")
       ) {
         return { shadowStart: "none", shadowMid: "none", shadowEnd: "none" };
       }
-      const r = parseInt(currentColor.slice(1, 3), 16);
-      const g = parseInt(currentColor.slice(3, 5), 16);
-      const b = parseInt(currentColor.slice(5, 7), 16);
-      const intensity = isDarkMode ? 0.55 : 0.3;
+      const r = parseInt(accentColor.slice(1, 3), 16);
+      const g = parseInt(accentColor.slice(3, 5), 16);
+      const b = parseInt(accentColor.slice(5, 7), 16);
+      const intensity = 0.3;
 
       return {
         shadowStart: `0 0 0px rgba(${r}, ${g}, ${b}, 0.05)`,
         shadowMid: `0 0 10px rgba(${r}, ${g}, ${b}, ${intensity})`,
         shadowEnd: `0 0 0px rgba(${r}, ${g}, ${b}, 0.05)`,
       };
-    }, [accentColor, darkAccentColor, isDarkMode]);
+    }, [accentColor]);
 
     const currentBoxShadow =
       isHovered && !prefersReducedMotion
@@ -228,29 +190,9 @@ const CategoryBadge = memo(
       <motion.div
         className="py-1.5 px-3 rounded-full flex items-center gap-2 text-xs font-medium uppercase tracking-wider shadow-sm transition-all duration-300"
         style={{
-          backgroundColor: isDarkMode
-            ? darkAccentColor
-              ? `${darkAccentColor}2A`
-              : accentColor
-              ? `${accentColor}2A`
-              : "rgba(45, 45, 55, 0.75)"
-            : accentColor
-            ? `${accentColor}1C`
-            : "rgba(240,240,245,0.85)",
-          color: isDarkMode
-            ? darkAccentColor || accentColor
-            : accentColor || "inherit",
-          border: `1px solid ${
-            isDarkMode
-              ? darkBorderColor ||
-                (darkAccentColor
-                  ? `${darkAccentColor}70`
-                  : accentColor
-                  ? `${accentColor}70`
-                  : "rgba(75,75,85,0.7)")
-              : borderColor ||
-                (accentColor ? `${accentColor}4A` : "rgba(200,200,205,0.5)")
-          }`,
+          backgroundColor: accentColor ? `${accentColor}1C` : "rgba(240,240,245,0.85)",
+          color: accentColor || "inherit",
+          border: `1px solid ${borderColor || (accentColor ? `${accentColor}4A` : "rgba(200,200,205,0.5)")}`,
         }}
         initial={{ y: 0, scale: 1, boxShadow: shadowValues.shadowStart }}
         animate={
@@ -344,7 +286,6 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
   const inView = useInView(cardRef, { amount: 0.2, once: false });
   const [isHovered, setIsHovered] = useState(false);
   const prefersReducedMotion = useReducedMotion();
-  const { isDarkMode } = useTheme();
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -370,12 +311,8 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
   );
 
   const Icon = item?.icon ? LucideIconsMap[item.icon] : null;
-  const accentColor = isDarkMode
-    ? item?.color?.darkAccent
-    : item?.color?.accent;
-  const titleBaseColorClass = isDarkMode
-    ? item?.color?.darkText || "dark:text-slate-50"
-    : item?.color?.text || "text-slate-900";
+  const accentColor = item?.color?.accent;
+  const titleBaseColorClass = item?.color?.text || "text-slate-900";
 
   const handleMouseMove = (e) => {
     if (!cardRef.current || !isHovered || prefersReducedMotion) return;
@@ -413,33 +350,28 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
   );
 
   const glowEffectParams = useMemo(() => {
-    const currentColor = isDarkMode
-      ? item?.color?.darkAccent
-      : item?.color?.accent;
     if (
-      !currentColor ||
-      typeof currentColor !== "string" ||
-      !currentColor.startsWith("#")
+      !accentColor ||
+      typeof accentColor !== "string" ||
+      !accentColor.startsWith("#")
     ) {
       return ["none", "none", "none"];
     }
-    const r = parseInt(currentColor.slice(1, 3), 16);
-    const g = parseInt(currentColor.slice(3, 5), 16);
-    const b = parseInt(currentColor.slice(5, 7), 16);
-    const glowIntensity = isDarkMode ? 0.45 : 0.35;
+    const r = parseInt(accentColor.slice(1, 3), 16);
+    const g = parseInt(accentColor.slice(3, 5), 16);
+    const b = parseInt(accentColor.slice(5, 7), 16);
+    const glowIntensity = 0.35;
     return [
       `0 0 0px rgba(${r}, ${g}, ${b}, 0)`,
       `0 0 25px rgba(${r}, ${g}, ${b}, ${glowIntensity})`,
       `0 0 0px rgba(${r}, ${g}, ${b}, 0)`,
     ];
-  }, [isDarkMode, item?.color?.darkAccent, item?.color?.accent]);
+  }, [accentColor]);
 
   const cardBackground = useMemo(() => {
-    const baseColor = isDarkMode
-      ? item?.color?.darkBg || "dark:from-slate-800/60 dark:to-slate-900/60" // Slightly more opaque
-      : item?.color?.bg || "from-slate-50/90 to-slate-100/90";
+    const baseColor = item?.color?.bg || "from-slate-50/90 to-slate-100/90";
     return `bg-gradient-to-br ${baseColor}`;
-  }, [isDarkMode, item?.color?.bg, item?.color?.darkBg]);
+  }, [item?.color?.bg]);
 
   const currentGlowEffect =
     isHovered && !prefersReducedMotion ? glowEffectParams : "none";
@@ -447,13 +379,7 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
   return (
     <motion.div
       ref={cardRef}
-      className={`relative overflow-hidden rounded-2xl ${item?.gridClass || ""}
-        transition-all duration-300 ease-out group
-        ${
-          isDarkMode
-            ? "border-slate-700/80 shadow-xl shadow-black/35 hover:shadow-2xl hover:shadow-black/45"
-            : "border-slate-300/90 shadow-lg shadow-slate-400/25 hover:shadow-xl hover:shadow-slate-500/35"
-        }`} // Slightly softer borders and shadows for light mode
+      className={`relative overflow-hidden rounded-2xl ${item?.gridClass || ""} transition-all duration-300 ease-out group border-slate-300/90 shadow-lg shadow-slate-400/25 hover:shadow-xl hover:shadow-slate-500/35`}
       variants={sharedAnimations.card}
       initial="hidden"
       animate={inView ? "visible" : "hidden"}
@@ -475,20 +401,18 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
       />
 
       <div
-        className={`absolute inset-0 transition-opacity duration-300 ${
-          isDarkMode ? "opacity-15" : "opacity-[0.08]"
-        }`}
+        className="absolute inset-0 transition-opacity duration-300 opacity-[0.08]"
         style={{
           backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.3' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='2'/%3E%3Ccircle cx='13' cy='13' r='2'/%3E%3C/g%3E%3C/svg%3E\")", // Slightly smaller dots
+            "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.3' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='2'/%3E%3Ccircle cx='13' cy='13' r='2'/%3E%3C/g%3E%3C/svg%3E\")",
           maskImage:
-            "radial-gradient(ellipse at center, black 50%, transparent 85%)", // Softer mask
+            "radial-gradient(ellipse at center, black 50%, transparent 85%)",
         }}
         aria-hidden="true"
       />
 
       <motion.div
-        className="absolute inset-0 border-2 rounded-2xl pointer-events-none" // Match parent rounding
+        className="absolute inset-0 border-2 rounded-2xl pointer-events-none"
         initial={{ opacity: 0, boxShadow: "none" }}
         animate={
           isHovered && !prefersReducedMotion
@@ -518,9 +442,7 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
             <CategoryBadge
               category={item?.category || "general"}
               accentColor={item?.color?.accent}
-              darkAccentColor={item?.color?.darkAccent}
               borderColor={item?.color?.border}
-              darkBorderColor={item?.color?.darkBorder}
               badgeIcon={item?.badgeIcon}
               isHovered={isHovered}
             />
@@ -544,16 +466,10 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
             }}
             className="text-2xl mb-6 sm:mb-7 w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300"
             style={{
-              backgroundColor: isDarkMode
-                ? `${accentColor}33`
-                : `${item?.color?.accent}22`,
+              backgroundColor: `${item?.color?.accent}22`,
               color: accentColor,
-              border: `1px solid ${
-                isDarkMode ? `${accentColor}66` : `${item?.color?.accent}44`
-              }`,
-              boxShadow: isDarkMode
-                ? `0 3px 7px rgba(0,0,0,0.3), 0 0 15px ${accentColor}33`
-                : `0 3px 7px ${item?.color?.accent || "#000000"}1A`,
+              border: `1px solid ${item?.color?.accent}44`,
+              boxShadow: `0 3px 7px ${item?.color?.accent || "#000000"}1A`,
             }}
             aria-hidden="true"
           >
@@ -568,9 +484,7 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
           <motion.h3
             id={`card-${item?.id}-title`}
             variants={sharedAnimations.text}
-            className={`text-lg sm:text-xl font-bold mb-3 sm:mb-4 tracking-tight transition-colors duration-300 ${
-              !isHovered ? titleBaseColorClass : ""
-            }`}
+            className={`text-lg sm:text-xl font-bold mb-3 sm:mb-4 tracking-tight ${!isHovered ? titleBaseColorClass : ""}`}
             style={isHovered ? { color: accentColor } : {}}
           >
             {item?.title || "Card Title"}
@@ -579,8 +493,7 @@ const BentoCard = memo(({ item, scrollYProgress }) => {
           <motion.p
             id={`card-${item?.id}-desc`}
             variants={sharedAnimations.text}
-            className={`text-sm sm:text-[0.92rem] leading-relaxed transition-colors duration-300
-              ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}
+            className="text-sm sm:text-[0.92rem] leading-relaxed text-slate-600"
           >
             {item?.description || "Card description goes here."}
           </motion.p>
@@ -594,7 +507,6 @@ BentoCard.displayName = "BentoCard";
 const SectionHeader = memo(
   ({ title, subtitle, scrollYProgress, isInView, id }) => {
     const prefersReducedMotion = useReducedMotion();
-    const { isDarkMode } = useTheme();
 
     const titleY = useTransform(
       scrollYProgress,
@@ -643,15 +555,13 @@ const SectionHeader = memo(
           variants={titleVariants}
           style={{ y: prefersReducedMotion ? 0 : titleY }}
         >
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 sm:mb-5 text-slate-900 dark:text-slate-50 tracking-tighter transition-colors duration-300">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4 sm:mb-5 text-slate-900 tracking-tighter">
             {title}
           </h2>
           <motion.div
-            className="absolute -bottom-1.5 left-1/4 right-1/4 h-1.5 rounded-full" // Slightly thicker underline
+            className="absolute -bottom-1.5 left-1/4 right-1/4 h-1.5 rounded-full"
             style={{
-              background: isDarkMode
-                ? "linear-gradient(90deg, #c4b5fd, #a78bfa, #8b5cf6)"
-                : "linear-gradient(90deg, #a78bfa, #8b5cf6, #7c3aed)",
+              background: "linear-gradient(90deg, #a78bfa, #8b5cf6, #7c3aed)",
             }}
             initial={{ scaleX: 0, originX: 0.5 }}
             animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
@@ -663,30 +573,26 @@ const SectionHeader = memo(
             aria-hidden="true"
           />
           <motion.div
-            className="absolute -bottom-1.5 left-1/4 right-1/4 h-1.5 rounded-full" // Match thickness
+            className="absolute -bottom-1.5 left-1/4 right-1/4 h-1.5 rounded-full"
             initial={{ opacity: 0, scaleX: 0.5, originX: 0.5 }}
             animate={
-              isInView
-                ? { opacity: isDarkMode ? 0.7 : 0.5, scaleX: 1 }
-                : { opacity: 0, scaleX: 0.5 }
-            } // Adjusted opacity
+              isInView ? { opacity: 0.5, scaleX: 1 } : { opacity: 0, scaleX: 0.5 }
+            }
             transition={{
               delay: 0.35,
               duration: 0.8,
               ease: [0.2, 0.8, 0.2, 1],
             }}
             style={{
-              background: isDarkMode
-                ? "linear-gradient(90deg, #c4b5fd, #a78bfa, #8b5cf6)"
-                : "linear-gradient(90deg, #a78bfa, #8b5cf6, #7c3aed)",
-              filter: "blur(10px)", // Slightly increased blur for glow
+              background: "linear-gradient(90deg, #a78bfa, #8b5cf6, #7c3aed)",
+              filter: "blur(10px)",
             }}
             aria-hidden="true"
           />
         </motion.div>
 
         <motion.p
-          className="text-md sm:text-lg text-slate-600 dark:text-slate-400 mt-6 sm:mt-8 max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-0 leading-relaxed transition-colors duration-300"
+          className="text-md sm:text-lg text-slate-600 mt-6 sm:mt-8 max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-0 leading-relaxed"
           initial={{ opacity: 0, y: 15 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
           transition={{ duration: 0.6, delay: 0.45, ease: "easeOut" }}
@@ -701,12 +607,11 @@ const SectionHeader = memo(
 SectionHeader.displayName = "SectionHeader";
 
 const Background = memo(({ scrollYProgress, prefersReducedMotion }) => {
-  const { isDarkMode } = useTheme();
   const gridY = useTransform(
     scrollYProgress,
     [0, 1],
     prefersReducedMotion ? [0, 0] : [0, -40]
-  ); // Slightly more parallax
+  );
 
   const createBlobTransform = (yOffset, xOffset, scaleRange) => ({
     y: useTransform(
@@ -730,62 +635,41 @@ const Background = memo(({ scrollYProgress, prefersReducedMotion }) => {
   const blob2 = createBlobTransform(45, -30, [0.9, 1.1, 0.9]);
   const blob3 = createBlobTransform(25, -15, [0.95, 1.05, 0.95]);
 
-  // Grid line colors
-  const darkGridLineColor = "rgba(71, 85, 105, 0.15)"; // Slate-600 @ 15%
   const lightGridLineColor = "rgba(148, 163, 184, 0.4)"; // Slate-400 @ 40%
-
-  const darkGridLineColorLarge = "rgba(71, 85, 105, 0.2)"; // Slate-600 @ 20%
   const lightGridLineColorLarge = "rgba(148, 163, 184, 0.5)"; // Slate-400 @ 50%
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 transition-colors duration-300">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
       <motion.div
         className="absolute inset-0"
         style={{ y: gridY }}
         aria-hidden="true"
       >
-        {/* Base radial gradient background for the section */}
         <div
-          className="absolute inset-0 transition-all duration-300"
+          className="absolute inset-0"
           style={{
-            background: isDarkMode
-              ? `radial-gradient(ellipse at center, rgba(17, 24, 39, 0.3) 0%, rgba(17, 24, 39, 1) 80%)` // slate-900 base
-              : `radial-gradient(ellipse at center, rgba(241, 245, 249, 0.1) 0%, rgba(241, 245, 249, 1) 80%)`, // slate-100 base
+            background: `radial-gradient(ellipse at center, rgba(241, 245, 249, 0.1) 0%, rgba(241, 245, 249, 1) 80%)`, // slate-100 base
           }}
         />
 
-        {/* Primary grid layer */}
         <div
-          className="absolute inset-0 bg-repeat transition-all duration-300"
+          className="absolute inset-0 bg-repeat"
           style={{
-            backgroundImage: `linear-gradient(to right, ${
-              isDarkMode ? darkGridLineColor : lightGridLineColor
-            } 1px, transparent 1px),
-                             linear-gradient(to bottom, ${
-                               isDarkMode
-                                 ? darkGridLineColor
-                                 : lightGridLineColor
-                             } 1px, transparent 1px)`,
-            backgroundSize: "40px 40px", // Slightly larger primary grid
+            backgroundImage: `linear-gradient(to right, ${lightGridLineColor} 1px, transparent 1px),
+                             linear-gradient(to bottom, ${lightGridLineColor} 1px, transparent 1px)`,
+            backgroundSize: "40px 40px",
             maskImage:
-              "radial-gradient(ellipse at center, black 40%, transparent 80%)", // Adjust fade area
+              "radial-gradient(ellipse at center, black 40%, transparent 80%)",
           }}
         />
-        {/* Secondary grid layer */}
         <div
-          className="absolute inset-0 bg-repeat transition-all duration-300"
+          className="absolute inset-0 bg-repeat"
           style={{
-            backgroundImage: `linear-gradient(to right, ${
-              isDarkMode ? darkGridLineColorLarge : lightGridLineColorLarge
-            } 1px, transparent 1px),
-                             linear-gradient(to bottom, ${
-                               isDarkMode
-                                 ? darkGridLineColorLarge
-                                 : lightGridLineColorLarge
-                             } 1px, transparent 1px)`,
-            backgroundSize: "160px 160px", // Larger secondary grid
+            backgroundImage: `linear-gradient(to right, ${lightGridLineColorLarge} 1px, transparent 1px),
+                             linear-gradient(to bottom, ${lightGridLineColorLarge} 1px, transparent 1px)`,
+            backgroundSize: "160px 160px",
             maskImage:
-              "radial-gradient(ellipse at center, black 40%, transparent 80%)", // Adjust fade area
+              "radial-gradient(ellipse at center, black 40%, transparent 80%)",
           }}
         />
       </motion.div>
@@ -793,7 +677,7 @@ const Background = memo(({ scrollYProgress, prefersReducedMotion }) => {
       {[blob1, blob2, blob3].map((blob, index) => (
         <motion.div
           key={index}
-          className={`absolute rounded-full transition-all duration-300
+          className={`absolute rounded-full
             ${index === 0 ? "top-5 right-[2%] w-80 h-80 sm:w-96 sm:h-96" : ""}
             ${
               index === 1
@@ -808,23 +692,13 @@ const Background = memo(({ scrollYProgress, prefersReducedMotion }) => {
           style={{
             background:
               index % 2 === 0
-                ? isDarkMode
-                  ? "linear-gradient(135deg, rgba(167,139,250,0.12) 0%, rgba(124,58,237,0.12) 100%)" // Darker violet
-                  : "linear-gradient(135deg, rgba(196,181,253,0.18) 0%, rgba(139,92,246,0.18) 100%)"
-                : isDarkMode
-                ? "linear-gradient(135deg, rgba(96,165,250,0.1) 0%, rgba(37,99,235,0.1) 100%)" // Darker blue
+                ? "linear-gradient(135deg, rgba(196,181,253,0.18) 0%, rgba(139,92,246,0.18) 100%)"
                 : "linear-gradient(135deg, rgba(147,197,253,0.15) 0%, rgba(59,130,246,0.15) 100%)",
-            opacity: isDarkMode
-              ? index === 2
-                ? 0.35
-                : 0.45
-              : index === 2
-              ? 0.25
-              : 0.3,
+            opacity: index === 2 ? 0.25 : 0.3,
             y: blob.y,
             x: blob.x,
             scale: blob.scale,
-            filter: "blur(90px)", // Increased blur
+            filter: "blur(90px)",
           }}
           aria-hidden="true"
         />
@@ -848,15 +722,14 @@ function Why() {
     restDelta: 0.001,
   });
 
-  const isInView = useInView(sectionRef, { amount: 0.15, once: false }); // Trigger earlier
+  const isInView = useInView(sectionRef, { amount: 0.15, once: false });
   const headingId = "why-product-bazar-heading";
-  const { isDarkMode } = useTheme();
 
   return (
     <section
       ref={sectionRef}
       aria-labelledby={headingId}
-      className="relative overflow-hidden py-12 sm:py-16 transition-colors duration-300 bg-white dark:bg-gray-900"
+      className="relative overflow-hidden py-12 sm:py-16 bg-white"
     >
       <Background
         scrollYProgress={smoothScrollYProgress}
@@ -890,7 +763,7 @@ function Why() {
           transition={{
             duration: 0.6,
             delay: 0.5 + advantageData.length * 0.05,
-          }} // Delay after last card animates
+          }}
           className="text-center"
         >
           <motion.div
@@ -902,11 +775,11 @@ function Why() {
             whileTap={{ scale: 0.97 }}
           >
             <GlobalButton
-              variant="primary" // Ensure your GlobalButton supports this variant for styling
+              variant="primary"
               size="lg"
               magneticEffect={true}
               ariaLabel="Submit your product to Product Bazar"
-              icon="ArrowRight" // Ensure GlobalButton handles this icon
+              icon="ArrowRight"
               iconPosition="right"
             >
               Submit Your Product

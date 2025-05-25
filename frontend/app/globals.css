@@ -27,72 +27,11 @@
   --xxxl: 3.2rem;
   --xxxxl: 4rem;
 
-  /* Theme transition variables */
-  --theme-transition-duration: 300ms;
-  --theme-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-  --theme-transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-
-  /* Hydration optimization */
-  color-scheme: light dark;
 }
 
-.dark {
-  --background: #1e1b4b;
-  --foreground: #e9d5ff;
-  --border: #6d28d9;
-  --radius: 0.5rem;
-}
 
-/* Theme transition classes - Optimized for performance */
-.theme-transition-ready * {
-  /* Only prepare critical properties for transition */
-  backface-visibility: hidden; /* Reduce paint during transitions */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 
-/* Apply transitions only to specific properties for better performance */
-.theme-transition-active {
-  /* Apply to all elements but with optimized properties */
-  color-scheme: light dark;
 
-  /* Global transition for all elements - limited to color properties only */
-  * {
-    transition-property: color, background-color, border-color, fill, stroke, opacity;
-    transition-duration: var(--theme-transition-duration);
-    transition-timing-function: var(--theme-transition-timing);
-  }
-
-  /* Optimize background transitions with specific selectors */
-  .bg-white, .bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300,
-  .bg-gray-700, .bg-gray-800, .bg-gray-900, .bg-black,
-  .dark\:bg-gray-700, .dark\:bg-gray-800, .dark\:bg-gray-900, .dark\:bg-black,
-  [class*="bg-slate-"], [class*="bg-violet-"], [class*="bg-indigo-"],
-  [class*="dark\:bg-slate-"], [class*="dark\:bg-violet-"], [class*="dark\:bg-indigo-"] {
-    transition: background-color var(--theme-transition-duration) var(--theme-transition-timing);
-    will-change: background-color;
-  }
-
-  /* Text color transitions - optimized */
-  .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900,
-  .dark\:text-gray-100, .dark\:text-gray-200, .dark\:text-gray-300, .dark\:text-white,
-  .text-violet-300, .text-violet-400, .text-violet-500, .text-violet-600,
-  .dark\:text-violet-300, .dark\:text-violet-400, .dark\:text-violet-500, .dark\:text-violet-600,
-  h1, h2, h3, h4, h5, h6, p, span, a, button {
-    transition: color var(--theme-transition-duration) var(--theme-transition-timing);
-    will-change: color;
-  }
-
-  /* Border transitions */
-  .border, .border-t, .border-r, .border-b, .border-l,
-  .border-gray-200, .border-gray-300, .border-gray-700, .border-gray-800,
-  .dark\:border-gray-600, .dark\:border-gray-700, .dark\:border-gray-800,
-  [class*="border-violet-"], [class*="dark\:border-violet-"],
-  [class*="ring-"], [class*="dark\:ring-"] {
-    transition: border-color var(--theme-transition-duration) var(--theme-transition-timing);
-    will-change: border-color;
-  }
-}
 
 /* ======= BASE OPTIMIZATIONS ======= */
 
@@ -393,14 +332,7 @@ body {
   border-radius: inherit;
 }
 
-.dark .skeleton-shimmer::before {
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    theme("colors.gray.600/50") 50%,
-    transparent 100%
-  );
-}
+
 
 /* ======= BACKGROUND STYLES ======= */
 
@@ -561,9 +493,7 @@ body {
   border: none;
 }
 
-.dark .simple-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(124, 58, 237, 0.4);
-}
+
 
 /* Hero section scrollbar */
 .hero-section::-webkit-scrollbar {
@@ -700,21 +630,3 @@ input[type="radio"]:checked {
   border-color: var(--primary) !important;
 }
 
-/* Theme toggle specific styling */
-.theme-toggle {
-  z-index: 10;
-  position: relative;
-  transform: translateZ(0);
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.2s ease;
-}
-
-.theme-toggle:active {
-  transform: scale(0.95);
-}
-
-/* Additional transition optimization specific to theme toggle */
-html.theme-transition-active .theme-toggle * {
-  /* Ensure theme toggle icons transition smoothly */
-  transition: transform 0.3s ease, opacity 0.3s ease, fill 0.3s ease, stroke 0.3s ease !important;
-}

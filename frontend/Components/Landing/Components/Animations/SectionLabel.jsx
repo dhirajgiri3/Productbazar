@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/lib/contexts/theme-context";  
 
 /**
  * Minimalistic SectionLabel Component with Shimmer Effect
@@ -13,20 +12,19 @@ import { useTheme } from "@/lib/contexts/theme-context";
  */
 const SectionLabel = ({
   text,
-  alignment = 'left',
-  size = 'small', // Default to small for minimalism
+  alignment = "left",
+  size = "small", // Default to small for minimalism
   className = "",
   id,
   uppercase = false,
   animate = true,
   icon = null,
-  variant = 'default',
+  variant = "default",
   badge = null,
-  animationStyle = 'fade'
+  animationStyle = "fade",
 }) => {
-  const { isDarkMode } = useTheme();
   const [hasAnimated, setHasAnimated] = useState(false);
-  
+
   // Simplified size variants
   const sizeVariants = {
     small: {
@@ -38,7 +36,7 @@ const SectionLabel = ({
       base: "text-xs",
       padding: "px-3 py-1.5",
       iconSize: "w-3 h-3 mr-1.5",
-    }
+    },
   };
 
   // Alignment classes
@@ -51,77 +49,77 @@ const SectionLabel = ({
   // Simplified design variants
   const designVariants = {
     default: {
-      bg: isDarkMode ? "bg-violet-900/20" : "bg-violet-50",
-      text: isDarkMode ? "text-violet-200" : "text-violet-700",
-      border: isDarkMode ? "border-violet-700/30" : "border-violet-200/70",
-      dot: isDarkMode ? "bg-violet-400" : "bg-violet-500",
-      badgeBg: isDarkMode ? "bg-violet-700/40" : "bg-violet-100",
-      badgeText: isDarkMode ? "text-violet-100" : "text-violet-800",
-      shimmer: isDarkMode ? "from-transparent via-violet-500/10 to-transparent" : "from-transparent via-violet-300/20 to-transparent",
+      bg: "bg-violet-50",
+      text: "text-violet-700",
+      border: "border-violet-200/70",
+      dot: "bg-violet-500",
+      badgeBg: "bg-violet-100",
+      badgeText: "text-violet-800",
+      shimmer: "from-transparent via-violet-300/20 to-transparent",
     },
     glass: {
-      bg: isDarkMode ? "bg-white/5" : "bg-black/5",
-      text: isDarkMode ? "text-white/90" : "text-gray-700",
-      border: isDarkMode ? "border-white/10" : "border-black/5",
-      dot: isDarkMode ? "bg-white/70" : "bg-black/70",
-      badgeBg: isDarkMode ? "bg-white/10" : "bg-black/5",
-      badgeText: isDarkMode ? "text-white/90" : "text-black/70",
-      shimmer: isDarkMode ? "from-transparent via-white/5 to-transparent" : "from-transparent via-black/5 to-transparent",
+      bg: "bg-black/5",
+      text: "text-gray-700",
+      border: "border-black/5",
+      dot: "bg-black/70",
+      badgeBg: "bg-black/5",
+      badgeText: "text-black/70",
+      shimmer: "from-transparent via-black/5 to-transparent",
     },
     sunset: {
-      bg: isDarkMode ? "bg-orange-900/20" : "bg-orange-50",
-      text: isDarkMode ? "text-orange-200" : "text-orange-700",
-      border: isDarkMode ? "border-orange-700/20" : "border-orange-200",
-      dot: isDarkMode ? "bg-orange-400" : "bg-orange-500",
-      badgeBg: isDarkMode ? "bg-orange-700/40" : "bg-orange-100",
-      badgeText: isDarkMode ? "text-orange-100" : "text-orange-800",
-      shimmer: isDarkMode ? "from-transparent via-orange-500/10 to-transparent" : "from-transparent via-orange-300/15 to-transparent",
+      bg: "bg-orange-50",
+      text: "text-orange-700",
+      border: "border-orange-200",
+      dot: "bg-orange-500",
+      badgeBg: "bg-orange-100",
+      badgeText: "text-orange-800",
+      shimmer: "from-transparent via-orange-300/15 to-transparent",
     },
     modern: {
-      bg: isDarkMode ? "bg-gray-800/30" : "bg-white/80",
-      text: isDarkMode ? "text-gray-200" : "text-gray-700",
-      border: isDarkMode ? "border-gray-700/20" : "border-gray-200/50",
-      dot: isDarkMode ? "bg-violet-400" : "bg-violet-500",
-      badgeBg: isDarkMode ? "bg-gray-700/40" : "bg-gray-100",
-      badgeText: isDarkMode ? "text-gray-200" : "text-gray-700",
-      shimmer: isDarkMode ? "from-transparent via-gray-400/5 to-transparent" : "from-transparent via-gray-400/10 to-transparent",
+      bg: "bg-white/80",
+      text: "text-gray-700",
+      border: "border-gray-200/50",
+      dot: "bg-violet-500",
+      badgeBg: "bg-gray-100",
+      badgeText: "text-gray-700",
+      shimmer: "from-transparent via-gray-400/10 to-transparent",
     },
     ocean: {
-      bg: isDarkMode ? "bg-cyan-900/20" : "bg-cyan-50",
-      text: isDarkMode ? "text-cyan-200" : "text-cyan-700",
-      border: isDarkMode ? "border-cyan-700/20" : "border-cyan-200",
-      dot: isDarkMode ? "bg-cyan-400" : "bg-cyan-500",
-      badgeBg: isDarkMode ? "bg-cyan-700/40" : "bg-cyan-100",
-      badgeText: isDarkMode ? "text-cyan-100" : "text-cyan-800",
-      shimmer: isDarkMode ? "from-transparent via-cyan-500/10 to-transparent" : "from-transparent via-cyan-300/15 to-transparent",
+      bg: "bg-cyan-50",
+      text: "text-cyan-700",
+      border: "border-cyan-200",
+      dot: "bg-cyan-500",
+      badgeBg: "bg-cyan-100",
+      badgeText: "text-cyan-800",
+      shimmer: "from-transparent via-cyan-300/15 to-transparent",
     },
     ecosystem: {
-      bg: isDarkMode ? "bg-blue-900/20" : "bg-blue-50", 
-      text: isDarkMode ? "text-blue-200" : "text-blue-700",
-      border: isDarkMode ? "border-blue-700/20" : "border-blue-200",
-      dot: isDarkMode ? "bg-blue-400" : "bg-blue-500",
-      badgeBg: isDarkMode ? "bg-blue-700/40" : "bg-blue-100",
-      badgeText: isDarkMode ? "text-blue-200" : "text-blue-700",
-      shimmer: isDarkMode ? "from-transparent via-blue-500/10 to-transparent" : "from-transparent via-blue-300/15 to-transparent",
+      bg: "bg-blue-50",
+      text: "text-blue-700",
+      border: "border-blue-200",
+      dot: "bg-blue-500",
+      badgeBg: "bg-blue-100",
+      badgeText: "text-blue-700",
+      shimmer: "from-transparent via-blue-300/15 to-transparent",
     },
     features: {
-      bg: isDarkMode ? "bg-indigo-900/20" : "bg-indigo-50",
-      text: isDarkMode ? "text-indigo-200" : "text-indigo-700",
-      border: isDarkMode ? "border-indigo-700/20" : "border-indigo-200",
-      dot: isDarkMode ? "bg-indigo-400" : "bg-indigo-500",
-      badgeBg: isDarkMode ? "bg-indigo-700/40" : "bg-indigo-100",
-      badgeText: isDarkMode ? "text-indigo-200" : "text-indigo-700",
-      shimmer: isDarkMode ? "from-transparent via-indigo-500/10 to-transparent" : "from-transparent via-indigo-300/15 to-transparent",
+      bg: "bg-indigo-50",
+      text: "text-indigo-700",
+      border: "border-indigo-200",
+      dot: "bg-indigo-500",
+      badgeBg: "bg-indigo-100",
+      badgeText: "text-indigo-700",
+      shimmer: "from-transparent via-indigo-300/15 to-transparent",
     },
     impact: {
-      bg: isDarkMode ? "bg-green-900/20" : "bg-green-50",
-      text: isDarkMode ? "text-green-200" : "text-green-700",
-      border: isDarkMode ? "border-green-700/20" : "border-green-200",
-      dot: isDarkMode ? "bg-green-400" : "bg-green-500",
-      badgeBg: isDarkMode ? "bg-green-700/40" : "bg-green-100",
-      badgeText: isDarkMode ? "text-green-200" : "text-green-700",
-      shimmer: isDarkMode ? "from-transparent via-green-500/10 to-transparent" : "from-transparent via-green-300/15 to-transparent",
-    }
+      bg: "bg-green-50",
+      text: "text-green-700",
+      border: "border-green-200",
+      dot: "bg-green-500",
+      badgeBg: "bg-green-100",
+      badgeText: "text-green-700",
+      shimmer: "from-transparent via-green-300/15 to-transparent",
+    },
   };
 
   // Get design variant
@@ -133,8 +131,8 @@ const SectionLabel = ({
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.3, ease: "easeOut" }
-    }
+      transition: { duration: 0.3, ease: "easeOut" },
+    },
   };
 
   const slideVariants = {
@@ -142,8 +140,8 @@ const SectionLabel = ({
     visible: {
       opacity: 1,
       x: 0,
-      transition: { duration: 0.3, ease: "easeOut" }
-    }
+      transition: { duration: 0.3, ease: "easeOut" },
+    },
   };
 
   const dotVariants = {
@@ -151,8 +149,8 @@ const SectionLabel = ({
     visible: {
       scale: 1,
       opacity: 1,
-      transition: { delay: 0.1, duration: 0.2, ease: "easeOut" }
-    }
+      transition: { delay: 0.1, duration: 0.2, ease: "easeOut" },
+    },
   };
 
   // Reset animation when text changes
@@ -186,8 +184,11 @@ const SectionLabel = ({
     <div
       className={cn(
         "relative",
-        alignment === 'center' ? "flex justify-center" :
-        alignment === 'right' ? "flex justify-end" : ""
+        alignment === "center"
+          ? "flex justify-center"
+          : alignment === "right"
+          ? "flex justify-end"
+          : ""
       )}
     >
       <motion.div
@@ -195,7 +196,7 @@ const SectionLabel = ({
         className={containerClasses}
         initial={animate && !hasAnimated ? "hidden" : "visible"}
         animate="visible"
-        variants={animationStyle === 'slide' ? slideVariants : containerVariants}
+        variants={animationStyle === "slide" ? slideVariants : containerVariants}
         onAnimationComplete={handleAnimationComplete}
         whileHover={{ y: -1 }}
       >
@@ -208,11 +209,11 @@ const SectionLabel = ({
           )}
           initial={{ x: "-100%" }}
           animate={{ x: "100%" }}
-          transition={{ 
-            repeat: Infinity, 
-            duration: 2.5, 
+          transition={{
+            repeat: Infinity,
+            duration: 2.5,
             ease: "linear",
-            repeatDelay: 0.5
+            repeatDelay: 0.5,
           }}
         />
 
@@ -229,19 +230,19 @@ const SectionLabel = ({
           </span>
         )}
 
-        {/* Label text - simple, without letter animations */}
-        <span className="relative z-10 font-medium">
-          {text}
-        </span>
+        {/* Label text */}
+        <span className="relative z-10 font-medium">{text}</span>
 
         {/* Simple badge (if provided) */}
         {badge && (
-          <span className={cn(
-            "ml-1.5 px-1.5 py-0.5 text-xs rounded-full relative z-10",
-            design.badgeBg,
-            design.badgeText,
-            "text-[10px] font-medium"
-          )}>
+          <span
+            className={cn(
+              "ml-1.5 px-1.5 py-0.5 text-xs rounded-full relative z-10",
+              design.badgeBg,
+              design.badgeText,
+              "text-[10px] font-medium"
+            )}
+          >
             {badge}
           </span>
         )}

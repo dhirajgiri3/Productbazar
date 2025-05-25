@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense } from 'react';
-import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { Toaster } from 'react-hot-toast';
 
 // Registry and Styles
@@ -17,7 +16,6 @@ import { ProjectProvider } from '../lib/contexts/project-context';
 import { RecommendationProvider } from '../lib/contexts/recommendation-context';
 import { SocketProvider } from '../lib/contexts/socket-context';
 import { ViewProvider } from '../lib/contexts/view-context';
-import { ThemeProvider } from '../lib/contexts/theme-context';
 
 // Layout Components
 import Header from '../Components/Header/Header';
@@ -35,12 +33,12 @@ const LoadingSpinner = () => (
 
 // Minimal header skeleton
 const HeaderSkeleton = () => (
-  <div className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+  <div className="h-16 bg-white border-b border-gray-200">
     <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
-      <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+      <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
       <div className="flex items-center space-x-4">
-        <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-        <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse" />
+        <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
       </div>
     </div>
   </div>
@@ -50,15 +48,7 @@ export function Providers({ children }) {
   return (
     <ErrorBoundary>
       <StyledComponentsRegistry>
-        <NextThemesProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          storageKey="pb-theme"
-          forcedTheme={undefined}
-        >
-          <ThemeProvider>
-            <GlobalStyle />
+        <GlobalStyle />
 
             <ToastProvider>
               <AuthProvider>
@@ -121,8 +111,6 @@ export function Providers({ children }) {
                 </CategoryProvider>
               </AuthProvider>
             </ToastProvider>
-          </ThemeProvider>
-        </NextThemesProvider>
       </StyledComponentsRegistry>
     </ErrorBoundary>
   );

@@ -11,10 +11,9 @@ import { ProductBazarEcosystemConnector } from "./Components/ProductBazarEcosyst
 import FeaturesSection from "./Components/FeaturesSection";
 import TestimonialsSection from "./Components/TestimonialsSection";
 import FaqSection from "./Components/FaqSection";
-import { useTheme } from "@/lib/contexts/theme-context";
 
 // Section spacing component for consistent vertical rhythm and centering
-const SectionSpacing = ({ children, className = "", isFirst = false, isLast = false }) => (
+const SectionSpacing = ({ children, className = "" }) => (
   <div className={`w-full flex flex-col items-center justify-center ${className}`}>
     <div className="mx-auto w-full">
       {children}
@@ -23,12 +22,10 @@ const SectionSpacing = ({ children, className = "", isFirst = false, isLast = fa
 );
 
 function Landing() {
-  const { isDarkMode } = useTheme();
-
   return (
-    <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-300 min-h-screen w-full">
-      <SectionSpacing isFirst={true}>
-        <HeroSection isDarkMode={isDarkMode} />
+    <div className="flex flex-col items-center justify-center bg-white min-h-screen w-full">
+      <SectionSpacing>
+        <HeroSection />
       </SectionSpacing>
 
       <SectionSpacing>
@@ -63,7 +60,7 @@ function Landing() {
         <ProductBazarEcosystemConnector />
       </SectionSpacing>
 
-      <SectionSpacing isLast={true}>
+      <SectionSpacing>
         <FaqSection />
       </SectionSpacing>
     </div>

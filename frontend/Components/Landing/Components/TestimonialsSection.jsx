@@ -2,7 +2,6 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useInView, useAnimation } from "framer-motion";
 import GlobalButton from "../../UI/Buttons/GlobalButton";
 import SectionLabel from "./Animations/SectionLabel";
-import { useTheme } from "@/lib/contexts/theme-context";
 
 export default function TestimonialsSection() {
   const sectionRef = useRef(null);
@@ -11,9 +10,8 @@ export default function TestimonialsSection() {
   const scrollControls = useAnimation();
   const [isMobile, setIsMobile] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const { isDarkMode } = useTheme();
 
-  // Expanded testimonials data with color variations
+  // Testimonials data
   const testimonials = [
     {
       id: 1,
@@ -149,60 +147,48 @@ export default function TestimonialsSection() {
   // Color variations for cards
   const colorMap = {
     violet: {
-      bg: isDarkMode ? "bg-violet-900/30" : "bg-violet-100/80",
-      border: isDarkMode ? "border-violet-700/50" : "border-violet-300/70",
-      text: isDarkMode ? "text-violet-400" : "text-violet-600",
+      bg: "bg-violet-100/80",
+      border: "border-violet-300/70",
+      text: "text-violet-600",
     },
     fuchsia: {
-      bg: isDarkMode ? "bg-fuchsia-900/30" : "bg-fuchsia-100/80",
-      border: isDarkMode ? "border-fuchsia-700/50" : "border-fuchsia-300/70",
-      text: isDarkMode ? "text-fuchsia-400" : "text-fuchsia-600",
+      bg: "bg-fuchsia-100/80",
+      border: "border-fuchsia-300/70",
+      text: "text-fuchsia-600",
     },
     pink: {
-      bg: isDarkMode ? "bg-pink-900/30" : "bg-pink-100/80",
-      border: isDarkMode ? "border-pink-700/50" : "border-pink-300/70",
-      text: isDarkMode ? "text-pink-400" : "text-pink-600",
+      bg: "bg-pink-100/80",
+      border: "border-pink-300/70",
+      text: "text-pink-600",
     },
     indigo: {
-      bg: isDarkMode ? "bg-indigo-900/30" : "bg-indigo-100/80",
-      border: isDarkMode ? "border-indigo-700/50" : "border-indigo-300/70",
-      text: isDarkMode ? "text-indigo-400" : "text-indigo-600",
+      bg: "bg-indigo-100/80",
+      border: "border-indigo-300/70",
+      text: "text-indigo-600",
     },
     purple: {
-      bg: isDarkMode ? "bg-purple-900/30" : "bg-purple-100/80",
-      border: isDarkMode ? "border-purple-700/50" : "border-purple-300/70",
-      text: isDarkMode ? "text-purple-400" : "text-purple-600",
+      bg: "bg-purple-100/80",
+      border: "border-purple-300/70",
+      text: "text-purple-600",
     },
     blue: {
-      bg: isDarkMode ? "bg-blue-900/30" : "bg-blue-100/80",
-      border: isDarkMode ? "border-blue-700/50" : "border-blue-300/70",
-      text: isDarkMode ? "text-blue-400" : "text-blue-600",
+      bg: "bg-blue-100/80",
+      border: "border-blue-300/70",
+      text: "text-blue-600",
     },
   };
 
   return (
     <section
       ref={sectionRef}
-      className={`relative overflow-hidden ${isDarkMode ? "bg-gray-900" : "bg-white"} transition-colors duration-300`}
+      className="relative overflow-hidden bg-white"
       id="testimonials"
     >
       {/* Gradient background */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className={`absolute inset-0 ${
-          isDarkMode
-            ? "bg-gradient-to-br from-gray-900 via-gray-900 to-gray-900"
-            : "bg-gradient-to-br from-white via-white to-white"
-        }`}>
-          <div className={`absolute top-1/4 right-1/3 w-96 h-96 ${
-            isDarkMode
-              ? "bg-fuchsia-600/20"
-              : "bg-fuchsia-400/15"
-          } rounded-full blur-3xl`}></div>
-          <div className={`absolute bottom-1/3 left-1/4 w-80 h-80 ${
-            isDarkMode
-              ? "bg-violet-600/20"
-              : "bg-violet-400/15"
-          } rounded-full blur-3xl`}></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-white">
+          <div className="absolute top-1/4 right-1/3 w-96 h-96 bg-fuchsia-400/15 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-violet-400/15 rounded-full blur-3xl"></div>
         </div>
       </div>
 
@@ -235,7 +221,7 @@ export default function TestimonialsSection() {
           </motion.div>
 
           <motion.h2
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold mb-6 ${isDarkMode ? "text-white" : "text-gray-800"} transition-colors duration-300`}
+            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-gray-800"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
@@ -247,7 +233,7 @@ export default function TestimonialsSection() {
           </motion.h2>
 
           <motion.p
-            className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-2xl mx-auto text-lg transition-colors duration-300`}
+            className="max-w-2xl mx-auto text-lg text-gray-600"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
@@ -257,7 +243,7 @@ export default function TestimonialsSection() {
           </motion.p>
         </motion.div>
 
-        {/* Featured Testimonials - grid layout for all screens */}
+        {/* Featured Testimonials */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-16"
           variants={containerVariants}
@@ -271,11 +257,7 @@ export default function TestimonialsSection() {
               <motion.div
                 key={`featured-${testimonial.id}`}
                 variants={itemVariants}
-                className={`h-full flex flex-col ${
-                  isDarkMode
-                    ? "bg-gray-800/50"
-                    : "bg-white/80"
-                } backdrop-blur-sm border ${colors.border} rounded-xl p-5 md:p-6 transition-all duration-300 shadow-lg hover:shadow-xl`}
+                className={`h-full flex flex-col bg-white/80 backdrop-blur-sm border ${colors.border} rounded-xl p-5 md:p-6 shadow-lg hover:shadow-xl`}
                 whileHover={{
                   y: -2,
                   scale: 1.005,
@@ -318,51 +300,30 @@ export default function TestimonialsSection() {
                 </div>
 
                 {/* Quote */}
-                <p className={`${
-                  isDarkMode ? "text-gray-300" : "text-gray-600"
-                } mb-6 md:mb-8 italic text-base md:text-lg line-clamp-4 md:line-clamp-none flex-grow transition-colors duration-300`}>
+                <p className="text-gray-600 mb-6 md:mb-8 italic text-base md:text-lg line-clamp-4 md:line-clamp-none flex-grow">
                   "{testimonial.quote}"
                 </p>
 
-                {/* Author with improved avatar */}
+                {/* Author */}
                 <div className="flex items-center">
                   <div className="relative group">
-                    {/* Avatar with gradient background */}
                     <div
-                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
-                      ${isDarkMode
-                        ? `bg-gradient-to-br from-${testimonial.color}-800 to-${testimonial.color}-900`
-                        : `bg-gradient-to-br from-${testimonial.color}-100 to-${testimonial.color}-200`
-                      }
-                      shadow-md transition-all duration-300 group-hover:shadow-lg
-                      ${isDarkMode ? "ring-1 ring-gray-700/50" : "ring-1 ring-gray-200/70"}`}
+                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-${testimonial.color}-100 to-${testimonial.color}-200 shadow-md transition-all duration-300 group-hover:shadow-lg ring-1 ring-gray-200/70`}
                     >
-                      <span className={`font-semibold text-base md:text-lg
-                        ${isDarkMode ? "text-white" : `text-${testimonial.color}-700`}
-                        transition-all duration-300 group-hover:scale-110`}>
+                      <span className={`font-semibold text-base md:text-lg text-${testimonial.color}-700 transition-all duration-300 group-hover:scale-110`}>
                         {testimonial.author.charAt(0)}
                       </span>
                     </div>
 
-                    {/* Enhanced status indicator */}
-                    <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4.5 md:h-4.5
-                      bg-gradient-to-r from-violet-500 to-fuchsia-500
-                      border-2 ${isDarkMode ? "border-gray-800" : "border-white"}
-                      rounded-full shadow-sm transition-all duration-300
-                      group-hover:scale-110 group-hover:shadow-md`}>
+                    <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 md:w-4.5 md:h-4.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 border-2 border-white rounded-full shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md">
                     </div>
                   </div>
 
-                  {/* Author info with improved spacing */}
                   <div className="ml-3.5">
-                    <h4 className={`font-medium ${
-                      isDarkMode ? "text-white" : "text-gray-800"
-                    } text-sm md:text-base transition-colors duration-300 group-hover:text-${testimonial.color}-${isDarkMode ? '400' : '600'}`}>
+                    <h4 className={`font-medium text-gray-800 text-sm md:text-base group-hover:text-${testimonial.color}-600`}>
                       {testimonial.author}
                     </h4>
-                    <p className={`${
-                      isDarkMode ? "text-gray-400" : "text-gray-500"
-                    } text-xs md:text-sm transition-colors duration-300`}>
+                    <p className="text-gray-500 text-xs md:text-sm">
                       {testimonial.role}
                     </p>
                   </div>
@@ -374,13 +335,8 @@ export default function TestimonialsSection() {
 
         {/* Infinite Scroll Testimonials */}
         <div className="relative overflow-hidden py-8 mb-12">
-          {/* Gradient fade effect on sides */}
-          <div className={`absolute left-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-r ${
-            isDarkMode ? "from-gray-900" : "from-white"
-          } to-transparent z-10 transition-colors duration-300`}></div>
-          <div className={`absolute right-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-l ${
-            isDarkMode ? "from-gray-900" : "from-white"
-          } to-transparent z-10 transition-colors duration-300`}></div>
+          <div className="absolute left-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-r from-white to-transparent z-10"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-24 md:w-32 bg-gradient-to-l from-white to-transparent z-10"></div>
 
           <motion.div
             className="flex gap-6 py-4"
@@ -399,7 +355,6 @@ export default function TestimonialsSection() {
             onMouseLeave={() => setIsPaused(false)}
           >
             {scrollTestimonials.map((_, index) => {
-              // Reverse the testimonials array to get different ordering
               const reversedIndex = scrollTestimonials.length - 1 - index;
               const reversedTestimonial = scrollTestimonials[reversedIndex];
               const colors = colorMap[reversedTestimonial.color];
@@ -407,16 +362,13 @@ export default function TestimonialsSection() {
               return (
                 <motion.div
                   key={`scroll-reverse-${reversedTestimonial.id}-${index}`}
-                  className={`flex-shrink-0 w-[280px] sm:w-[320px] ${
-                    isDarkMode ? "bg-gray-800/50" : "bg-white/80"
-                  } backdrop-blur-md border ${colors.border} rounded-xl p-6 transition-all duration-300 shadow-lg`}
+                  className={`flex-shrink-0 w-[280px] sm:w-[320px] bg-white/80 backdrop-blur-md border ${colors.border} rounded-xl p-6 shadow-lg`}
                   whileHover={{
                     y: -5,
                     border: "1px solid rgba(139, 92, 246, 0.5)",
                     transition: { duration: 0.2 },
                   }}
                 >
-                  {/* Star Rating */}
                   <div
                     className={`flex items-center space-x-1 mb-4 ${colors.text}`}
                   >
@@ -435,52 +387,29 @@ export default function TestimonialsSection() {
                     )}
                   </div>
 
-                  {/* Quote */}
-                  <p className={`${
-                    isDarkMode ? "text-gray-300" : "text-gray-600"
-                  } mb-6 text-sm line-clamp-3 transition-colors duration-300`}>
+                  <p className="text-gray-600 mb-6 text-sm line-clamp-3">
                     "{reversedTestimonial.quote}"
                   </p>
 
-                  {/* Author with improved avatar */}
                   <div className="flex items-center">
                     <div className="relative group">
-                      {/* Avatar with gradient background */}
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center
-                        ${isDarkMode
-                          ? `bg-gradient-to-br from-${reversedTestimonial.color}-800 to-${reversedTestimonial.color}-900`
-                          : `bg-gradient-to-br from-${reversedTestimonial.color}-100 to-${reversedTestimonial.color}-200`
-                        }
-                        shadow-md transition-all duration-300 group-hover:shadow-lg
-                        ${isDarkMode ? "ring-1 ring-gray-700/50" : "ring-1 ring-gray-200/70"}`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-${reversedTestimonial.color}-100 to-${reversedTestimonial.color}-200 shadow-md transition-all duration-300 group-hover:shadow-lg ring-1 ring-gray-200/70`}
                       >
-                        <span className={`font-semibold text-sm
-                          ${isDarkMode ? "text-white" : `text-${reversedTestimonial.color}-700`}
-                          transition-all duration-300 group-hover:scale-110`}>
+                        <span className={`font-semibold text-sm text-${reversedTestimonial.color}-700 transition-all duration-300 group-hover:scale-110`}>
                           {reversedTestimonial.author.charAt(0)}
                         </span>
                       </div>
 
-                      {/* Enhanced status indicator */}
-                      <div className={`absolute -bottom-1 -right-1 w-3 h-3
-                        bg-gradient-to-r from-violet-500 to-fuchsia-500
-                        border-2 ${isDarkMode ? "border-gray-800" : "border-white"}
-                        rounded-full shadow-sm transition-all duration-300
-                        group-hover:scale-110 group-hover:shadow-md`}>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 border-2 border-white rounded-full shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md">
                       </div>
                     </div>
 
-                    {/* Author info with improved spacing */}
                     <div className="ml-3">
-                      <h4 className={`font-medium ${
-                        isDarkMode ? "text-white" : "text-gray-800"
-                      } text-sm transition-colors duration-300 group-hover:text-${reversedTestimonial.color}-${isDarkMode ? '400' : '600'}`}>
+                      <h4 className={`font-medium text-gray-800 text-sm group-hover:text-${reversedTestimonial.color}-600`}>
                         {reversedTestimonial.author}
                       </h4>
-                      <p className={`${
-                        isDarkMode ? "text-gray-400" : "text-gray-500"
-                      } text-xs transition-colors duration-300`}>
+                      <p className="text-gray-500 text-xs">
                         {reversedTestimonial.role}
                       </p>
                     </div>
@@ -492,19 +421,15 @@ export default function TestimonialsSection() {
         </div>
 
         {/* CTA Section */}
-        <div
-          className="mt-16 text-center"
-        >
-          <a
-            href="/product/new"
-          >
+        <div className="mt-16 text-center">
+          <a href="/product/new">
             <GlobalButton
               variant="primary"
               size="lg"
               magneticEffect={true}
               className="px-6 sm:px-8 py-3 sm:py-4 shadow-lg"
               ariaLabel="Submit your product to Product Bazar"
-              icon="ArrowRight" // Use string name from map
+              icon="ArrowRight"
               iconPosition="right"
             >
               Submit Your Product

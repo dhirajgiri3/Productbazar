@@ -6,7 +6,6 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import GlobalButton from "../../UI/Buttons/GlobalButton";
-import { useTheme } from "@/lib/contexts/theme-context";
 import SectionLabel from "./Animations/SectionLabel";
 
 export default function FeaturesSection({ onHover, onLeave }) {
@@ -16,7 +15,6 @@ export default function FeaturesSection({ onHover, onLeave }) {
   const isHeaderInView = useInView(headerRef, { once: false, amount: 0.2 });
   const [activeTab, setActiveTab] = useState("all");
   const [previousTab, setPreviousTab] = useState(null);
-  const { isDarkMode } = useTheme();
   const shouldReduceMotion = useReducedMotion();
 
   const features = [
@@ -42,11 +40,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
       description:
         "Showcase your innovations to our community of early adopters, enthusiasts, and investors.",
       category: "product",
-      color: "text-violet-600",
+      color: "text-violet-700",
       bgColor: "bg-violet-50",
-      borderColor: "border-violet-200",
-      gradientFrom: "from-violet-400",
-      gradientTo: "to-violet-600",
+      borderColor: "border-violet-300",
+      gradientFrom: "from-violet-500",
+      gradientTo: "to-violet-700",
       row: 1,
       size: "large",
       badge: "Popular",
@@ -76,11 +74,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
       description:
         "Find the latest products across various categories with smart recommendations.",
       category: "product",
-      color: "text-fuchsia-600",
+      color: "text-fuchsia-700",
       bgColor: "bg-fuchsia-50",
-      borderColor: "border-fuchsia-200",
-      gradientFrom: "from-fuchsia-400",
-      gradientTo: "to-fuchsia-600",
+      borderColor: "border-fuchsia-300",
+      gradientFrom: "from-fuchsia-500",
+      gradientTo: "to-fuchsia-700",
       row: 1,
       size: "large",
       badge: "Trending",
@@ -110,11 +108,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
       description:
         "Comment on products and help makers improve with your valuable insights.",
       category: "community",
-      color: "text-pink-600",
+      color: "text-pink-700",
       bgColor: "bg-pink-50",
-      borderColor: "border-pink-200",
-      gradientFrom: "from-pink-400",
-      gradientTo: "to-pink-600",
+      borderColor: "border-pink-300",
+      gradientFrom: "from-pink-500",
+      gradientTo: "to-pink-700",
       row: 2,
       size: "small",
       badge: "Active",
@@ -144,11 +142,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
       description:
         "Support products you love by upvoting, increasing their visibility.",
       category: "community",
-      color: "text-rose-600",
+      color: "text-rose-700",
       bgColor: "bg-rose-50",
-      borderColor: "border-rose-200",
-      gradientFrom: "from-rose-400",
-      gradientTo: "to-rose-600",
+      borderColor: "border-rose-300",
+      gradientFrom: "from-rose-500",
+      gradientTo: "to-rose-700",
       row: 2,
       size: "small",
       badge: "Hot",
@@ -178,11 +176,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
       description:
         "Build relationships with innovative creators and collaborate on projects.",
       category: "community",
-      color: "text-red-600",
+      color: "text-red-700",
       bgColor: "bg-red-50",
-      borderColor: "border-red-200",
-      gradientFrom: "from-red-400",
-      gradientTo: "to-red-600",
+      borderColor: "border-red-300",
+      gradientFrom: "from-red-500",
+      gradientTo: "to-red-700",
       row: 2,
       size: "small",
       badge: "Network",
@@ -212,11 +210,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
       description:
         "Receive personalized product suggestions based on your interests.",
       category: "tools",
-      color: "text-orange-600",
+      color: "text-orange-700",
       bgColor: "bg-orange-50",
-      borderColor: "border-orange-200",
-      gradientFrom: "from-orange-400",
-      gradientTo: "to-orange-600",
+      borderColor: "border-orange-300",
+      gradientFrom: "from-orange-500",
+      gradientTo: "to-orange-700",
       row: 3,
       size: "large",
       badge: "Smart",
@@ -246,11 +244,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
       description:
         "Track your product's performance with comprehensive analytics.",
       category: "tools",
-      color: "text-amber-600",
+      color: "text-amber-700",
       bgColor: "bg-amber-50",
-      borderColor: "border-amber-200",
-      gradientFrom: "from-amber-400",
-      gradientTo: "to-amber-600",
+      borderColor: "border-amber-300",
+      gradientFrom: "from-amber-500",
+      gradientTo: "to-amber-700",
       row: 3,
       size: "large",
       badge: "Pro",
@@ -334,13 +332,13 @@ export default function FeaturesSection({ onHover, onLeave }) {
       {!shouldReduceMotion && (
         <>
           <motion.div
-            className="absolute top-0 left-1/4 w-64 h-64 bg-gradient-to-br from-violet-300/10 to-fuchsia-300/10 dark:from-violet-600/5 dark:to-fuchsia-600/5 rounded-full blur-3xl -z-10"
+            className="absolute top-0 left-1/4 w-64 h-64 bg-gradient-to-br from-violet-300/10 to-fuchsia-300/10 rounded-full blur-3xl -z-10"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 1.5, delay: 0.2 }}
           />
           <motion.div
-            className="absolute bottom-24 right-1/4 w-80 h-80 bg-gradient-to-br from-fuchsia-300/10 to-amber-300/10 dark:from-fuchsia-600/5 dark:to-amber-600/5 rounded-full blur-3xl -z-10"
+            className="absolute bottom-24 right-1/4 w-80 h-80 bg-gradient-to-br from-fuchsia-300/10 to-amber-300/10 rounded-full blur-3xl -z-10"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 1.5, delay: 0.4 }}
@@ -372,9 +370,7 @@ export default function FeaturesSection({ onHover, onLeave }) {
           variants={shouldReduceMotion ? {} : headerVariants}
         >
           <h2
-            className={`text-5xl md:text-6xl font-extrabold mb-6 ${
-              isDarkMode ? "text-white" : "text-gray-900"
-            } transition-colors duration-300`}
+            className={`text-5xl md:text-6xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-fuchsia-700 transition-colors duration-300`}
           >
             <span className="relative z-10">
               Powerful features to simplify your
@@ -416,16 +412,14 @@ export default function FeaturesSection({ onHover, onLeave }) {
         </motion.div>
 
         <motion.h2
-          className={`text-5xl md:text-6xl font-extrabold mb-8 ${
-            isDarkMode ? "text-white" : "text-gray-900"
-          } transition-colors duration-300 bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 text-transparent`}
+          className={`text-5xl md:text-6xl font-extrabold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-fuchsia-700 transition-colors duration-300`}
           variants={shouldReduceMotion ? {} : headerVariants}
         >
           web building experience
         </motion.h2>
 
         <motion.p
-          className="text-gray-700 dark:text-gray-400 max-w-3xl mx-auto text-base leading-relaxed transition-colors duration-300"
+          className="text-gray-700 max-w-3xl mx-auto text-base leading-relaxed transition-colors duration-300"
           variants={shouldReduceMotion ? {} : headerVariants}
         >
           A comprehensive platform connecting innovative makers with
@@ -441,7 +435,7 @@ export default function FeaturesSection({ onHover, onLeave }) {
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <div className="bg-gray-100/80 dark:bg-gray-800/50 p-1.5 rounded-full flex flex-wrap justify-center gap-1.5 border border-gray-200/70 dark:border-gray-700/50 backdrop-blur-md shadow-sm">
+        <div className="bg-gray-100/80 p-1.5 rounded-full flex flex-wrap justify-center gap-1.5 border border-gray-300 backdrop-blur-md shadow-sm">
           {categories.map((category) => (
             <motion.button
               key={category.id}
@@ -455,11 +449,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
                   : { scale: 1.05 }
               }
               whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
-              className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900
+              className={`relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2
                 ${
                   activeTab === category.id
                     ? "text-white"
-                    : "text-gray-700 dark:text-gray-200 hover:text-violet-600 dark:hover:text-violet-300 transition-colors duration-300"
+                    : "text-gray-700 hover:text-violet-700 transition-colors duration-300"
                 }`}
               role="tab"
               aria-selected={activeTab === category.id}
@@ -471,7 +465,7 @@ export default function FeaturesSection({ onHover, onLeave }) {
                   layoutId={
                     shouldReduceMotion ? undefined : "activeCategoryBackground"
                   }
-                  className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-500 dark:from-violet-500 dark:via-fuchsia-400 dark:to-violet-400 shadow-md"
+                  className="absolute inset-0 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-500 shadow-md"
                   style={{ borderRadius: 9999 }}
                   transition={{
                     type: "spring",
@@ -525,11 +519,11 @@ export default function FeaturesSection({ onHover, onLeave }) {
                       duration: 0.3,
                       ease: [0.22, 1, 0.36, 1],
                     }}
-                    className={`group relative overflow-hidden rounded-xl p-7 border-[1.5px] ${feature.borderColor} dark:border-gray-700/50 bg-white/95 dark:bg-gray-800/90 col-span-1 ${gridClass} ${cardHeight} transition-all duration-300 backdrop-blur-md hover:border-opacity-90 dark:hover:border-opacity-70`}
+                    className={`group relative overflow-hidden rounded-xl p-7 border-[1.5px] ${feature.borderColor} bg-white/95 col-span-1 ${gridClass} ${cardHeight} transition-all duration-300 backdrop-blur-md hover:border-opacity-90 shadow-sm hover:shadow-md`}
                   >
                     {/* Animated Gradient top line */}
                     <motion.div
-                      className={`absolute top-0 left-0 h-[3px] bg-gradient-to-r ${feature.gradientFrom} ${feature.gradientTo} dark:opacity-90 transition-opacity duration-300`}
+                      className={`absolute top-0 left-0 h-[3px] bg-gradient-to-r ${feature.gradientFrom} ${feature.gradientTo} transition-opacity duration-300`}
                       initial={
                         shouldReduceMotion ? { width: "100%" } : { width: "0%" }
                       }
@@ -553,7 +547,7 @@ export default function FeaturesSection({ onHover, onLeave }) {
                           duration: shouldReduceMotion ? 0 : 0.3,
                           delay: shouldReduceMotion ? 0 : 0.2,
                         }}
-                        className={`absolute top-6 right-6 ${feature.badgeColor} dark:bg-opacity-90 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm transition-colors duration-300`}
+                        className={`absolute top-6 right-6 ${feature.badgeColor} text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm transition-colors duration-300`}
                       >
                         {feature.badge}
                       </motion.div>
@@ -572,18 +566,18 @@ export default function FeaturesSection({ onHover, onLeave }) {
                             stiffness: 400,
                             damping: 17,
                           }}
-                          className={`flex-shrink-0 p-3 rounded-lg ${feature.bgColor} dark:bg-opacity-30 ${feature.color} dark:text-white mr-5 transition-colors duration-300 border border-transparent dark:border-gray-700/40 shadow-sm`}
+                          className={`flex-shrink-0 p-3 rounded-lg ${feature.bgColor} ${feature.color} mr-5 transition-colors duration-300 border border-transparent shadow-sm`}
                         >
                           {feature.icon}
                         </motion.div>
 
                         <div>
                           <h3
-                            className={`text-lg font-semibold mb-2 text-gray-900 dark:text-white group-hover:${feature.color} dark:group-hover:text-opacity-100 transition-colors duration-300`}
+                            className={`text-lg font-semibold mb-2 text-gray-900 group-hover:${feature.color} transition-colors duration-300`}
                           >
                             {feature.title}
                           </h3>
-                          <p className="text-gray-700 dark:text-gray-200 text-sm leading-relaxed mb-0 transition-colors duration-300">
+                          <p className="text-gray-700 text-sm leading-relaxed mb-0 transition-colors duration-300">
                             {feature.description}
                           </p>
                         </div>
@@ -615,13 +609,13 @@ export default function FeaturesSection({ onHover, onLeave }) {
                                       ? {}
                                       : { y: -2, scale: 1.02 }
                                   }
-                                  className={`bg-gray-50/80 dark:bg-gray-800/90 border-[1.5px] ${feature.borderColor} dark:border-gray-700/60 px-3 py-1.5 rounded-lg transition-all duration-300`}
+                                  className={`bg-gray-50/80 border-[1.5px] ${feature.borderColor} px-3 py-1.5 rounded-lg transition-all duration-300`}
                                 >
-                                  <span className="text-gray-600 dark:text-gray-300 text-xs block capitalize font-medium">
+                                  <span className="text-gray-600 text-xs block capitalize font-medium">
                                     {key}
                                   </span>
                                   <span
-                                    className={`${feature.color} dark:text-white text-sm font-medium block transition-colors duration-300`}
+                                    className={`${feature.color} text-sm font-medium block transition-colors duration-300`}
                                   >
                                     {typeof value === "number"
                                       ? formatNumber(value)
@@ -635,10 +629,10 @@ export default function FeaturesSection({ onHover, onLeave }) {
                       )}
 
                       {/* Enhanced CTA Button with refined animations */}
-                      <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700/40">
+                      <div className="mt-auto pt-4 border-t border-gray-100">
                         <motion.button
                           whileHover={shouldReduceMotion ? {} : { x: 3 }}
-                          className={`text-sm font-medium ${feature.color} dark:text-white flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800 rounded transition-colors duration-300`}
+                          className={`text-sm font-medium ${feature.color} flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 rounded transition-colors duration-300`}
                           onMouseEnter={onHover}
                           onMouseLeave={onLeave}
                           aria-label={

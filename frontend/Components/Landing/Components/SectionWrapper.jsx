@@ -8,19 +8,19 @@ const SectionWrapper = ({
   fullWidth = false,
   pattern = false
 }) => {
-  // Enhanced background styles with better dark mode support
+  // Enhanced background styles
   const getBgClasses = () => {
     switch (background) {
-      case "gradient":
-        return "bg-gradient-to-b from-violet-100/30 to-fuchsia-100/30 dark:from-violet-900/20 dark:to-fuchsia-900/20 backdrop-blur-[1px]";
-      case "light":
-        return "bg-white/80 dark:bg-gray-900/80 backdrop-blur-[1px]";
-      case "dark":
-        return "bg-gray-900/95 text-white dark:bg-gray-900/95 dark:text-white backdrop-blur-[1px]";
-      case "transparent":
-        return "bg-transparent";
+      case 'gradient':
+        return 'bg-gradient-to-b from-violet-100/30 to-fuchsia-100/30 backdrop-blur-[1px]';
+      case 'light':
+        return 'bg-white/80 backdrop-blur-[1px]';
+      case 'dark':
+        return 'bg-gray-900/95 text-white backdrop-blur-[1px]';
+      case 'transparent':
+        return 'bg-transparent';
       default:
-        return "bg-white/80 dark:bg-gray-900/80 backdrop-blur-[1px]";
+        return 'bg-white/80 backdrop-blur-[1px]';
     }
   };
 
@@ -36,7 +36,7 @@ const SectionWrapper = ({
       className={`relative ${getBgClasses()} ${getPatternClasses()} ${className} transition-colors duration-300 py-16 md:py-24 lg:py-28`}
     >
       {/* Add subtle noise texture for dark mode */}
-      {background !== "transparent" && (
+      {background !== 'transparent' && (
         <div
           className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=')]"
           style={{ opacity: 0.015 }}

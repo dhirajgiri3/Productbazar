@@ -12,7 +12,7 @@ import {
 import { SplineScene } from "../../UI/SplineScene";
 import { useInView } from "react-intersection-observer";
 
-const HeroSection = ({ isDarkMode }) => {
+const HeroSection = () => {
   const robotRef = useRef(null);
   const containerRef = useRef(null);
   const glowControls = useAnimation();
@@ -108,31 +108,26 @@ const HeroSection = ({ isDarkMode }) => {
         name: "Google",
         delay: 0,
         color: "#4285F4",
-        darkColor: "#8AB4F8",
       },
       {
         name: "Microsoft",
         delay: 0.1,
         color: "#00A4EF",
-        darkColor: "#61DAFB",
       },
       {
         name: "Uber",
         delay: 0.2,
         color: "#276EF1",
-        darkColor: "#7B9FF7",
       },
       {
         name: "Airbnb",
         delay: 0.3,
         color: "#FF5A5F",
-        darkColor: "#FF8589",
       },
       {
         name: "Slack",
         delay: 0.4,
         color: "#4A154B",
-        darkColor: "#9B69B6",
       },
     ],
     []
@@ -230,11 +225,9 @@ const HeroSection = ({ isDarkMode }) => {
 
     // Animation for the primary blob
     blobControls.start({
-      opacity: isDarkMode ? [0.55, 0.75, 0.55] : [0.65, 0.85, 0.65],
+      opacity: [0.65, 0.85, 0.65],
       scale: [0.96, 1.04, 0.96],
-      filter: isDarkMode
-        ? ["blur(75px)", "blur(85px)", "blur(75px)"]
-        : ["blur(65px)", "blur(75px)", "blur(65px)"],
+      filter: ["blur(65px)", "blur(75px)", "blur(65px)"],
       rotate: [0, 8, 0],
       transition: {
         duration: 13,
@@ -264,7 +257,7 @@ const HeroSection = ({ isDarkMode }) => {
       }
       timeouts.forEach(clearTimeout);
     };
-  }, [blobControls, isDarkMode]);
+  }, [blobControls]);
 
   // Enhanced robot interaction effect
   useEffect(() => {
@@ -384,28 +377,26 @@ const HeroSection = ({ isDarkMode }) => {
   return (
     <section
       ref={containerRef}
-      className="relative w-full text-gray-900 dark:text-white min-h-[90vh] flex items-center overflow-hidden py-12 sm:py-20"
+      className="relative w-full text-gray-900 min-h-[90vh] flex items-center overflow-hidden py-12 sm:py-20"
       aria-label="Hero section"
       onClick={() => !hasInteracted && setHasInteracted(true)}
     >
 
       {/* Primary Animated Blob at bottom right */}
       <motion.div
-        className="absolute bottom-[-10%] right-[-10%] w-80 h-80 md:w-[32rem] md:h-[32rem] bg-gradient-to-tr from-purple-500/80 via-violet-500/70 to-violet-600/80 dark:from-purple-600/50 dark:via-violet-600/45 dark:to-violet-700/50 rounded-full pointer-events-none z-0 will-change-transform backdrop-blur-3xl dark:backdrop-blur-2xl"
+        className="absolute bottom-[-10%] right-[-10%] w-80 h-80 md:w-[32rem] md:h-[32rem] bg-gradient-to-tr from-purple-500/80 via-violet-500/70 to-violet-600/80 rounded-full pointer-events-none z-0 will-change-transform backdrop-blur-3xl"
         aria-hidden="true"
         animate={blobControls}
       />
 
       {/* Secondary Animated Blob at top left */}
       <motion.div
-        className="absolute top-[-15%] left-[-15%] w-72 h-72 md:w-96 md:h-96 bg-gradient-to-br from-violet-400/70 via-indigo-500/60 to-indigo-500/70 dark:from-violet-500/40 dark:via-indigo-600/35 dark:to-indigo-600/40 rounded-full pointer-events-none z-0 will-change-transform backdrop-blur-3xl dark:backdrop-blur-2xl"
+        className="absolute top-[-15%] left-[-15%] w-72 h-72 md:w-96 md:h-96 bg-gradient-to-br from-violet-400/70 via-indigo-500/60 to-indigo-500/70 rounded-full pointer-events-none z-0 will-change-transform backdrop-blur-3xl"
         aria-hidden="true"
         animate={{
-          opacity: isDarkMode ? [0.45, 0.65, 0.45] : [0.55, 0.75, 0.55],
+          opacity: [0.55, 0.75, 0.55],
           scale: [0.97, 1.05, 0.97],
-          filter: isDarkMode
-            ? ["blur(65px)", "blur(75px)", "blur(65px)"]
-            : ["blur(55px)", "blur(65px)", "blur(55px)"],
+          filter: ["blur(55px)", "blur(65px)", "blur(55px)"],
           rotate: [0, -10, 0],
           transition: {
             duration: 16,
@@ -418,14 +409,12 @@ const HeroSection = ({ isDarkMode }) => {
 
       {/* Small accent blob (new) */}
       <motion.div
-        className="absolute top-[30%] right-[25%] w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-blue-400/60 via-cyan-500/50 to-blue-500/60 dark:from-blue-500/30 dark:via-cyan-600/25 dark:to-blue-600/30 rounded-full pointer-events-none z-0 will-change-transform backdrop-blur-3xl dark:backdrop-blur-2xl hidden md:block"
+        className="absolute top-[30%] right-[25%] w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-blue-400/60 via-cyan-500/50 to-blue-500/60 rounded-full pointer-events-none z-0 will-change-transform backdrop-blur-3xl hidden md:block"
         aria-hidden="true"
         animate={{
-          opacity: isDarkMode ? [0.3, 0.45, 0.3] : [0.4, 0.55, 0.4],
+          opacity: [0.4, 0.55, 0.4],
           scale: [0.98, 1.06, 0.98],
-          filter: isDarkMode
-            ? ["blur(60px)", "blur(70px)", "blur(60px)"]
-            : ["blur(50px)", "blur(60px)", "blur(50px)"],
+          filter: ["blur(50px)", "blur(60px)", "blur(50px)"],
           rotate: [0, 15, 0],
           transition: {
             duration: 14,
@@ -457,11 +446,11 @@ const HeroSection = ({ isDarkMode }) => {
               transition={{ delay: 0.2, duration: 0.6 }}
             >
               <div
-                className="inline-flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-50 to-violet-100/80 dark:from-violet-900/30 dark:to-violet-800/40 text-violet-600 dark:text-violet-300 text-sm font-medium cursor-default group transition-all duration-300 border border-violet-100 dark:border-violet-700/40"
+                className="inline-flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-50 to-violet-100/80 text-violet-600 text-sm font-medium cursor-default group transition-all duration-300 border border-violet-100"
                 aria-label="Product tagline"
               >
                 <motion.span
-                  className="flex w-2 h-2 bg-gradient-to-r from-violet-500 to-purple-500 dark:from-violet-400 dark:to-purple-400 rounded-full mr-2 shrink-0"
+                  className="flex w-2 h-2 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full mr-2 shrink-0"
                   animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.9, 1, 0.9],
@@ -494,7 +483,7 @@ const HeroSection = ({ isDarkMode }) => {
                   duration: 0.7,
                   ease: [0.25, 0.1, 0.25, 1.0],
                 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-gray-900 dark:text-gray-50"
+                className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-gray-900"
               >
                 <span>The Ecosystem for</span>
               </motion.h1>
@@ -509,7 +498,7 @@ const HeroSection = ({ isDarkMode }) => {
                 }}
               >
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-600 to-purple-500 dark:from-violet-400 dark:via-purple-400 dark:to-purple-300 font-semibold italic">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-purple-600 to-purple-500 font-semibold italic">
                     Tech Innovation
                   </span>
                 </h1>
@@ -523,14 +512,14 @@ const HeroSection = ({ isDarkMode }) => {
               initial={{ opacity: 0, y: 15 }}
               animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
               transition={{ delay: 0.7, duration: 0.7 }}
-              className="text-base text-gray-600 dark:text-gray-300 mb-2 max-w-lg leading-relaxed"
+              className="text-base text-gray-600 mb-2 max-w-lg leading-relaxed"
             >
               Product Bazar is a modern innovation platform{" "}
               <span className="relative inline-block group cursor-pointer">
-                <span className="text-violet-600 dark:text-violet-400 font-medium">
+                <span className="text-violet-600 font-medium">
                   powered by community
                 </span>
-                <span className="absolute bottom-0 left-0 w-full h-[1.5px] bg-violet-200 dark:bg-violet-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out shadow-sm"></span>
+                <span className="absolute bottom-0 left-0 w-full h-[1.5px] bg-violet-200 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out shadow-sm"></span>
               </span>{" "}
               that changes how tech products reach their audience.
             </motion.p>
@@ -550,7 +539,7 @@ const HeroSection = ({ isDarkMode }) => {
                 }}
                 whileTap={{ scale: 0.97 }}
                 href="/launch"
-                className="primary-cta relative bg-gradient-to-r from-violet-600 via-purple-600 to-purple-600 dark:from-violet-500 dark:via-purple-500 dark:to-purple-500 text-white font-medium py-3.5 px-8 rounded-lg transition-all duration-300 flex items-center justify-center shadow-lg shadow-violet-500/20 dark:shadow-violet-900/30 overflow-hidden group text-center"
+                className="primary-cta relative bg-gradient-to-r from-violet-600 via-purple-600 to-purple-600 text-white font-medium py-3.5 px-8 rounded-lg transition-all duration-300 flex items-center justify-center shadow-lg shadow-violet-500/20 overflow-hidden group text-center"
                 onClick={() => {
                   pulseCta();
                   setHasInteracted(true);
@@ -563,13 +552,13 @@ const HeroSection = ({ isDarkMode }) => {
 
                 {/* Enhanced gradient hover effect */}
                 <div
-                  className="absolute inset-0 -z-0 bg-gradient-to-r from-violet-700 via-purple-700 to-purple-700 dark:from-violet-600 dark:via-purple-600 dark:to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 -z-0 bg-gradient-to-r from-violet-700 via-purple-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   aria-hidden="true"
                 ></div>
 
                 {/* Moving light effect on hover */}
                 <div
-                  className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-10 dark:group-hover:opacity-15 translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-1000 ease-out"
+                  className="absolute inset-0 -z-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-10 translate-x-[-100%] group-hover:translate-x-[100%] transition-all duration-1000 ease-out"
                   aria-hidden="true"
                 ></div>
 
@@ -596,16 +585,12 @@ const HeroSection = ({ isDarkMode }) => {
               <motion.a
                 whileHover={{
                   scale: 1.04,
-                  backgroundColor: isDarkMode
-                    ? "rgba(124, 58, 237, 0.15)"
-                    : "rgba(124, 58, 237, 0.08)",
-                  boxShadow: isDarkMode
-                    ? "0 6px 15px -4px rgba(124, 58, 237, 0.3)"
-                    : "0 6px 15px -4px rgba(124, 58, 237, 0.25)",
+                  backgroundColor: "rgba(124, 58, 237, 0.08)",
+                  boxShadow: "0 6px 15px -4px rgba(124, 58, 237, 0.25)",
                 }}
                 whileTap={{ scale: 0.97 }}
                 href="/discover"
-                className="border border-violet-500/80 dark:border-violet-500/70 text-violet-700 dark:text-violet-300 font-medium py-3.5 px-8 rounded-lg transition-all duration-300 flex items-center justify-center hover:shadow-md dark:hover:shadow-violet-900/20 group relative overflow-hidden text-center text-base md:text-lg backdrop-blur-[2px]"
+                className="border border-violet-500/80 text-violet-700 font-medium py-3.5 px-8 rounded-lg transition-all duration-300 flex items-center justify-center hover:shadow-md group relative overflow-hidden text-center text-base md:text-lg backdrop-blur-[2px]"
                 aria-label="Request a product demonstration"
                 onClick={() => setHasInteracted(true)}
               >
@@ -619,7 +604,7 @@ const HeroSection = ({ isDarkMode }) => {
                     viewBox="0 0 18 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="stroke-violet-700 dark:stroke-violet-300 transition-transform duration-300 group-hover:translate-x-1"
+                    className="stroke-violet-700 transition-transform duration-300 group-hover:translate-x-1"
                     animate={{
                       x: [0, 3, 0],
                       opacity: [1, 0.8, 1],
@@ -642,7 +627,7 @@ const HeroSection = ({ isDarkMode }) => {
 
                 {/* Enhanced hover background gradient */}
                 <div
-                  className="absolute inset-0 -z-0 bg-gradient-to-r from-violet-50/90 via-violet-100/90 to-purple-50/90 dark:from-violet-900/50 dark:via-violet-800/50 dark:to-purple-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 -z-0 bg-gradient-to-r from-violet-50/90 via-violet-100/90 to-purple-50/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   aria-hidden="true"
                 ></div>
               </motion.a>
@@ -655,10 +640,10 @@ const HeroSection = ({ isDarkMode }) => {
               transition={{ delay: 1, duration: 0.7 }}
               className="mt-6 md:mt-8 pt-4"
             >
-              <p className="text-xs font-semibold tracking-wider text-gray-500 dark:text-gray-400 mb-5 flex items-center justify-start">
-                <span className="inline-block w-8 h-[1px] bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 mr-3"></span>
+              <p className="text-xs font-semibold tracking-wider text-gray-500 mb-5 flex items-center justify-start">
+                <span className="inline-block w-8 h-[1px] bg-gradient-to-r from-gray-200 to-gray-300 mr-3"></span>
                 TRUSTED BY INNOVATIVE TEAMS
-                <span className="inline-block w-8 h-[1px] bg-gradient-to-r from-gray-300 to-gray-200 dark:from-gray-600 dark:to-gray-700 ml-3"></span>
+                <span className="inline-block w-8 h-[1px] bg-gradient-to-r from-gray-300 to-gray-200 ml-3"></span>
               </p>
               <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
                 {companyLogos.map((company) => (
@@ -673,19 +658,13 @@ const HeroSection = ({ isDarkMode }) => {
                     onHoverEnd={() => setHoveredLogo(null)}
                     className={`font-medium text-base lg:text-lg transition-all duration-300 cursor-pointer relative ${
                       hoveredLogo === company.name
-                        ? isDarkMode
-                          ? "text-" + company.darkColor
-                          : "text-" + company.color
-                        : isDarkMode
-                        ? "text-gray-400"
+                        ? "text-" + company.color
                         : "text-gray-500"
                     }`}
                     style={{
                       color:
                         hoveredLogo === company.name
-                          ? isDarkMode
-                            ? company.darkColor
-                            : company.color
+                          ? company.color
                           : "",
                     }}
                     whileHover={{
@@ -790,7 +769,7 @@ const HeroSection = ({ isDarkMode }) => {
                   {Array.from({ length: 15 }).map((_, i) => (
                     <motion.div
                       key={`particle-${i}`}
-                      className="absolute w-1 h-1 md:w-1.5 md:h-1.5 bg-violet-400/80 dark:bg-violet-400/50 rounded-full"
+                      className="absolute w-1 h-1 md:w-1.5 md:h-1.5 bg-violet-400/80 rounded-full"
                       style={{
                         left: `${Math.random() * 100}%`,
                         top: `${Math.random() * 100}%`,
@@ -831,9 +810,7 @@ const HeroSection = ({ isDarkMode }) => {
                 whileHover={{
                   scale: 1.1,
                   zIndex: 25,
-                  boxShadow: isDarkMode
-                    ? "0 8px 16px rgba(124, 58, 237, 0.15)"
-                    : "0 8px 16px rgba(124, 58, 237, 0.08)",
+                  boxShadow: "0 8px 16px rgba(124, 58, 237, 0.08)",
                   rotateX: "5deg",
                   rotateY: "-5deg",
                 }}
@@ -842,7 +819,7 @@ const HeroSection = ({ isDarkMode }) => {
                   rotateX: "0deg",
                   rotateY: "0deg",
                 }}
-                className={`absolute ${element.position} bg-white/85 dark:bg-gray-800/90 shadow-sm rounded-xl p-3 z-20 floating-element backdrop-blur-sm transition-all duration-300 cursor-pointer will-change-transform border border-gray-100/80 dark:border-gray-700/70 group/element`}
+                className={`absolute ${element.position} bg-white/85 shadow-sm rounded-xl p-3 z-20 floating-element backdrop-blur-sm transition-all duration-300 cursor-pointer will-change-transform border border-gray-100/80 group/element`}
                 style={{
                   opacity: 0,
                   transform: "translateY(20px)",
@@ -853,9 +830,9 @@ const HeroSection = ({ isDarkMode }) => {
                 }}
                 aria-hidden="true"
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-violet-50 to-violet-100/80 dark:from-violet-900/70 dark:to-violet-800/70 rounded-lg flex items-center justify-center group">
+                <div className="w-10 h-10 bg-gradient-to-br from-violet-50 to-violet-100/80 rounded-lg flex items-center justify-center group">
                   <svg
-                    className="w-5 h-5 text-violet-600 dark:text-violet-300 transition-transform duration-300 group-hover/element:scale-110"
+                    className="w-5 h-5 text-violet-600 transition-transform duration-300 group-hover/element:scale-110"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -864,9 +841,9 @@ const HeroSection = ({ isDarkMode }) => {
                 </div>
 
                 {/* Tooltip that appears on hover */}
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 translate-y-full opacity-0 group-hover/element:opacity-100 transition-opacity duration-200 bg-gray-900/95 dark:bg-gray-800/95 text-white px-2.5 py-1 rounded text-xs whitespace-nowrap pointer-events-none backdrop-blur-sm z-30">
+                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 translate-y-full opacity-0 group-hover/element:opacity-100 transition-opacity duration-200 bg-gray-900/95 text-white px-2.5 py-1 rounded text-xs whitespace-nowrap pointer-events-none backdrop-blur-sm z-30">
                   {element.label}
-                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 border-b-4 border-l-4 border-r-4 border-b-gray-900/95 dark:border-b-gray-800/95 border-l-transparent border-r-transparent"></div>
+                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 border-b-4 border-l-4 border-r-4 border-b-gray-900/95 border-l-transparent border-r-transparent"></div>
                 </div>
               </motion.div>
             ))}
