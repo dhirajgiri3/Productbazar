@@ -14,10 +14,11 @@ import * as authValidator from "../../../validators/auth/auth.validators.js";
 import {
   protect,
   optionalAuth,
-  restrictTo,
   verifyAnyEmailOrPhone,
   requireCriticalActionVerification,
-  allowProfileCompletion
+  allowProfileCompletion,
+  isAuthenticated,
+  isAdmin
 } from "../../middlewares/user/auth.middleware.js";
 import { cloudinaryUploader } from "../../../utils/storage/cloudinary.utils.js";
 import rateLimit from "express-rate-limit";
@@ -153,7 +154,6 @@ router.use(protect);
 
 // Get Current User Profile (Authenticated)
 router.get("/profile", profileController.getProfile);
-// router.get("/user", profileController.getCurrentUser); // Keep if needed, but /me or /profile is common
 
 // Username Availability Check
 router.get("/check-username", profileController.checkUsernameAvailability);

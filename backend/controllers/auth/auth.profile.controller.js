@@ -575,6 +575,17 @@ export const completeProfile = async (req, res, next) => {
     // Clean sensitive fields from the final response object
     delete populatedUser.password;
     delete populatedUser.__v;
+    delete populatedUser.loginAttempts;
+    delete populatedUser.lockUntil;
+    delete populatedUser.passwordResetToken;
+    delete populatedUser.passwordResetExpires;
+    delete populatedUser.otpSentAt;
+    delete populatedUser.otpFailedAttempts;
+    delete populatedUser.lastOtpRequest;
+    delete populatedUser.lastPasswordResetRequest;
+    delete populatedUser.accountDeletionScheduled;
+    delete populatedUser.createdAt;
+    delete populatedUser.updatedAt;
     // ... delete other fields if necessary ...
 
     // --- Respond ---
@@ -1133,6 +1144,17 @@ export const updateProfile = async (req, res, next) => {
     // Clean sensitive fields from the final response object
     delete populatedUser.password;
     delete populatedUser.__v;
+    delete populatedUser.loginAttempts;
+    delete populatedUser.lockUntil;
+    delete populatedUser.passwordResetToken;
+    delete populatedUser.passwordResetExpires;
+    delete populatedUser.otpSentAt;
+    delete populatedUser.otpFailedAttempts;
+    delete populatedUser.lastOtpRequest;
+    delete populatedUser.lastPasswordResetRequest;
+    delete populatedUser.accountDeletionScheduled;
+    delete populatedUser.createdAt;
+    delete populatedUser.updatedAt;
     // ... delete other fields if necessary ...
 
     res.status(200).json(

@@ -46,6 +46,10 @@ export const verifyAccessToken = (token) => {
 // Verify Refresh Token
 export const verifyRefreshToken = (token) => {
   return new Promise((resolve, reject) => {
+    if (!process.env.JWT_REFRESH_SECRET) {
+      return reject(new Error('JWT_REFRESH_SECRET environment variable is not set'));
+    }
+    
     jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
       if (err) {
         return reject(err);
