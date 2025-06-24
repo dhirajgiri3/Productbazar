@@ -295,25 +295,6 @@ const RegisterLeft = () => {
             initial="hidden"
             animate="visible"
           >
-            <motion.div
-              className="flex justify-center mb-3"
-              variants={itemVariants}
-            >
-              <motion.div
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                <Image
-                  src="/Assets/Image/logo/pb-logo.png"
-                  alt="Product Bazar Logo"
-                  width={52}
-                  height={52}
-                  className="object-contain drop-shadow-md"
-                  quality={90}
-                  priority
-                />
-              </motion.div>
-            </motion.div>
             <motion.h2
               variants={itemVariants}
               className="text-2xl font-bold bg-gradient-to-br from-violet-700 to-indigo-600 bg-clip-text text-transparent mt-1 tracking-tight"

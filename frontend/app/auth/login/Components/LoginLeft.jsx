@@ -239,22 +239,6 @@ const LoginLeft = () => {
             initial="hidden"
             animate="visible"
           >
-            <motion.div className="flex justify-center mb-4" variants={itemVariants}>
-              <motion.div
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                <Image
-                  src="/Assets/Image/logo/pb-logo.png"
-                  alt="Product Bazar Logo"
-                  width={56}
-                  height={56}
-                  className="object-contain drop-shadow-md"
-                  quality={90}
-                  priority
-                />
-              </motion.div>
-            </motion.div>
 
             <motion.h2
               variants={itemVariants}

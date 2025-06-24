@@ -217,6 +217,125 @@ export const AuthProvider = ({ children }) => {
     setError('');
   }, []);
 
+  // Forgot Password function
+  const forgotPassword = useCallback(async (email) => {
+    setAuthLoading(true);
+    setError('');
+
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
+
+      if (response.data.status === 'success' || response.data.success) {
+        return { 
+          success: true, 
+          message: response.data.message || 'If your email is registered, you will receive password reset instructions shortly.',
+          isSecurityResponse: true // Flag to indicate this is a security-focused response
+        };
+      }
+
+      const errorMessage = response.data.message || 'Failed to send password reset link';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } catch (err) {
+      logger.error('Forgot password error:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to send password reset link';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  // Reset Password function
+  const resetPassword = useCallback(async (newPassword, token) => {
+    setAuthLoading(true);
+    setError('');
+
+    try {
+      const response = await api.post('/auth/reset-password', {
+        password: newPassword,
+        token: token
+      });
+
+      if (response.data.status === 'success' || response.data.success) {
+        return { 
+          success: true, 
+          message: 'Password reset successfully. You can now login with your new password.' 
+        };
+      }
+
+      const errorMessage = response.data.message || 'Failed to reset password';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } catch (err) {
+      logger.error('Reset password error:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to reset password';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  // Verify Password Reset Token function
+  const verifyPasswordResetToken = useCallback(async (token) => {
+    setAuthLoading(true);
+    setError('');
+
+    try {
+      const response = await api.post('/auth/verify-password-token', { token });
+
+      if (response.data.status === 'success' || response.data.success) {
+        return { success: true, valid: true };
+      }
+
+      const errorMessage = response.data.message || 'Invalid or expired reset token';
+      setError(errorMessage);
+      return { success: false, valid: false, message: errorMessage };
+    } catch (err) {
+      logger.error('Verify password reset token error:', err);
+      const errorMessage = err.response?.data?.message || 'Invalid or expired reset token';
+      setError(errorMessage);
+      return { success: false, valid: false, message: errorMessage };
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  // Change Password function (for authenticated users)
+  const changePassword = useCallback(async (currentPassword, newPassword) => {
+    setAuthLoading(true);
+    setError('');
+
+    try {
+      const response = await makePriorityRequest('/auth/change-password', {
+        method: 'PUT',
+        data: {
+          currentPassword,
+          newPassword
+        }
+      });
+
+      if (response.data.status === 'success' || response.data.success) {
+        return { 
+          success: true, 
+          message: 'Password changed successfully.' 
+        };
+      }
+
+      const errorMessage = response.data.message || 'Failed to change password';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } catch (err) {
+      logger.error('Change password error:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to change password';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setAuthLoading(false);
+    }
+  }, []);
+
   // Fetch user data from the server with debouncing
   const fetchUserData = useCallback(
     async token => {
@@ -1426,6 +1545,10 @@ export const AuthProvider = ({ children }) => {
     refreshUserData,
     skipProfileCompletion,
     refreshNextStep,
+    forgotPassword,
+    resetPassword,
+    verifyPasswordResetToken,
+    changePassword,
   }), [
     user, 
     accessToken, 
@@ -1457,7 +1580,11 @@ export const AuthProvider = ({ children }) => {
     fetchUserData,
     refreshUserData,
     skipProfileCompletion,
-    refreshNextStep
+    refreshNextStep,
+    forgotPassword,
+    resetPassword,
+    verifyPasswordResetToken,
+    changePassword,
   ]);
 
   // Return context value with all functions and state

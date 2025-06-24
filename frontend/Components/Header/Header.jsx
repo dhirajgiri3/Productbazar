@@ -69,6 +69,7 @@ const AuthSection = ({
   setIsUserMenuOpen,
   isUserMenuOpen,
   handleLogout,
+  userDropdownMenus = [],
 }) => {
   const { user, isAuthenticated, isInitialized } = useAuth();
 
@@ -147,115 +148,66 @@ const AuthSection = ({
               </div>
 
               {/* Navigation Items with enhanced styling */}
+              {/* Dynamic Menu Items */}
               <div className="py-3">
-                {[
-                  {
-                    id: 'profile',
-                    href: `/user/${user.username || user._id || 'profile'}`,
-                    label: 'View Profile',
-                    icon: User,
-                    description: 'Manage your public profile',
-                    color: 'bg-blue-50 text-blue-600'
-                  },
-                  {
-                    id: 'bookmarks',
-                    href: '/user/mybookmarks',
-                    label: 'Bookmarks',
-                    icon: Bookmark,
-                    description: 'Your saved products',
-                    color: 'bg-yellow-50 text-yellow-600'
-                  },
-                  {
-                    id: 'history',
-                    href: '/user/history',
-                    label: 'Activity History',
-                    icon: Clock,
-                    description: 'Recent activity and views',
-                    color: 'bg-indigo-50 text-indigo-600'
-                  },
-                  ...(user.roleCapabilities?.canApplyToJobs
-                    ? [
-                        {
-                          id: 'applications',
-                          href: '/profile/applications',
-                          label: 'Job Applications',
-                          icon: FileText,
-                          description: 'Track your applications',
-                          color: 'bg-purple-50 text-purple-600'
-                        },
-                      ]
-                    : []),
-                  ...(user.roleCapabilities?.canPostJobs
-                    ? [{
-                        id: 'postjobs',
-                        href: '/jobs/post',
-                        label: 'Post Jobs',
-                        icon: Plus,
-                        description: 'Create job listings',
-                        color: 'bg-emerald-50 text-emerald-600'
-                      },
-                      {
-                        id: 'myjobs',
-                        href: '/user/myjobs',
-                        label: 'My Job Posts',
-                        icon: Briefcase,
-                        description: 'Manage job postings',
-                        color: 'bg-teal-50 text-teal-600'
-                      }]
-                    : []),
-                  ...(user.roleCapabilities?.canInvest
-                    ? [{
-                        id: 'invest',
-                        href: '/invest',
-                        label: 'Investment',
-                        icon: DollarSign,
-                        description: 'Investment opportunities',
-                        color: 'bg-green-50 text-green-600'
-                      }]
-                    : []),
-                  ...(user.role === 'admin' || user.secondaryRoles?.includes('admin')
-                    ? [{
-                        id: 'admin',
-                        href: '/admin/users',
-                        label: 'Admin Dashboard',
-                        icon: Users,
-                        description: 'Administrative tools',
-                        color: 'bg-red-50 text-red-600'
-                      }]
-                    : []),
-                  {
-                    id: 'settings',
-                    href: '/user/settings',
-                    label: 'Settings',
-                    icon: Settings,
-                    description: 'Account preferences',
-                    color: 'bg-gray-50 text-gray-600'
-                  },
-                ].map((item, index) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Link
-                      href={item.href}
-                      className="flex items-center px-4 py-3 mx-2 text-sm text-gray-700 hover:bg-violet-50/80 hover:text-violet-700 transition-all duration-300 group rounded-2xl"
-                      onClick={() => setIsUserMenuOpen(false)}
+                {userDropdownMenus.map((menu, index) => {
+                  // Define color mappings for different menu categories
+                  const getMenuItemStyle = (menuId) => {
+                    const colorMap = {
+                      profile: 'bg-blue-50 text-blue-600',
+                      bookmarks: 'bg-yellow-50 text-yellow-600',
+                      history: 'bg-indigo-50 text-indigo-600',
+                      settings: 'bg-gray-50 text-gray-600',
+                      'my-jobs': 'bg-teal-50 text-teal-600',
+                      'post-jobs': 'bg-emerald-50 text-emerald-600',
+                      invest: 'bg-green-50 text-green-600',
+                      admin: 'bg-red-50 text-red-600',
+                      projects: 'bg-purple-50 text-purple-600',
+                      services: 'bg-orange-50 text-orange-600',
+                    };
+                    return colorMap[menuId] || 'bg-gray-50 text-gray-600';
+                  };
+
+                  const getMenuDescription = (menuId) => {
+                    const descriptionMap = {
+                      profile: 'Manage your public profile',
+                      bookmarks: 'Your saved products',
+                      history: 'Recent activity and views',
+                      settings: 'Account preferences',
+                      'my-jobs': 'Manage job postings',
+                      'post-jobs': 'Create job listings',
+                      invest: 'Investment opportunities',
+                      admin: 'Administrative tools',
+                      projects: 'Your project portfolio',
+                      services: 'Service offerings',
+                    };
+                    return descriptionMap[menuId] || 'Access this feature';
+                  };
+
+                  return (
+                    <motion.div
+                      key={menu.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
                     >
-                      <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${item.color} transition-all duration-300 mr-3 group-hover:scale-110`}>
-                        <item.icon size={18} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">{item.label}</div>
-                        {item.description && (
-                          <div className="text-xs text-gray-500">{item.description}</div>
-                        )}
-                      </div>
-                      <ArrowRight size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" />
-                    </Link>
-                  </motion.div>
-                ))}
+                      <Link
+                        href={menu.href}
+                        className="flex items-center px-4 py-3 mx-2 text-sm text-gray-700 hover:bg-violet-50/80 hover:text-violet-700 transition-all duration-300 group rounded-2xl"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${getMenuItemStyle(menu.id)} transition-all duration-300 mr-3 group-hover:scale-110`}>
+                          {menu.icon}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">{menu.label}</div>
+                          <div className="text-xs text-gray-500">{getMenuDescription(menu.id)}</div>
+                        </div>
+                        <ArrowRight size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" />
+                      </Link>
+                    </motion.div>
+                  );
+                })}
               </div>
 
               {/* Enhanced Logout Button */}
@@ -332,11 +284,220 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
+  const moreMenuRef = useRef(null);
 
   useOnClickOutside(userMenuRef, () => setIsUserMenuOpen(false));
   useOnClickOutside(categoryMenuRef, () => setIsCategoryMenuOpen(false));
+  useOnClickOutside(moreMenuRef, () => setIsMoreMenuOpen(false));
+
+  // Smart menu configuration based on user role capabilities
+  const getNavigationMenus = () => {
+    if (!isAuthenticated || !user?.roleCapabilities) {
+      return {
+        primary: [],
+        secondary: [],
+        userDropdown: []
+      };
+    }
+
+    const allMenus = [
+      // Core product-related menus
+      ...(user.roleCapabilities.canUploadProducts ? [{
+        id: 'my-products',
+        label: 'My Products',
+        href: `/user/${user.username || user._id || 'profile'}/products`,
+        icon: <Briefcase size={16} />,
+        isActive: pathname.startsWith('/user/') && pathname.includes('/products'),
+        priority: 1,
+        category: 'core'
+      }] : []),
+      
+      // Job-related menus
+      ...(user.roleCapabilities.canApplyToJobs ? [{
+        id: 'jobs',
+        label: 'Jobs',
+        href: '/jobs',
+        icon: <Briefcase size={16} />,
+        isActive: pathname.startsWith('/jobs') && !pathname.includes('/post'),
+        priority: 2,
+        category: 'jobs'
+      }] : []),
+      
+      ...(user.roleCapabilities.canPostJobs ? [{
+        id: 'post-jobs',
+        label: 'Post Jobs',
+        href: '/jobs/post',
+        icon: <Plus size={16} />,
+        isActive: pathname === '/jobs/post',
+        priority: 3,
+        category: 'jobs'
+      }, {
+        id: 'my-jobs',
+        label: 'My Job Posts',
+        href: '/user/myjobs',
+        icon: <FileText size={16} />,
+        isActive: pathname === '/user/myjobs',
+        priority: 4,
+        category: 'jobs'
+      }] : []),
+
+      // Project-related menus
+      ...(user.roleCapabilities.canShowcaseProjects ? [{
+        id: 'projects',
+        label: 'Projects',
+        href: '/projects',
+        icon: <Layers size={16} />,
+        isActive: pathname.startsWith('/projects'),
+        priority: 5,
+        category: 'projects'
+      }] : []),
+
+      // Service-related menus
+      ...(user.roleCapabilities.canOfferServices ? [{
+        id: 'services',
+        label: 'Services',
+        href: '/services',
+        icon: <Code size={16} />,
+        isActive: pathname.startsWith('/services'),
+        priority: 6,
+        category: 'services'
+      }] : []),
+
+      // Investment-related menus
+      ...(user.roleCapabilities.canInvest ? [{
+        id: 'invest',
+        label: 'Invest',
+        href: '/invest',
+        icon: <DollarSign size={16} />,
+        isActive: pathname.startsWith('/invest'),
+        priority: 7,
+        category: 'investment'
+      }] : []),
+
+      // Admin menus
+      ...(user.role === 'admin' || user.secondaryRoles?.includes('admin') ? [{
+        id: 'admin',
+        label: 'Admin',
+        href: '/admin/users',
+        icon: <Users size={16} />,
+        isActive: pathname.startsWith('/admin'),
+        priority: 9, // Adjusted priority
+        category: 'admin'
+      }] : []),
+
+      // User profile menus (some with higher priority for primary nav)
+      {
+        id: 'bookmarks',
+        label: 'Bookmarks',
+        href: '/user/mybookmarks',
+        icon: <Bookmark size={16} />,
+        isActive: pathname === '/user/mybookmarks',
+        priority: 6, // Promoted priority for primary nav
+        category: 'user'
+      },
+      {
+        id: 'history',
+        label: 'History',
+        href: '/user/history',
+        icon: <Clock size={16} />,
+        isActive: pathname === '/user/history',
+        priority: 7, // Promoted priority for primary nav
+        category: 'user'
+      },
+      {
+        id: 'profile',
+        label: 'Profile',
+        href: `/user/${user.username || user._id || 'profile'}`,
+        icon: <User size={16} />,
+        isActive: pathname === `/user/${user.username || user._id || 'profile'}`,
+        priority: 11,
+        category: 'user'
+      },
+      {
+        id: 'settings',
+        label: 'Settings',
+        href: '/user/settings',
+        icon: <Settings size={16} />,
+        isActive: pathname === '/user/settings',
+        priority: 12,
+        category: 'user'
+      }
+    ];
+
+    // Sort by priority
+    const sortedMenus = allMenus.sort((a, b) => a.priority - b.priority);
+    
+    // Smart distribution logic
+    const MAX_PRIMARY_MENUS = 4;
+    const MIN_PRIMARY_MENUS = 3;
+    
+    let primaryMenus = [];
+    let secondaryMenus = [];
+    let userDropdownMenus = [];
+
+    // Always prioritize core functionality and current active menu
+    const activeMenu = sortedMenus.find(menu => menu.isActive);
+    const coreMenus = sortedMenus.filter(menu => 
+      ['core', 'jobs', 'projects', 'services', 'investment'].includes(menu.category) && 
+      menu.priority <= 7
+    );
+    
+    // Essential user menus that can be promoted to primary if needed
+    const essentialUserMenus = sortedMenus.filter(menu => 
+      menu.category === 'user' && 
+      ['bookmarks', 'history'].includes(menu.id)
+    );
+    
+    // Start with core menus
+    primaryMenus = [...coreMenus];
+    
+    // Ensure active menu is always visible in primary if it's not already there
+    if (activeMenu && !primaryMenus.includes(activeMenu)) {
+      primaryMenus.unshift(activeMenu);
+    }
+    
+    // If we don't have enough primary menus, promote essential user menus
+    if (primaryMenus.length < MIN_PRIMARY_MENUS) {
+      const menusNeeded = MIN_PRIMARY_MENUS - primaryMenus.length;
+      const menusToPromote = essentialUserMenus.slice(0, menusNeeded);
+      primaryMenus = [...primaryMenus, ...menusToPromote];
+    }
+    
+    // Limit to max primary menus
+    if (primaryMenus.length > MAX_PRIMARY_MENUS) {
+      const overflow = primaryMenus.slice(MAX_PRIMARY_MENUS);
+      primaryMenus = primaryMenus.slice(0, MAX_PRIMARY_MENUS);
+      
+      // Move overflow to secondary, but keep essential user menus if possible
+      const overflowToSecondary = overflow.filter(menu => 
+        !essentialUserMenus.includes(menu) || primaryMenus.length === MAX_PRIMARY_MENUS
+      );
+      secondaryMenus = [...secondaryMenus, ...overflowToSecondary];
+    }
+    
+    // Remaining menus go to secondary (More menu) or user dropdown
+    const remainingMenus = sortedMenus.filter(menu => 
+      !primaryMenus.includes(menu) && !secondaryMenus.includes(menu)
+    );
+    
+    // Separate remaining menus: non-user menus go to secondary, user menus to dropdown
+    const remainingNonUserMenus = remainingMenus.filter(menu => menu.category !== 'user');
+    const remainingUserMenus = remainingMenus.filter(menu => menu.category === 'user');
+    
+    secondaryMenus = [...secondaryMenus, ...remainingNonUserMenus];
+    userDropdownMenus = remainingUserMenus;
+
+    return {
+      primary: primaryMenus,
+      secondary: secondaryMenus,
+      userDropdown: userDropdownMenus
+    };
+  };
+
+  const { primary: primaryMenus, secondary: secondaryMenus, userDropdown: userDropdownMenus } = getNavigationMenus();
 
   useEffect(() => {
     const handleKeyDown = e => {
@@ -412,7 +573,7 @@ const Header = () => {
         )}
       </AnimatePresence>
 
-      <header className="bg-white/85 backdrop-blur-xl sticky top-0 z-40 border-b border-gray-200/60 supports-[backdrop-filter]:bg-white/85">
+      <header className="bg-white/85 backdrop-blur-xl sticky top-0 z-20 border-b border-gray-200/60 supports-[backdrop-filter]:bg-white/85">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-2">
           {/* Enhanced Logo Section */}
           <div className="flex items-center gap-4">
@@ -527,34 +688,99 @@ const Header = () => {
                 )}
               </AnimatePresence>
             </div>
-            {isAuthenticated && (
-              <>
-                {/* Core navigation items - most important features */}
-                {user?.roleCapabilities?.canUploadProducts && (
-                  <NavItem
-                    label="Products"
-                    isActive={pathname.startsWith('/user/') && pathname.includes('/products')}
-                    href={`/user/${user.username || user._id || 'profile'}/products`}
-                    icon={<Briefcase size={16} />}
-                  />
-                )}
-                {user?.roleCapabilities?.canApplyToJobs && (
-                  <NavItem
-                    label="Jobs"
-                    isActive={pathname.startsWith('/jobs') && !pathname.includes('/post')}
-                    href="/jobs"
-                    icon={<Briefcase size={16} />}
-                  />
-                )}
-                {user?.roleCapabilities?.canShowcaseProjects && (
-                  <NavItem
-                    label="Projects"
-                    isActive={pathname.startsWith('/projects')}
-                    href="/projects"
-                    icon={<Layers size={16} />}
-                  />
-                )}
-              </>
+            {/* Primary Navigation Items */}
+            {isAuthenticated && primaryMenus.map((menu) => (
+              <NavItem
+                key={menu.id}
+                label={menu.label}
+                isActive={menu.isActive}
+                href={menu.href}
+                icon={menu.icon}
+              />
+            ))}
+
+            {/* More Menu for Secondary Items */}
+            {isAuthenticated && secondaryMenus.length > 0 && (
+              <div ref={moreMenuRef} className="relative">
+                <motion.button
+                  onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                  className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent ${
+                    isMoreMenuOpen
+                      ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50'
+                      : 'text-gray-600 hover:text-violet-700 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50 hover:border-violet-200/30'
+                  }`}
+                  aria-expanded={isMoreMenuOpen}
+                  aria-label="More options"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ y: 0 }}
+                >
+                  More
+                  <motion.div
+                    animate={{ rotate: isMoreMenuOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ChevronDown size={14} className="ml-2" />
+                  </motion.div>
+                </motion.button>
+                <AnimatePresence>
+                  {isMoreMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl z-20 shadow-lg"
+                    >
+                      <div className="p-4 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-tr from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <Grid size={16} className="text-white" />
+                          </div>
+                          <div className="text-sm font-semibold text-gray-900">More Options</div>
+                        </div>
+                      </div>
+                      <div className="py-2">
+                        {secondaryMenus.map((menu, index) => (
+                          <motion.div
+                            key={menu.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                          >
+                            <Link
+                              href={menu.href}
+                              className={`flex items-center px-4 py-3 text-sm group transition-all duration-200 ${
+                                menu.isActive
+                                  ? 'bg-violet-50 text-violet-700'
+                                  : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
+                              }`}
+                              onClick={() => setIsMoreMenuOpen(false)}
+                            >
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-colors ${
+                                menu.isActive
+                                  ? 'bg-violet-100'
+                                  : 'bg-gray-100 group-hover:bg-violet-100'
+                              }`}>
+                                <span className={`transition-colors ${
+                                  menu.isActive
+                                    ? 'text-violet-600'
+                                    : 'text-gray-600 group-hover:text-violet-600'
+                                }`}>
+                                  {menu.icon}
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium">{menu.label}</div>
+                              </div>
+                              <ArrowRight size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" />
+                            </Link>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
           </nav>
 
@@ -576,6 +802,7 @@ const Header = () => {
               setIsUserMenuOpen={setIsUserMenuOpen}
               isUserMenuOpen={isUserMenuOpen}
               handleLogout={handleLogout}
+              userDropdownMenus={userDropdownMenus}
             />
             <motion.button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -622,7 +849,7 @@ const Header = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <motion.div
@@ -701,99 +928,95 @@ const Header = () => {
 
                   {isAuthenticated && (
                     <>
-                      {/* Core Features Section */}
-                      <div className="mb-4">
-                        <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Your Features
-                        </h3>
-                        {[
-                          ...(user?.roleCapabilities?.canUploadProducts
-                            ? [{
-                                href: `/user/${user.username || user._id || 'profile'}/products`,
-                                label: 'My Products',
-                                icon: Briefcase,
-                                active: pathname.startsWith('/user/') && pathname.includes('/products'),
-                              }]
-                            : []),
-                          ...(user?.roleCapabilities?.canApplyToJobs
-                            ? [{
-                                href: '/jobs',
-                                label: 'Jobs',
-                                icon: Briefcase,
-                                active: pathname.startsWith('/jobs') && !pathname.includes('/post'),
-                              }]
-                            : []),
-                          ...(user?.roleCapabilities?.canShowcaseProjects
-                            ? [{
-                                href: '/projects',
-                                label: 'Projects',
-                                icon: Layers,
-                                active: pathname.startsWith('/projects'),
-                              }]
-                            : []),
-                        ].map((item, idx) => (
-                          <motion.div
-                            key={item.href}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 + idx * 0.05 }}
-                          >
-                            <Link
-                              href={item.href}
-                              className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
-                                item.active
-                                  ? 'bg-violet-100 text-violet-700'
-                                  : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
-                              }`}
-                              onClick={() => setIsMobileMenuOpen(false)}
+                      {/* Primary Features Section */}
+                      {primaryMenus.length > 0 && (
+                        <div className="mb-4">
+                          <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Primary Features
+                          </h3>
+                          {primaryMenus.map((menu, idx) => (
+                            <motion.div
+                              key={menu.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.5 + idx * 0.05 }}
                             >
-                              <item.icon size={18} className="mr-3" />
-                              {item.label}
-                            </Link>
-                          </motion.div>
-                        ))}
-                      </div>
+                              <Link
+                                href={menu.href}
+                                className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
+                                  menu.isActive
+                                    ? 'bg-violet-100 text-violet-700'
+                                    : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
+                                }`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                {menu.icon && <span className="mr-3">{menu.icon}</span>}
+                                {menu.label}
+                              </Link>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
 
-                      {/* Quick Access Section */}
-                      <div className="mb-4">
-                        <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Quick Access
-                        </h3>
-                        {[
-                          {
-                            href: '/user/mybookmarks',
-                            label: 'Bookmarks',
-                            icon: Bookmark,
-                            active: pathname === '/user/mybookmarks',
-                          },
-                          {
-                            href: '/user/history',
-                            label: 'Activity History',
-                            icon: Clock,
-                            active: pathname === '/user/history',
-                          },
-                        ].map((item, idx) => (
-                          <motion.div
-                            key={item.href}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.6 + idx * 0.05 }}
-                          >
-                            <Link
-                              href={item.href}
-                              className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
-                                item.active
-                                  ? 'bg-violet-100 text-violet-700'
-                                  : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
-                              }`}
-                              onClick={() => setIsMobileMenuOpen(false)}
+                      {/* Secondary Features Section */}
+                      {secondaryMenus.length > 0 && (
+                        <div className="mb-4">
+                          <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            More Features
+                          </h3>
+                          {secondaryMenus.map((menu, idx) => (
+                            <motion.div
+                              key={menu.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.6 + idx * 0.05 }}
                             >
-                              <item.icon size={18} className="mr-3" />
-                              {item.label}
-                            </Link>
-                          </motion.div>
-                        ))}
-                      </div>
+                              <Link
+                                href={menu.href}
+                                className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
+                                  menu.isActive
+                                    ? 'bg-violet-100 text-violet-700'
+                                    : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
+                                }`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                {menu.icon && <span className="mr-3">{menu.icon}</span>}
+                                {menu.label}
+                              </Link>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* User Profile Section */}
+                      {userDropdownMenus.length > 0 && (
+                        <div className="mb-4">
+                          <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Profile & Settings
+                          </h3>
+                          {userDropdownMenus.map((menu, idx) => (
+                            <motion.div
+                              key={menu.id}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.7 + idx * 0.05 }}
+                            >
+                              <Link
+                                href={menu.href}
+                                className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
+                                  menu.isActive
+                                    ? 'bg-violet-100 text-violet-700'
+                                    : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
+                                }`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                {menu.icon && <span className="mr-3">{menu.icon}</span>}
+                                {menu.label}
+                              </Link>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
                     </>
                   )}
                 </nav>

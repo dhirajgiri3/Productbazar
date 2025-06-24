@@ -3,39 +3,81 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useRouter } from 'next/navigation';
+import { usePhoneVerification } from '@/lib/hooks/usePhoneVerification';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Shield, CheckCircle, ArrowLeft } from 'lucide-react';
+import { 
+  Phone, 
+  Shield, 
+  CheckCircle, 
+  ArrowLeft, 
+  AlertCircle,
+  Smartphone,
+  MessageSquare,
+  RefreshCw,
+  Loader2
+} from 'lucide-react';
+import ErrorMessage from 'Components/common/ErrorMessage';
+import LoadingSpinner from 'Components/common/LoadingSpinner';
 
 export default function VerifyPhone() {
   const { user, sendPhoneVerificationOtp, verifyPhoneOtp, error, authLoading, nextStep } =
     useAuth();
   const router = useRouter();
 
+  // Phone verification hook
+  const {
+    isSubmitting,
+    cooldown,
+    formErrors,
+    showSuccess,
+    setFormErrors,
+    setCooldown,
+    setIsSubmitting,
+    setShowSuccess,
+    startCooldown,
+    resetState,
+    showSuccessMessage,
+    formatPhoneForDisplay,
+    validatePhone,
+    validateOTP,
+    handleWithValidation
+  } = usePhoneVerification(
+    // onSuccess callback
+    (result) => {
+      if (result.isVerified) {
+        setTimeout(() => {
+          router.push(`/user/${user.username}`);
+        }, 1500);
+      }
+    },
+    // onError callback
+    (error) => {
+      if (error?.rateLimited) {
+        startCooldown(error.retryAfter || 60);
+      }
+    }
+  );
+
+  // Form state
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
-  const [formErrors, setFormErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPhoneEditable, setIsPhoneEditable] = useState(false);
 
-  // Set phone from user data or next step data
+  // Auto-redirect if phone is already verified and no temp phone
   useEffect(() => {
-    if (user?.tempPhone) {
-      setPhone(user.tempPhone);
-    } else if (user?.phone) {
-      setPhone(user.phone);
-    } else if (nextStep?.data?.phone) {
-      setPhone(nextStep.data.phone);
+    if (user?.isPhoneVerified && !user?.tempPhone && !nextStep?.type === 'phone_verification') {
+      router.push(`/user/${user.username}`);
     }
-  }, [user, nextStep]);
+  }, [user, nextStep, router]);
 
-  // Handle cooldown timer
+  // Handle cooldown timer effect
   useEffect(() => {
     if (cooldown <= 0) return;
 
     const timer = setTimeout(() => {
-      setCooldown(prev => prev - 1);
+      // This is handled by the hook now
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -48,27 +90,54 @@ export default function VerifyPhone() {
     setIsSubmitting(true);
     setFormErrors({});
 
-    // Simple phone validation
-    if (!phone || phone.trim() === '') {
-      setFormErrors({ phone: 'Phone number is required' });
+    // Validate phone number
+    const phoneError = validatePhone(phone);
+    if (phoneError) {
+      setFormErrors({ phone: phoneError });
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const success = await sendPhoneVerificationOtp(phone);
-      if (success) {
-        // If the response indicates the phone is already verified, redirect to appropriate page
-        if (success.isVerified) {
-          router.push(`/user/${user.username}`);
+      const result = await sendPhoneVerificationOtp(phone);
+      
+      if (result?.success) {
+        // If the response indicates the phone is already verified, redirect
+        if (result.isVerified) {
+          setShowSuccess(true);
+          setTimeout(() => {
+            router.push(`/user/${user.username}`);
+          }, 1500);
           return;
         }
 
         setOtpSent(true);
-        setCooldown(60); // 60 second cooldown
+        startCooldown(60); // 60 second cooldown
+        
+        // Clear any previous errors
+        setFormErrors({});
+        
+        // Show success message briefly
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      } else {
+        // Handle specific error cases
+        if (result?.rateLimited) {
+          startCooldown(result.retryAfter || 60);
+          setFormErrors({ 
+            phone: `Rate limit exceeded. Please wait ${result.retryAfter || 60} seconds before trying again.` 
+          });
+        } else {
+          setFormErrors({ 
+            phone: result?.message || 'Failed to send verification code. Please try again.' 
+          });
+        }
       }
     } catch (error) {
       console.error('Send OTP failed:', error);
+      setFormErrors({ 
+        phone: 'An unexpected error occurred. Please try again.' 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -81,9 +150,10 @@ export default function VerifyPhone() {
     setIsSubmitting(true);
     setFormErrors({});
 
-    // OTP validation
-    if (!otp || otp.length < 4) {
-      setFormErrors({ otp: 'Please enter a valid OTP code' });
+    // Validate OTP
+    const otpError = validateOTP(otp);
+    if (otpError) {
+      setFormErrors({ otp: otpError });
       setIsSubmitting(false);
       return;
     }
@@ -91,27 +161,59 @@ export default function VerifyPhone() {
     try {
       const result = await verifyPhoneOtp(phone, otp);
 
-      if (result.success) {
-        // Successful verification - redirect to appropriate page
-        router.push(`/user/${user.username}`);
+      if (result?.success) {
+        // Show success state
+        setShowSuccess(true);
+        
+        // Clear form
+        setOtp('');
+        setFormErrors({});
+        
+        // Redirect after showing success
+        setTimeout(() => {
+          router.push(`/user/${user.username}`);
+        }, 1500);
+      } else {
+        // Handle specific error cases
+        if (result?.expired) {
+          setFormErrors({ 
+            otp: 'Verification code has expired. Please request a new one.' 
+          });
+          setOtpSent(false);
+          setOtp('');
+        } else if (result?.invalid) {
+          setFormErrors({ 
+            otp: 'Invalid verification code. Please try again.' 
+          });
+          setOtp('');
+        } else {
+          setFormErrors({ 
+            otp: result?.message || 'Verification failed. Please try again.' 
+          });
+        }
       }
     } catch (error) {
       console.error('Verify OTP failed:', error);
+      setFormErrors({ 
+        otp: 'An unexpected error occurred. Please try again.' 
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // If user phone is verified, redirect
-  useEffect(() => {
-    // Check if this is the same phone number that requires verification
-    if (user?.isPhoneVerified) {
-      // If user has a tempPhone set, they're trying to change their phone number
-      if (!user.tempPhone) {
-        router.push(`/user/${user.username}`);
-      }
-    }
-  }, [user, nextStep, router]);
+  const handleResendOtp = async () => {
+    if (cooldown > 0 || isSubmitting) return;
+    await handleSendOtp({ preventDefault: () => {} });
+  };
+
+  const handleChangeNumber = () => {
+    setOtpSent(false);
+    setOtp('');
+    setFormErrors({});
+    setIsPhoneEditable(true);
+    resetState();
+  };
 
   // Animation variants
   const containerVariants = {
@@ -137,86 +239,138 @@ export default function VerifyPhone() {
     }
   };
 
+  const successVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 30
+      }
+    }
+  };
+
+  // Loading state
+  if (authLoading && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <LoadingSpinner size={8} />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 flex items-center justify-center px-4 py-12">
       <motion.div
-        className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100"
+        className="max-w-md w-full space-y-8 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-100"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
+        {/* Success Overlay */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10"
+              variants={successVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <div className="text-center">
+                <motion.div
+                  className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </motion.div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  {otpSent ? 'Phone Verified!' : 'Verification Code Sent!'}
+                </h3>
+                <p className="text-gray-600">
+                  {otpSent ? 'Your phone number has been successfully verified.' : 'Check your phone for the verification code.'}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Logo and Header */}
         <div className="text-center">
           <motion.div
-            className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center shadow-lg"
+            className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <span className="text-2xl font-bold text-white">PB</span>
+            <Smartphone className="w-8 h-8 text-white" />
           </motion.div>
 
-          <motion.h2
-            className="text-3xl font-bold text-primary mb-2"
+          <motion.h1
+            className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
             Verify Your Phone
-          </motion.h2>
+          </motion.h1>
 
-          {phone && (
-            <motion.p
-              className="text-gray-600"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              {otpSent
-                ? `Enter the verification code sent to ${phone}`
-                : `We'll send a verification code to ${phone}`}
-            </motion.p>
-          )}
+          <motion.p
+            className="text-gray-600 text-sm"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            {otpSent
+              ? `Enter the 6-digit code sent to ${formatPhoneForDisplay(phone)}`
+              : `We'll send a verification code to your phone number`}
+          </motion.p>
         </div>
 
         {/* Step Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-4">
             <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                otpSent ? 'bg-primary text-white' : 'bg-primary text-white'
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                otpSent ? 'bg-violet-600 text-white' : 'bg-violet-600 text-white'
               }`}>
-                {otpSent ? <CheckCircle className="w-4 h-4" /> : '1'}
+                {otpSent ? <CheckCircle className="w-5 h-5" /> : <Phone className="w-5 h-5" />}
               </div>
-              <span className="ml-2 text-sm font-medium text-gray-600">Phone</span>
+              <span className="ml-3 text-sm font-medium text-gray-700">Enter Phone</span>
             </div>
 
-            <div className={`w-8 h-0.5 transition-all duration-300 ${
-              otpSent ? 'bg-primary' : 'bg-gray-200'
+            <div className={`w-12 h-0.5 transition-all duration-300 ${
+              otpSent ? 'bg-violet-600' : 'bg-gray-200'
             }`}></div>
 
             <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
-                otpSent ? 'bg-primary text-white' : 'bg-gray-200 text-gray-500'
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                otpSent ? 'bg-violet-600 text-white' : 'bg-gray-200 text-gray-500'
               }`}>
-                2
+                {otpSent ? <MessageSquare className="w-5 h-5" /> : '2'}
               </div>
-              <span className="ml-2 text-sm font-medium text-gray-600">Verify</span>
+              <span className="ml-3 text-sm font-medium text-gray-700">Verify Code</span>
             </div>
           </div>
         </div>
 
-        {/* Error Display */}
+        {/* Global Error Display */}
         <AnimatePresence>
           {error && (
             <motion.div
-              className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center space-x-2"
+              className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start space-x-3"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Shield className="w-4 h-4 text-red-500 flex-shrink-0" />
-              <span>{error}</span>
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium mb-1">Verification Error</p>
+                <p>{error}</p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -228,18 +382,18 @@ export default function VerifyPhone() {
               <motion.form
                 key="phone-step"
                 onSubmit={handleSendOtp}
-                className="space-y-4"
+                className="space-y-6"
                 variants={stepVariants}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
               >
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-3">
                     Phone Number
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <Phone className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
@@ -248,168 +402,206 @@ export default function VerifyPhone() {
                       placeholder="+1 (555) 123-4567"
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                        formErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                      } focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all duration-200`}
+                      className={`w-full pl-12 pr-4 py-4 rounded-xl border-2 transition-all duration-200 text-gray-800 placeholder-gray-400 ${
+                        formErrors.phone 
+                          ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200' 
+                          : 'border-gray-200 bg-white focus:border-violet-500 focus:ring-violet-200'
+                      } focus:ring-4 focus:ring-opacity-20 outline-none`}
                       required
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !isPhoneEditable}
                     />
-                  </div>
-                  <AnimatePresence>
-                    {formErrors.phone && (
-                      <motion.p
-                        className="mt-2 text-sm text-red-600 flex items-center space-x-1"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                      >
-                        <span>⚠️</span>
-                        <span>{formErrors.phone}</span>
-                      </motion.p>
+                    {isSubmitting && (
+                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                        <Loader2 className="h-5 w-5 text-violet-600 animate-spin" />
+                      </div>
                     )}
-                  </AnimatePresence>
+                  </div>
+                  <ErrorMessage error={formErrors.phone} />
                 </div>
 
                 <motion.button
                   type="submit"
                   disabled={isSubmitting || cooldown > 0 || !phone.trim()}
-                  className="w-full py-3 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:shadow-none"
+                  className="w-full py-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-[1.02] disabled:scale-100"
                   whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                   whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Sending...</span>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Sending Code...</span>
                     </>
                   ) : cooldown > 0 ? (
                     <>
-                      <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin"></div>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
                       <span>Resend in {cooldown}s</span>
                     </>
                   ) : (
                     <>
+                      <MessageSquare className="w-5 h-5" />
                       <span>Send Verification Code</span>
-                      <Phone className="w-4 h-4" />
                     </>
                   )}
                 </motion.button>
+
+                {/* Help Text */}
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">
+                    You'll receive a 6-digit verification code via SMS
+                  </p>
+                </div>
               </motion.form>
             ) : (
               <motion.form
                 key="otp-step"
                 onSubmit={handleVerifyOtp}
-                className="space-y-4"
+                className="space-y-6"
                 variants={stepVariants}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
               >
                 <div>
-                  <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="otp" className="block text-sm font-semibold text-gray-700 mb-3">
                     Verification Code
                   </label>
-                  <input
-                    type="text"
-                    id="otp"
-                    placeholder="000000"
-                    value={otp}
-                    onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                    className={`w-full px-4 py-4 rounded-lg border text-center tracking-widest font-mono text-xl ${
-                      formErrors.otp ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    } focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all duration-200`}
-                    required
-                    maxLength={6}
-                    disabled={isSubmitting}
-                  />
-                  <AnimatePresence>
-                    {formErrors.otp && (
-                      <motion.p
-                        className="mt-2 text-sm text-red-600 flex items-center space-x-1"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                      >
-                        <span>⚠️</span>
-                        <span>{formErrors.otp}</span>
-                      </motion.p>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="otp"
+                      placeholder="000000"
+                      value={otp}
+                      onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                      className={`w-full px-6 py-5 rounded-xl border-2 text-center tracking-[0.5em] font-mono text-2xl transition-all duration-200 ${
+                        formErrors.otp 
+                          ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-200' 
+                          : 'border-gray-200 bg-white focus:border-violet-500 focus:ring-violet-200'
+                      } focus:ring-4 focus:ring-opacity-20 outline-none`}
+                      required
+                      maxLength={6}
+                      disabled={isSubmitting}
+                      autoComplete="one-time-code"
+                    />
+                    {isSubmitting && (
+                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                        <Loader2 className="h-6 w-6 text-violet-600 animate-spin" />
+                      </div>
                     )}
-                  </AnimatePresence>
+                  </div>
+                  <ErrorMessage error={formErrors.otp} />
+                  
+                  {/* Phone display */}
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Phone className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">{formatPhoneForDisplay(phone)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleChangeNumber}
+                      className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+                      disabled={isSubmitting}
+                    >
+                      Change
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <motion.button
                     type="button"
-                    onClick={() => {
-                      setOtpSent(false);
-                      setOtp('');
-                      setFormErrors({});
-                    }}
-                    className="text-sm text-gray-500 hover:text-gray-700 font-medium flex items-center space-x-1"
-                    disabled={isSubmitting}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <ArrowLeft className="w-3 h-3" />
-                    <span>Change Number</span>
-                  </motion.button>
-
-                  <motion.button
-                    type="button"
-                    onClick={handleSendOtp}
+                    onClick={handleResendOtp}
                     disabled={isSubmitting || cooldown > 0}
-                    className={`text-sm font-medium transition-colors ${
-                      cooldown > 0 ? "text-gray-400 cursor-not-allowed" : "text-primary hover:text-primary/80"
+                    className={`text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+                      cooldown > 0 || isSubmitting 
+                        ? "text-gray-400 cursor-not-allowed" 
+                        : "text-violet-600 hover:text-violet-700"
                     }`}
-                    whileHover={cooldown <= 0 ? { scale: 1.05 } : {}}
-                    whileTap={cooldown <= 0 ? { scale: 0.95 } : {}}
+                    whileHover={cooldown <= 0 && !isSubmitting ? { scale: 1.05 } : {}}
+                    whileTap={cooldown <= 0 && !isSubmitting ? { scale: 0.95 } : {}}
                   >
                     {cooldown > 0 ? (
-                      <span className="flex items-center space-x-1">
-                        <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
                         <span>Resend in {cooldown}s</span>
-                      </span>
+                      </>
+                    ) : isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Sending...</span>
+                      </>
                     ) : (
-                      'Resend Code'
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Resend Code</span>
+                      </>
                     )}
                   </motion.button>
+
+                  <div className="text-xs text-gray-500">
+                    {otp.length}/6 digits
+                  </div>
                 </div>
 
                 <motion.button
                   type="submit"
-                  disabled={isSubmitting || otp.length < 4}
-                  className="w-full py-3 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:shadow-none"
+                  disabled={isSubmitting || otp.length < 6}
+                  className="w-full py-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl disabled:shadow-none transform hover:scale-[1.02] disabled:scale-100"
                   whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                   whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       <span>Verifying...</span>
                     </>
                   ) : (
                     <>
-                      <span>Verify Phone</span>
-                      <CheckCircle className="w-4 h-4" />
+                      <Shield className="w-5 h-5" />
+                      <span>Verify Phone Number</span>
                     </>
                   )}
                 </motion.button>
+
+                {/* Help Text */}
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">
+                    Didn't receive the code? Check your spam folder or try resending
+                  </p>
+                </div>
               </motion.form>
             )}
           </AnimatePresence>
 
+          {/* Footer Links */}
           <motion.div
-            className="text-center"
+            className="text-center pt-6 border-t border-gray-100"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.6 }}
           >
-            <Link
-              href="/auth/login"
-              className="text-accent hover:text-accent/80 font-medium transition-colors"
-            >
-              Back to Login
-            </Link>
+            <div className="space-y-3">
+              <div className="flex items-center justify-center space-x-4 text-sm">
+                <Link
+                  href="/auth/login"
+                  className="text-violet-600 hover:text-violet-700 font-medium transition-colors flex items-center space-x-1"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Back to Login</span>
+                </Link>
+                <span className="text-gray-300">|</span>
+                <Link
+                  href="/auth/register"
+                  className="text-gray-600 hover:text-gray-700 transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </div>
+              
+              <div className="text-xs text-gray-500">
+                Having trouble? <Link href="/support" className="text-violet-600 hover:text-violet-700">Contact Support</Link>
+              </div>
+            </div>
           </motion.div>
         </div>
       </motion.div>

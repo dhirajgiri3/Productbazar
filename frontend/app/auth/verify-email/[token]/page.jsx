@@ -234,7 +234,7 @@ const VerifyEmailTokenPage = () => {
                 >
                   <Link
                     href="/products"
-                    className="px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-white rounded-lg hover:from-primary/90 hover:to-primary/80 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                    className="px-6 py-3 bg-gradient-to-r from-primary to-primary text-white rounded-lg hover:from-primary/90 hover:to-primary/80 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
                   >
                     <span>Go to Homepage</span>
                     <ArrowRight className="w-5 h-5" />
