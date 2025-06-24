@@ -203,16 +203,6 @@ const AuthSection = ({
                         color: 'bg-teal-50 text-teal-600'
                       }]
                     : []),
-                  ...(user.roleCapabilities?.canOfferServices
-                    ? [{
-                        id: 'services',
-                        href: '/services',
-                        label: 'Services',
-                        icon: Code,
-                        description: 'Offer your services',
-                        color: 'bg-cyan-50 text-cyan-600'
-                      }]
-                    : []),
                   ...(user.roleCapabilities?.canInvest
                     ? [{
                         id: 'invest',
