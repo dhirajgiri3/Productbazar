@@ -1,8 +1,9 @@
+// components/auth/auth-right.jsx
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion"; // Assuming framer-motion is installed
-import { AnimatedTooltipPreview } from "../../../Components/UI/Tooltip/Tooltip";
+import { motion } from "framer-motion";
+import { AnimatedTooltipPreview } from "Components/UI/Tooltip/Tooltip";
 
 function AuthRight({ title, description }) {
   return (

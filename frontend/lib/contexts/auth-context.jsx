@@ -834,10 +834,38 @@ export const AuthProvider = ({ children }) => {
       setError('');
 
       try {
-        const response = await api.post('/auth/verify-otp', { phone, code });
+        // Use the correct endpoint for phone verification (for authenticated users)
+        const response = await api.post('/auth/verify-phone-otp', { phone, code });
 
         if (response.data.status === 'success') {
-          handleAuthSuccess(response.data);
+          // Update user data to reflect phone verification
+          if (user) {
+            setUser(prev => ({
+              ...prev,
+              isPhoneVerified: true,
+              phone: phone,
+              tempPhone: undefined, // Clear tempPhone if it was set
+            }));
+
+            // Update localStorage
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            localStorage.setItem(
+              'user',
+              JSON.stringify({
+                ...storedUser,
+                isPhoneVerified: true,
+                phone: phone,
+                tempPhone: undefined,
+              })
+            );
+          }
+
+          // Remove phone verification from next steps if it exists
+          if (nextStep && nextStep.type === 'phone_verification') {
+            setNextStep(null);
+            localStorage.removeItem('nextStep');
+          }
+
           return { success: true };
         }
 
@@ -873,7 +901,7 @@ export const AuthProvider = ({ children }) => {
         setAuthLoading(false);
       }
     },
-    [handleAuthSuccess]
+    [handleAuthSuccess, user, nextStep]
   );
 
   const resendEmailVerification = useCallback(async email => {

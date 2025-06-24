@@ -19,9 +19,7 @@ import {
   Code,
   Users,
   Bookmark,
-  Home,
   Grid,
-  Folder,
   Clock,
   ArrowRight,
 } from 'lucide-react';
@@ -160,12 +158,12 @@ const AuthSection = ({
                     color: 'bg-blue-50 text-blue-600'
                   },
                   {
-                    id: 'products',
-                    href: `/user/${user.username || user._id || 'products'}/products`,
-                    label: 'My Products',
-                    icon: Briefcase,
-                    description: 'View and manage products',
-                    color: 'bg-green-50 text-green-600'
+                    id: 'bookmarks',
+                    href: '/user/mybookmarks',
+                    label: 'Bookmarks',
+                    icon: Bookmark,
+                    description: 'Your saved products',
+                    color: 'bg-yellow-50 text-yellow-600'
                   },
                   {
                     id: 'history',
@@ -173,7 +171,7 @@ const AuthSection = ({
                     label: 'Activity History',
                     icon: Clock,
                     description: 'Recent activity and views',
-                    color: 'bg-yellow-50 text-yellow-600'
+                    color: 'bg-indigo-50 text-indigo-600'
                   },
                   ...(user.roleCapabilities?.canApplyToJobs
                     ? [
@@ -189,22 +187,50 @@ const AuthSection = ({
                     : []),
                   ...(user.roleCapabilities?.canPostJobs
                     ? [{
+                        id: 'postjobs',
+                        href: '/jobs/post',
+                        label: 'Post Jobs',
+                        icon: Plus,
+                        description: 'Create job listings',
+                        color: 'bg-emerald-50 text-emerald-600'
+                      },
+                      {
                         id: 'myjobs',
                         href: '/user/myjobs',
-                        label: 'Posted Jobs',
+                        label: 'My Job Posts',
                         icon: Briefcase,
                         description: 'Manage job postings',
-                        color: 'bg-indigo-50 text-indigo-600'
+                        color: 'bg-teal-50 text-teal-600'
                       }]
                     : []),
-                  ...(user.roleCapabilities?.canShowcaseProjects
+                  ...(user.roleCapabilities?.canOfferServices
                     ? [{
-                        id: 'myprojects',
-                        href: '/projects',
-                        label: 'My Projects',
-                        icon: Layers,
-                        description: 'Showcase your work',
-                        color: 'bg-pink-50 text-pink-600'
+                        id: 'services',
+                        href: '/services',
+                        label: 'Services',
+                        icon: Code,
+                        description: 'Offer your services',
+                        color: 'bg-cyan-50 text-cyan-600'
+                      }]
+                    : []),
+                  ...(user.roleCapabilities?.canInvest
+                    ? [{
+                        id: 'invest',
+                        href: '/invest',
+                        label: 'Investment',
+                        icon: DollarSign,
+                        description: 'Investment opportunities',
+                        color: 'bg-green-50 text-green-600'
+                      }]
+                    : []),
+                  ...(user.role === 'admin' || user.secondaryRoles?.includes('admin')
+                    ? [{
+                        id: 'admin',
+                        href: '/admin/users',
+                        label: 'Admin Dashboard',
+                        icon: Users,
+                        description: 'Administrative tools',
+                        color: 'bg-red-50 text-red-600'
                       }]
                     : []),
                   {
@@ -316,14 +342,11 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
-  const [isFeaturesMenuOpen, setIsFeaturesMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
-  const featuresMenuRef = useRef(null);
 
   useOnClickOutside(userMenuRef, () => setIsUserMenuOpen(false));
   useOnClickOutside(categoryMenuRef, () => setIsCategoryMenuOpen(false));
-  useOnClickOutside(featuresMenuRef, () => setIsFeaturesMenuOpen(false));
 
   useEffect(() => {
     const handleKeyDown = e => {
@@ -368,76 +391,6 @@ const Header = () => {
     }
   };
 
-  const getRoleBasedNavItems = () => {
-    if (!user || !user.roleCapabilities) return [];
-    const items = [];
-    if (user.role === 'admin' || user.secondaryRoles?.includes('admin')) {
-      items.push({
-        label: 'Admin Dashboard',
-        href: '/admin/users',
-        isActive: pathname.startsWith('/admin'),
-        icon: <Users size={16} />,
-      });
-    }
-    if (user.roleCapabilities.canApplyToJobs) {
-      items.push(
-        {
-          label: 'Jobs',
-          href: '/jobs',
-          isActive: pathname.startsWith('/jobs') && !pathname.includes('/post'),
-          icon: <Briefcase size={16} />,
-        },
-        {
-          label: 'Applications',
-          href: '/profile/applications',
-          isActive: pathname.startsWith('/profile/applications'),
-          icon: <FileText size={16} />,
-        }
-      );
-    }
-    if (user.roleCapabilities.canPostJobs) {
-      items.push(
-        {
-          label: 'Post Job',
-          href: '/jobs/post',
-          isActive: pathname === '/jobs/post',
-          icon: <Plus size={16} />,
-        },
-        {
-          label: 'My Jobs',
-          href: '/user/myjobs',
-          isActive: pathname === '/user/myjobs',
-          icon: <Briefcase size={16} />,
-        }
-      );
-    }
-    if (user.roleCapabilities.canShowcaseProjects) {
-      items.push({
-        label: 'Projects',
-        href: '/projects',
-        isActive: pathname.startsWith('/projects'),
-        icon: <Layers size={16} />,
-      });
-    }
-    if (user.roleCapabilities.canOfferServices) {
-      items.push({
-        label: 'Services',
-        href: '/services',
-        isActive: pathname.startsWith('/services'),
-        icon: <Code size={16} />,
-      });
-    }
-    if (user.roleCapabilities.canInvest) {
-      items.push({
-        label: 'Invest',
-        href: '/invest',
-        isActive: pathname.startsWith('/invest'),
-        icon: <DollarSign size={16} />,
-      });
-    }
-    return items;
-  };
-
   return (
     <>
       <AnimatePresence>
@@ -473,13 +426,13 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-2">
           {/* Enhanced Logo Section */}
           <div className="flex items-center gap-4">
-            <Link href="/products" aria-label="Home">
+            <Link href="/products" aria-label="ProductBazar - Go to homepage">
               <div
-                className="w-12 h-12 bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center font-bold relative overflow-hidden transition-transform duration-150 hover:scale-105"
+                className="w-12 h-12 bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center font-bold relative overflow-hidden transition-all duration-150 hover:scale-105 hover:shadow-lg cursor-pointer group"
               >
                 {/* Background decoration */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent" />
-                <span className="relative z-10 text-lg">PB</span>
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent group-hover:from-white/30 transition-all duration-150" />
+                <span className="relative z-10 text-lg group-hover:scale-110 transition-transform duration-150">PB</span>
               </div>
             </Link>
 
@@ -497,12 +450,6 @@ const Header = () => {
 
           {/* Enhanced Navigation */}
           <nav className="hidden md:flex items-center gap-2">
-            <NavItem
-              label="Home"
-              isActive={pathname === '/' || pathname === '/products'}
-              href="/products"
-              icon={<Home size={16} />}
-            />
             <div ref={categoryMenuRef} className="relative">
               <motion.button
                 onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
@@ -592,90 +539,31 @@ const Header = () => {
             </div>
             {isAuthenticated && (
               <>
-                <NavItem
-                  label="Bookmarks"
-                  isActive={pathname === '/user/mybookmarks'}
-                  href="/user/mybookmarks"
-                  icon={<Bookmark size={16} />}
-                />
-                <div ref={featuresMenuRef} className="relative">
-                  <motion.button
-                    onClick={() => setIsFeaturesMenuOpen(!isFeaturesMenuOpen)}
-                    className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent ${
-                      getRoleBasedNavItems().some(item => item.isActive)
-                        ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50'
-                        : 'text-gray-600 hover:text-violet-700 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50 hover:border-violet-200/30'
-                    }`}
-                    aria-expanded={isFeaturesMenuOpen}
-                    aria-label="Features"
-                    whileHover={{ y: -2 }}
-                    whileTap={{ y: 0 }}
-                  >
-                    <Folder size={16} className="mr-2" />
-                    Features
-                    <motion.div
-                      animate={{ rotate: isFeaturesMenuOpen ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ChevronDown size={14} className="ml-2" />
-                    </motion.div>
-                  </motion.button>
-                  <AnimatePresence>
-                    {isFeaturesMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl z-20"
-                      >
-                        <div className="p-4 border-b border-gray-100">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-tr from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
-                              <Folder size={16} className="text-white" />
-                            </div>
-                            <div className="text-sm font-semibold text-gray-900">Your Features</div>
-                          </div>
-                        </div>
-                        {getRoleBasedNavItems().length > 0 ? (
-                          <div className="py-2">
-                            {getRoleBasedNavItems().map((item, index) => (
-                              <motion.div
-                                key={index}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                              >
-                                <Link
-                                  href={item.href}
-                                  className={`flex items-center px-4 py-3 text-sm group ${
-                                    item.isActive
-                                      ? 'bg-violet-50 text-violet-600'
-                                      : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
-                                  }`}
-                                  onClick={() => setIsFeaturesMenuOpen(false)}
-                                >
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${
-                                    item.isActive
-                                      ? 'bg-violet-100'
-                                      : 'bg-gray-100 group-hover:bg-violet-100'
-                                  }`}>
-                                    {item.icon}
-                                  </div>
-                                  <span className="font-medium">{item.label}</span>
-                                </Link>
-                              </motion.div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="px-4 py-6 text-center text-gray-500">
-                            <div className="text-sm">No features available</div>
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+                {/* Core navigation items - most important features */}
+                {user?.roleCapabilities?.canUploadProducts && (
+                  <NavItem
+                    label="Products"
+                    isActive={pathname.startsWith('/user/') && pathname.includes('/products')}
+                    href={`/user/${user.username || user._id || 'profile'}/products`}
+                    icon={<Briefcase size={16} />}
+                  />
+                )}
+                {user?.roleCapabilities?.canApplyToJobs && (
+                  <NavItem
+                    label="Jobs"
+                    isActive={pathname.startsWith('/jobs') && !pathname.includes('/post')}
+                    href="/jobs"
+                    icon={<Briefcase size={16} />}
+                  />
+                )}
+                {user?.roleCapabilities?.canShowcaseProjects && (
+                  <NavItem
+                    label="Projects"
+                    isActive={pathname.startsWith('/projects')}
+                    href="/projects"
+                    icon={<Layers size={16} />}
+                  />
+                )}
               </>
             )}
           </nav>
@@ -774,35 +662,17 @@ const Header = () => {
 
               <div className="flex-1 overflow-y-auto p-4">
                 <nav className="flex flex-col gap-2">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    <Link
-                      href="/products"
-                      className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                        pathname === '/' || pathname === '/products'
-                          ? 'bg-violet-100 text-violet-700'
-                          : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Home size={18} className="mr-3" />
-                      Home
-                    </Link>
-                  </motion.div>
-
-                  <div className="pt-4">
+                  {/* Categories Section */}
+                  <div className="mb-4">
                     <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Categories
                     </h3>
-                    {categories.slice(0, 5).map((category, idx) => (
+                    {categories.slice(0, 6).map((category, idx) => (
                       <motion.div
                         key={category._id || idx}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 + idx * 0.05 }}
+                        transition={{ delay: 0.1 + idx * 0.05 }}
                       >
                         <Link
                           href={`/category/${
@@ -841,23 +711,36 @@ const Header = () => {
 
                   {isAuthenticated && (
                     <>
-                      <div className="pt-4">
+                      {/* Core Features Section */}
+                      <div className="mb-4">
                         <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                          Quick Access
+                          Your Features
                         </h3>
                         {[
-                          {
-                            href: '/user/mybookmarks',
-                            label: 'Bookmarks',
-                            icon: Bookmark,
-                            active: pathname === '/user/mybookmarks',
-                          },
-                          {
-                            href: '/user/history',
-                            label: 'Activity History',
-                            icon: Clock,
-                            active: pathname === '/user/history',
-                          },
+                          ...(user?.roleCapabilities?.canUploadProducts
+                            ? [{
+                                href: `/user/${user.username || user._id || 'profile'}/products`,
+                                label: 'My Products',
+                                icon: Briefcase,
+                                active: pathname.startsWith('/user/') && pathname.includes('/products'),
+                              }]
+                            : []),
+                          ...(user?.roleCapabilities?.canApplyToJobs
+                            ? [{
+                                href: '/jobs',
+                                label: 'Jobs',
+                                icon: Briefcase,
+                                active: pathname.startsWith('/jobs') && !pathname.includes('/post'),
+                              }]
+                            : []),
+                          ...(user?.roleCapabilities?.canShowcaseProjects
+                            ? [{
+                                href: '/projects',
+                                label: 'Projects',
+                                icon: Layers,
+                                active: pathname.startsWith('/projects'),
+                              }]
+                            : []),
                         ].map((item, idx) => (
                           <motion.div
                             key={item.href}
@@ -881,36 +764,46 @@ const Header = () => {
                         ))}
                       </div>
 
-                      {getRoleBasedNavItems().length > 0 && (
-                        <div className="pt-4">
-                          <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Your Features
-                          </h3>
-                          {getRoleBasedNavItems().map((item, index) => (
-                            <motion.div
-                              key={index}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.6 + index * 0.05 }}
+                      {/* Quick Access Section */}
+                      <div className="mb-4">
+                        <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Quick Access
+                        </h3>
+                        {[
+                          {
+                            href: '/user/mybookmarks',
+                            label: 'Bookmarks',
+                            icon: Bookmark,
+                            active: pathname === '/user/mybookmarks',
+                          },
+                          {
+                            href: '/user/history',
+                            label: 'Activity History',
+                            icon: Clock,
+                            active: pathname === '/user/history',
+                          },
+                        ].map((item, idx) => (
+                          <motion.div
+                            key={item.href}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6 + idx * 0.05 }}
+                          >
+                            <Link
+                              href={item.href}
+                              className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
+                                item.active
+                                  ? 'bg-violet-100 text-violet-700'
+                                  : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
+                              }`}
+                              onClick={() => setIsMobileMenuOpen(false)}
                             >
-                              <Link
-                                href={item.href}
-                                className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
-                                  item.isActive
-                                    ? 'bg-violet-100 text-violet-700'
-                                    : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
-                                }`}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                              >
-                                <div className="mr-3">
-                                  {item.icon}
-                                </div>
-                                <span className="font-medium">{item.label}</span>
-                              </Link>
-                            </motion.div>
-                          ))}
-                        </div>
-                      )}
+                              <item.icon size={18} className="mr-3" />
+                              {item.label}
+                            </Link>
+                          </motion.div>
+                        ))}
+                      </div>
                     </>
                   )}
                 </nav>

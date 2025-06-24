@@ -2,18 +2,18 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from "@/lib/contexts/auth-context";
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, XCircle, Mail, ArrowRight } from 'lucide-react';
 
 const VerifyEmailTokenPage = () => {
   const { token } = useParams();
-  const { verifyEmail, user, authLoading, error } = useAuth();
+  const { verifyEmail, user, authLoading, error, nextStep } = useAuth();
   const [verificationStatus, setVerificationStatus] = useState('loading');
   const [verificationError, setVerificationError] = useState('');
   const [verificationAttempted, setVerificationAttempted] = useState(false);
   const confettiCanvasRef = useRef(null);
-  const router = useRouter();
 
   useEffect(() => {
     const verifyEmailToken = async () => {
@@ -73,10 +73,10 @@ const VerifyEmailTokenPage = () => {
     }
 
     // If user is already verified and tries to verify again, show success message
-    if (user?.isEmailVerified && verificationStatus === 'loading') {
+    if (user?.isEmailVerified && verificationStatus === 'loading' && !nextStep) {
       setVerificationStatus('success');
     }
-  }, [token, verifyEmail, error, verificationAttempted, user]);
+  }, [token, verifyEmail, error, verificationAttempted, user, nextStep]);
 
   // Animation variants
   const containerVariants = {
@@ -122,42 +122,50 @@ const VerifyEmailTokenPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Hidden canvas for confetti */}
       <canvas
         ref={confettiCanvasRef}
         className="absolute top-0 left-0 w-full h-full pointer-events-none z-10"
       />
 
-      {/* Background pattern */}
-      <div className="absolute inset-0 z-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-          backgroundSize: "24px 24px"
-        }}></div>
-      </div>
+      {/* Logo */}
+      <motion.div
+        className="text-center mb-8 z-20 relative"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <motion.div
+          className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center shadow-lg"
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <span className="text-2xl font-bold text-white">PB</span>
+        </motion.div>
+      </motion.div>
 
       <AnimatePresence mode="wait">
         {verificationStatus === 'loading' && !verificationAttempted && (
           <motion.div
             key="email-verification-loading"
-            className="sm:mx-auto sm:w-full sm:max-w-md z-10"
+            className="sm:mx-auto sm:w-full sm:max-w-md z-20"
             initial="hidden"
             animate="visible"
             exit="exit"
             variants={containerVariants}
           >
             <motion.div
-              className="bg-white py-10 px-6 shadow-lg sm:rounded-lg border border-gray-100 text-center"
+              className="bg-white py-10 px-6 shadow-xl sm:rounded-2xl border border-gray-100 text-center"
               variants={itemVariants}
             >
               <motion.div
                 className="flex flex-col items-center justify-center"
                 variants={itemVariants}
               >
-                <div className="w-16 h-16 mb-4 relative">
+                <div className="w-16 h-16 mb-6 relative">
                   <motion.div
-                    className="w-16 h-16 border-t-4 border-primary border-solid rounded-full"
+                    className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full"
                     animate={{ rotate: 360 }}
                     transition={{
                       duration: 1.5,
@@ -165,6 +173,9 @@ const VerifyEmailTokenPage = () => {
                       ease: "linear"
                     }}
                   />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Mail className="w-6 h-6 text-primary" />
+                  </div>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Verifying Your Email</h2>
                 <p className="text-gray-600">Please wait while we verify your email address...</p>
@@ -176,32 +187,30 @@ const VerifyEmailTokenPage = () => {
         {verificationStatus === 'success' && (
           <motion.div
             key="email-verification-success"
-            className="sm:mx-auto sm:w-full sm:max-w-md z-10"
+            className="sm:mx-auto sm:w-full sm:max-w-md z-20"
             initial="hidden"
             animate="visible"
             exit="exit"
             variants={containerVariants}
           >
             <motion.div
-              className="bg-white py-10 px-6 shadow-lg sm:rounded-lg border border-gray-100 text-center"
+              className="bg-white py-10 px-6 shadow-xl sm:rounded-2xl border border-gray-100 text-center"
               variants={itemVariants}
             >
               <motion.div
                 className="bg-green-50 rounded-full mx-auto p-4 w-24 h-24 flex items-center justify-center mb-6"
                 variants={iconVariants}
               >
-                <svg className="h-14 w-14 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <CheckCircle className="h-14 w-14 text-green-500" />
               </motion.div>
               <motion.h2 className="text-2xl font-bold text-gray-800 mb-2" variants={itemVariants}>
                 Email Verified Successfully!
               </motion.h2>
               <motion.p className="text-gray-600 mb-8" variants={itemVariants}>
-                Your email has been verified. You can now access all features of Product Bazar.
+                Your email has been verified. You can now access all features of the app.
               </motion.p>
               <motion.div className="flex flex-col sm:flex-row gap-4 justify-center" variants={itemVariants}>
-                {user?.isPhoneVerified === false && (
+                {user?.isPhoneVerified === false && nextStep?.type !== 'phone_verification' && (
                   <motion.div
                     variants={linkVariants}
                     initial="idle"
@@ -210,12 +219,10 @@ const VerifyEmailTokenPage = () => {
                   >
                     <Link
                       href="/auth/verify-phone"
-                      className="px-6 py-2 bg-accent text-white rounded-full hover:bg-accent-dark transition-colors shadow-md flex items-center justify-center"
+                      className="px-6 py-3 bg-gradient-to-r from-accent to-accent/90 text-white rounded-lg hover:from-accent/90 hover:to-accent/80 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
                     >
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      Verify Phone Number
+                      <Mail className="w-5 h-5" />
+                      <span>Verify Phone Number</span>
                     </Link>
                   </motion.div>
                 )}
@@ -226,13 +233,11 @@ const VerifyEmailTokenPage = () => {
                   whileTap="tap"
                 >
                   <Link
-                    href="/user"
-                    className="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors shadow-md flex items-center justify-center"
+                    href="/products"
+                    className="px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-white rounded-lg hover:from-primary/90 hover:to-primary/80 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
                   >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                    Go to Dashboard
+                    <span>Go to Homepage</span>
+                    <ArrowRight className="w-5 h-5" />
                   </Link>
                 </motion.div>
               </motion.div>
@@ -243,23 +248,21 @@ const VerifyEmailTokenPage = () => {
         {verificationStatus === 'error' && (
           <motion.div
             key="email-verification-error"
-            className="sm:mx-auto sm:w-full sm:max-w-md z-10"
+            className="sm:mx-auto sm:w-full sm:max-w-md z-20"
             initial="hidden"
             animate="visible"
             exit="exit"
             variants={containerVariants}
           >
             <motion.div
-              className="bg-white py-10 px-6 shadow-lg sm:rounded-lg border border-gray-100 text-center"
+              className="bg-white py-10 px-6 shadow-xl sm:rounded-2xl border border-gray-100 text-center"
               variants={itemVariants}
             >
               <motion.div
                 className="bg-red-50 rounded-full mx-auto p-4 w-24 h-24 flex items-center justify-center mb-6"
                 variants={iconVariants}
               >
-                <svg className="h-14 w-14 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <XCircle className="h-14 w-14 text-red-500" />
               </motion.div>
               <motion.h2 className="text-2xl font-bold text-gray-800 mb-2" variants={itemVariants}>
                 Verification Failed
@@ -276,12 +279,10 @@ const VerifyEmailTokenPage = () => {
                 >
                   <Link
                     href="/auth/login"
-                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition-colors shadow-md flex items-center justify-center"
+                    className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
                   >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
-                    </svg>
-                    Return to Login
+                    <ArrowRight className="w-5 h-5 rotate-180" />
+                    <span>Return to Login</span>
                   </Link>
                 </motion.div>
                 <motion.div
@@ -292,12 +293,10 @@ const VerifyEmailTokenPage = () => {
                 >
                   <Link
                     href="/auth/verify-email"
-                    className="px-6 py-2 bg-primary text-white rounded-full hover:bg-primary-dark transition-colors shadow-md flex items-center justify-center"
+                    className="px-6 py-3 bg-gradient-to-r from-primary to-primary/90 text-white rounded-lg hover:from-primary/90 hover:to-primary/80 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
                   >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    Request New Verification
+                    <Mail className="w-5 h-5" />
+                    <span>Request New Verification</span>
                   </Link>
                 </motion.div>
               </motion.div>

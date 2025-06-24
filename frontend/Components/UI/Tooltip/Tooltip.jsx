@@ -1,16 +1,8 @@
+// components/auth/animated-tooltip-preview.jsx
 "use client";
 
 import React from "react";
-import styled from "styled-components";
-import { AnimatedTooltip } from "./ui/animated-tooltip.jsx";
-
-const TooltipContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-`;
+import { AnimatedTooltip } from "./ui/animated-tooltip";
 
 const people = [
   {
@@ -59,8 +51,8 @@ const people = [
 
 export function AnimatedTooltipPreview() {
   return (
-    <TooltipContainer>
+    <div className="flex flex-row items-center justify-center w-full">
       <AnimatedTooltip items={people} />
-    </TooltipContainer>
+    </div>
   );
 }

@@ -26,12 +26,7 @@
   --xxl: 2.4rem;
   --xxxl: 3.2rem;
   --xxxxl: 4rem;
-
 }
-
-
-
-
 
 /* ======= BASE OPTIMIZATIONS ======= */
 
@@ -46,7 +41,6 @@ html {
   html {
     --no-bg-clip-text: true;
   }
-
   .no-bg-clip-text {
     /* Fallback styles for browsers that don't support background-clip: text */
   }

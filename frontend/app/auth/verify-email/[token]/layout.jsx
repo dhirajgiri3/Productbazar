@@ -11,7 +11,7 @@ export const metadata = {
 export default function VerifyEmailLayout({ children }) {
   return (
     <StyledComponentsRegistry>
-      <div>
+      <div className="z-0">
         <AuthProvider>
           {children}
           <ToastContainer // Move ToastContainer here and remove from the VerifyEmailPage
