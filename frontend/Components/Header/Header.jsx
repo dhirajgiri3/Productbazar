@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -22,6 +22,7 @@ import {
   Grid,
   Clock,
   ArrowRight,
+  MoreHorizontal,
 } from 'lucide-react';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { useCategories } from '@/lib/contexts/category-context';
@@ -33,12 +34,146 @@ import SearchModal from '../Modal/Search/SearchModal.jsx';
 import CategoryIcon from '../UI/CategoryIcon';
 import ProfilePicture from '../common/ProfilePicture.jsx';
 
-const NavItem = ({ label, isActive, href, onClick, icon }) => (
-  <motion.div whileHover={{ y: -2 }} whileTap={{ y: 0 }} className="relative group">
+// Smart menu prioritization system for responsive header
+const useSmartMenuLayout = (allMenus, screenWidth, user) => {
+  return useMemo(() => {
+    // Screen size breakpoints
+    const breakpoints = {
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+    };
+
+    // Role-based menu importance scoring
+    const getMenuImportanceScore = (menu) => {
+      let score = 0;
+      
+      // Admin menus should NEVER appear in primary menu - force them to More dropdown
+      if (menu.category === 'admin' || menu.id === 'admin') {
+        return -1000; // Negative score ensures they never appear in primary
+      }
+      
+      // Base importance from menu definition
+      if (menu.importance === 'high') score += 100;
+      else if (menu.importance === 'medium') score += 50;
+      else if (menu.importance === 'low') score += 25;
+      
+      // Active menu gets highest priority
+      if (menu.isActive) score += 1000;
+      
+      // Role-specific scoring
+      const userRole = user?.role;
+      const secondaryRoles = user?.secondaryRoles || [];
+      
+      // Core business features get higher priority for relevant roles
+      if (menu.id === 'my-products' && ['maker', 'startupOwner'].includes(userRole)) score += 200;
+      if (menu.id === 'jobs' && ['jobseeker', 'freelancer'].includes(userRole)) score += 200;
+      if (menu.id === 'post-jobs' && ['agency', 'startupOwner'].includes(userRole)) score += 150;
+      if (menu.id === 'projects' && ['freelancer', 'maker'].includes(userRole)) score += 150;
+      if (menu.id === 'services' && ['agency', 'freelancer'].includes(userRole)) score += 150;
+      if (menu.id === 'invest' && userRole === 'investor') score += 200;
+      
+      // Reduce priority for low-priority categories
+      if (menu.category === 'user') score -= 50;
+      
+      return score;
+    };
+
+    // Separate menus by categories - exclude admin from core menus
+    const coreMenus = allMenus.filter(menu => 
+      ['core', 'jobs', 'projects', 'services', 'investment'].includes(menu.category) &&
+      menu.category !== 'admin' && menu.id !== 'admin'
+    );
+    const userMenus = allMenus.filter(menu => menu.category === 'user');
+    const adminMenus = allMenus.filter(menu => menu.category === 'admin' || menu.id === 'admin');
+    
+    // Score and sort core menus
+    const scoredCoreMenus = coreMenus
+      .map(menu => ({ ...menu, score: getMenuImportanceScore(menu) }))
+      .sort((a, b) => b.score - a.score);
+
+    // Smart distribution based on screen size - maximum 2 menus for better responsive UI
+    let maxPrimaryMenus = 2; // Base: show only 2 most important
+    let showSubmitButton = true;
+    
+    if (screenWidth >= breakpoints.xl) {
+      maxPrimaryMenus = 2; // XL screens show 2 (changed from 3)
+    } else if (screenWidth >= breakpoints.lg) {
+      maxPrimaryMenus = 2; // Large screens show 2
+    } else if (screenWidth >= breakpoints.md) {
+      maxPrimaryMenus = 2; // Medium screens show 2
+    } else {
+      maxPrimaryMenus = 1; // Small screens show only 1
+      showSubmitButton = false; // Hide submit button on very small screens
+    }
+
+    // Always ensure we have at least the most important menu if available
+    maxPrimaryMenus = Math.min(maxPrimaryMenus, scoredCoreMenus.length);
+
+    // Distribution logic
+    const primaryMenus = scoredCoreMenus.slice(0, maxPrimaryMenus);
+    const moreMenus = scoredCoreMenus.slice(maxPrimaryMenus);
+    
+    // Enhanced user dropdown with better organization
+    const organizedUserMenus = userMenus.reduce((acc, menu) => {
+      const category = getMenuCategory(menu.id);
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(menu);
+      return acc;
+    }, {});
+
+    // Add overflow menus to More dropdown
+    const enhancedMoreMenus = [
+      ...moreMenus,
+      // Always add admin menus to More dropdown for better organization
+      ...adminMenus,
+      // Add some user menus to More if they're important
+      ...userMenus.filter(menu => 
+        ['bookmarks', 'history'].includes(menu.id) && maxPrimaryMenus < 2
+      )
+    ];
+
+    return {
+      primary: primaryMenus,
+      more: enhancedMoreMenus,
+      userDropdown: organizedUserMenus,
+      showSubmitButton,
+      stats: {
+        totalMenus: allMenus.length,
+        distribution: `Primary: ${primaryMenus.length}, More: ${enhancedMoreMenus.length}, User: ${userMenus.length}`,
+        screenSize: screenWidth >= breakpoints.xl ? 'xl' : 
+                   screenWidth >= breakpoints.lg ? 'lg' : 
+                   screenWidth >= breakpoints.md ? 'md' : 'sm',
+        topScores: primaryMenus.map(m => `${m.label}:${m.score}`).join(', ')
+      }
+    };
+  }, [allMenus, screenWidth, user]);
+};
+
+// Helper function to categorize user menus
+const getMenuCategory = (menuId) => {
+  const categoryMap = {
+    'profile': 'profile',
+    'bookmarks': 'activity', 
+    'history': 'activity',
+    'settings': 'settings'
+    // admin menus are now handled in the More dropdown, not in user dropdown
+  };
+  return categoryMap[menuId] || 'other';
+};
+
+// Enhanced NavItem with priority indicators
+const NavItem = ({ label, isActive, href, onClick, icon, priority, showPriority = false }) => (
+  <motion.div 
+    whileHover={{ y: -2 }} 
+    whileTap={{ y: 0 }} 
+    className="relative group"
+  >
     <Link
       href={href}
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl border border-transparent ${
+      className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl border border-transparent relative whitespace-nowrap ${
         isActive
           ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50 shadow-sm'
           : 'text-gray-600 hover:text-violet-700 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50 hover:border-violet-200/30'
@@ -53,6 +188,9 @@ const NavItem = ({ label, isActive, href, onClick, icon }) => (
         </span>
       )}
       {label}
+      {showPriority && priority <= 3 && (
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+      )}
       {isActive && (
         <motion.div
           className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-violet-600 rounded-full shadow-sm"
@@ -69,7 +207,7 @@ const AuthSection = ({
   setIsUserMenuOpen,
   isUserMenuOpen,
   handleLogout,
-  userDropdownMenus = [],
+  organizedUserMenus = {},
 }) => {
   const { user, isAuthenticated, isInitialized } = useAuth();
 
@@ -82,11 +220,14 @@ const AuthSection = ({
   }
 
   if (isAuthenticated && user) {
+    // Count total user menu items
+    const totalUserMenus = Object.values(organizedUserMenus).flat().length;
+    
     return (
       <div ref={userMenuRef} className="relative">
         <button
           onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-          className="flex items-center gap-3 p-1.5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 transition-colors duration-150 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50"
+          className="flex items-center gap-3 p-1.5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 transition-colors duration-150 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50 relative"
           aria-expanded={isUserMenuOpen}
           aria-label="User menu"
         >
@@ -98,6 +239,12 @@ const AuthSection = ({
             enableHover={false}
             statusColor="green"
           />
+          {/* Menu count indicator - only show if there are user menus */}
+          {totalUserMenus > 0 && (
+            <span className="absolute -top-1 -right-1 bg-violet-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+              {totalUserMenus}
+            </span>
+          )}
           <div
             className={`transition-transform duration-150 ${isUserMenuOpen ? 'rotate-180' : 'rotate-0'}`}
           >
@@ -115,11 +262,10 @@ const AuthSection = ({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="absolute right-0 mt-4 w-80 bg-white/95 backdrop-blur-xl border border-gray-200/60 rounded-3xl z-20 overflow-hidden"
+              className="absolute right-0 mt-4 w-80 bg-white/95 backdrop-blur-xl border border-gray-200/60 rounded-3xl z-20 overflow-hidden shadow-2xl"
             >
-              {/* User Info Header with enhanced design */}
+              {/* Enhanced User Info Header */}
               <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-violet-50/80 via-purple-50/80 to-indigo-50/80 relative overflow-hidden">
-                {/* Background decoration */}
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-violet-200/30 to-purple-200/30 rounded-full -translate-y-8 translate-x-8" />
                 <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-br from-indigo-200/30 to-violet-200/30 rounded-full translate-y-4 -translate-x-4" />
 
@@ -138,76 +284,102 @@ const AuthSection = ({
                     <div className="text-sm text-gray-600 truncate">
                       {user.email || user.phone || 'No contact info'}
                     </div>
-                    {user.role && (
-                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-violet-100/80 text-violet-700 mt-2 backdrop-blur-sm border border-violet-200/50">
-                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {user.role && (
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-violet-100/80 text-violet-700 backdrop-blur-sm border border-violet-200/50">
+                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        </div>
+                      )}
+                      {user.secondaryRoles && user.secondaryRoles.length > 0 && (
+                        <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100/80 text-blue-700 backdrop-blur-sm border border-blue-200/50">
+                          +{user.secondaryRoles.length}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Navigation Items with enhanced styling */}
-              {/* Dynamic Menu Items */}
-              <div className="py-3">
-                {userDropdownMenus.map((menu, index) => {
-                  // Define color mappings for different menu categories
-                  const getMenuItemStyle = (menuId) => {
-                    const colorMap = {
-                      profile: 'bg-blue-50 text-blue-600',
-                      bookmarks: 'bg-yellow-50 text-yellow-600',
-                      history: 'bg-indigo-50 text-indigo-600',
-                      settings: 'bg-gray-50 text-gray-600',
-                      'my-jobs': 'bg-teal-50 text-teal-600',
-                      'post-jobs': 'bg-emerald-50 text-emerald-600',
-                      invest: 'bg-green-50 text-green-600',
-                      admin: 'bg-red-50 text-red-600',
-                      projects: 'bg-purple-50 text-purple-600',
-                      services: 'bg-orange-50 text-orange-600',
-                    };
-                    return colorMap[menuId] || 'bg-gray-50 text-gray-600';
-                  };
-
-                  const getMenuDescription = (menuId) => {
-                    const descriptionMap = {
-                      profile: 'Manage your public profile',
-                      bookmarks: 'Your saved products',
-                      history: 'Recent activity and views',
-                      settings: 'Account preferences',
-                      'my-jobs': 'Manage job postings',
-                      'post-jobs': 'Create job listings',
-                      invest: 'Investment opportunities',
-                      admin: 'Administrative tools',
-                      projects: 'Your project portfolio',
-                      services: 'Service offerings',
-                    };
-                    return descriptionMap[menuId] || 'Access this feature';
-                  };
-
-                  return (
-                    <motion.div
-                      key={menu.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Link
-                        href={menu.href}
-                        className="flex items-center px-4 py-3 mx-2 text-sm text-gray-700 hover:bg-violet-50/80 hover:text-violet-700 transition-all duration-300 group rounded-2xl"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${getMenuItemStyle(menu.id)} transition-all duration-300 mr-3 group-hover:scale-110`}>
-                          {menu.icon}
+              {/* Organized User Menu Items */}
+              <div className="py-3 max-h-80 overflow-y-auto">
+                {Object.keys(organizedUserMenus).length > 0 ? (
+                  <>
+                    {/* Profile Section */}
+                    {organizedUserMenus.profile && organizedUserMenus.profile.length > 0 && (
+                      <div className="mb-2">
+                        <div className="px-4 py-2">
+                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Profile
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <div className="font-medium">{menu.label}</div>
-                          <div className="text-xs text-gray-500">{getMenuDescription(menu.id)}</div>
+                        {organizedUserMenus.profile.map((menu, index) => (
+                          <MenuDropdownItem
+                            key={menu.id}
+                            menu={menu}
+                            index={index}
+                            onClose={() => setIsUserMenuOpen(false)}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Activity Section */}
+                    {organizedUserMenus.activity && organizedUserMenus.activity.length > 0 && (
+                      <div className="mb-2">
+                        <div className="px-4 py-2">
+                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Activity
+                          </div>
                         </div>
-                        <ArrowRight size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" />
-                      </Link>
-                    </motion.div>
-                  );
-                })}
+                        {organizedUserMenus.activity.map((menu, index) => (
+                          <MenuDropdownItem
+                            key={menu.id}
+                            menu={menu}
+                            index={index + 10}
+                            onClose={() => setIsUserMenuOpen(false)}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Settings Section */}
+                    {organizedUserMenus.settings && organizedUserMenus.settings.length > 0 && (
+                      <div className="mb-2">
+                        <div className="px-4 py-2">
+                          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Settings
+                          </div>
+                        </div>
+                        {organizedUserMenus.settings.map((menu, index) => (
+                          <MenuDropdownItem
+                            key={menu.id}
+                            menu={menu}
+                            index={index + 20}
+                            onClose={() => setIsUserMenuOpen(false)}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Other uncategorized menus */}
+                    {organizedUserMenus.other && organizedUserMenus.other.length > 0 && (
+                      <div className="mb-2">
+                        {organizedUserMenus.other.map((menu, index) => (
+                          <MenuDropdownItem
+                            key={menu.id}
+                            menu={menu}
+                            index={index + 40}
+                            onClose={() => setIsUserMenuOpen(false)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="px-4 py-6 text-center text-gray-500">
+                    <div className="text-sm">No additional options available</div>
+                  </div>
+                )}
               </div>
 
               {/* Enhanced Logout Button */}
@@ -266,6 +438,68 @@ const AuthSection = ({
   );
 };
 
+// Reusable dropdown menu item component
+const MenuDropdownItem = ({ menu, index, onClose }) => {
+  const getMenuItemStyle = (menuId) => {
+    const colorMap = {
+      profile: 'bg-blue-50 text-blue-600',
+      bookmarks: 'bg-yellow-50 text-yellow-600',
+      history: 'bg-indigo-50 text-indigo-600',
+      settings: 'bg-gray-50 text-gray-600',
+      'my-jobs': 'bg-teal-50 text-teal-600',
+      'post-jobs': 'bg-emerald-50 text-emerald-600',
+      invest: 'bg-green-50 text-green-600',
+      admin: 'bg-red-50 text-red-600',
+      projects: 'bg-purple-50 text-purple-600',
+      services: 'bg-orange-50 text-orange-600',
+    };
+    return colorMap[menuId] || 'bg-gray-50 text-gray-600';
+  };
+
+  const getMenuDescription = (menuId) => {
+    const descriptionMap = {
+      profile: 'Manage your public profile',
+      bookmarks: 'Your saved products',
+      history: 'Recent activity and views',
+      settings: 'Account preferences',
+      'my-jobs': 'Manage job postings',
+      'post-jobs': 'Create job listings',
+      invest: 'Investment opportunities',
+      admin: 'Administrative tools',
+      projects: 'Your project portfolio',
+      services: 'Service offerings',
+    };
+    return descriptionMap[menuId] || 'Access this feature';
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <Link
+        href={menu.href}
+        className={`flex items-center px-4 py-3 mx-2 text-sm transition-all duration-300 group rounded-2xl ${
+          menu.isActive 
+            ? 'bg-violet-100/80 text-violet-700' 
+            : 'text-gray-700 hover:bg-violet-50/80 hover:text-violet-700'
+        }`}
+        onClick={onClose}
+      >
+        <div className={`flex items-center justify-center w-10 h-10 rounded-xl ${getMenuItemStyle(menu.id)} transition-all duration-300 mr-3 group-hover:scale-110`}>
+          {menu.icon}
+        </div>
+        <div className="flex-1">
+          <div className="font-medium">{menu.label}</div>
+          <div className="text-xs text-gray-500">{getMenuDescription(menu.id)}</div>
+        </div>
+        <ArrowRight size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" />
+      </Link>
+    </motion.div>
+  );
+};
+
 const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -285,6 +519,8 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
   const userMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
   const moreMenuRef = useRef(null);
@@ -293,14 +529,20 @@ const Header = () => {
   useOnClickOutside(categoryMenuRef, () => setIsCategoryMenuOpen(false));
   useOnClickOutside(moreMenuRef, () => setIsMoreMenuOpen(false));
 
-  // Smart menu configuration based on user role capabilities
-  const getNavigationMenus = () => {
+  // Screen width tracking for responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Enhanced menu configuration with better role-based logic
+  const getAllUserMenus = () => {
     if (!isAuthenticated || !user?.roleCapabilities) {
-      return {
-        primary: [],
-        secondary: [],
-        userDropdown: []
-      };
+      return [];
     }
 
     const allMenus = [
@@ -312,7 +554,8 @@ const Header = () => {
         icon: <Briefcase size={16} />,
         isActive: pathname.startsWith('/user/') && pathname.includes('/products'),
         priority: 1,
-        category: 'core'
+        category: 'core',
+        importance: 'high'
       }] : []),
       
       // Job-related menus
@@ -323,7 +566,8 @@ const Header = () => {
         icon: <Briefcase size={16} />,
         isActive: pathname.startsWith('/jobs') && !pathname.includes('/post'),
         priority: 2,
-        category: 'jobs'
+        category: 'jobs',
+        importance: 'high'
       }] : []),
       
       ...(user.roleCapabilities.canPostJobs ? [{
@@ -333,7 +577,8 @@ const Header = () => {
         icon: <Plus size={16} />,
         isActive: pathname === '/jobs/post',
         priority: 3,
-        category: 'jobs'
+        category: 'jobs',
+        importance: 'medium'
       }, {
         id: 'my-jobs',
         label: 'My Job Posts',
@@ -341,7 +586,8 @@ const Header = () => {
         icon: <FileText size={16} />,
         isActive: pathname === '/user/myjobs',
         priority: 4,
-        category: 'jobs'
+        category: 'jobs',
+        importance: 'medium'
       }] : []),
 
       // Project-related menus
@@ -352,7 +598,8 @@ const Header = () => {
         icon: <Layers size={16} />,
         isActive: pathname.startsWith('/projects'),
         priority: 5,
-        category: 'projects'
+        category: 'projects',
+        importance: 'medium'
       }] : []),
 
       // Service-related menus
@@ -363,7 +610,8 @@ const Header = () => {
         icon: <Code size={16} />,
         isActive: pathname.startsWith('/services'),
         priority: 6,
-        category: 'services'
+        category: 'services',
+        importance: 'medium'
       }] : []),
 
       // Investment-related menus
@@ -374,29 +622,20 @@ const Header = () => {
         icon: <DollarSign size={16} />,
         isActive: pathname.startsWith('/invest'),
         priority: 7,
-        category: 'investment'
+        category: 'investment',
+        importance: 'medium'
       }] : []),
 
-      // Admin menus
-      ...(user.role === 'admin' || user.secondaryRoles?.includes('admin') ? [{
-        id: 'admin',
-        label: 'Admin',
-        href: '/admin/users',
-        icon: <Users size={16} />,
-        isActive: pathname.startsWith('/admin'),
-        priority: 9, // Adjusted priority
-        category: 'admin'
-      }] : []),
-
-      // User profile menus (some with higher priority for primary nav)
+      // User profile menus
       {
         id: 'bookmarks',
         label: 'Bookmarks',
         href: '/user/mybookmarks',
         icon: <Bookmark size={16} />,
         isActive: pathname === '/user/mybookmarks',
-        priority: 6, // Promoted priority for primary nav
-        category: 'user'
+        priority: 8,
+        category: 'user',
+        importance: 'medium'
       },
       {
         id: 'history',
@@ -404,8 +643,9 @@ const Header = () => {
         href: '/user/history',
         icon: <Clock size={16} />,
         isActive: pathname === '/user/history',
-        priority: 7, // Promoted priority for primary nav
-        category: 'user'
+        priority: 9,
+        category: 'user',
+        importance: 'low'
       },
       {
         id: 'profile',
@@ -413,8 +653,9 @@ const Header = () => {
         href: `/user/${user.username || user._id || 'profile'}`,
         icon: <User size={16} />,
         isActive: pathname === `/user/${user.username || user._id || 'profile'}`,
-        priority: 11,
-        category: 'user'
+        priority: 10,
+        category: 'user',
+        importance: 'fixed'
       },
       {
         id: 'settings',
@@ -422,82 +663,32 @@ const Header = () => {
         href: '/user/settings',
         icon: <Settings size={16} />,
         isActive: pathname === '/user/settings',
+        priority: 11,
+        category: 'user',
+        importance: 'low'
+      },
+
+      // Admin menus
+      ...(user.role === 'admin' || user.secondaryRoles?.includes('admin') ? [{
+        id: 'admin',
+        label: 'Admin Panel',
+        href: '/admin/users',
+        icon: <Users size={16} />,
+        isActive: pathname.includes('/admin'),
         priority: 12,
-        category: 'user'
-      }
+        category: 'admin',
+        importance: 'high'
+      }]: []),
     ];
 
-    // Sort by priority
-    const sortedMenus = allMenus.sort((a, b) => a.priority - b.priority);
-    
-    // Smart distribution logic
-    const MAX_PRIMARY_MENUS = 4;
-    const MIN_PRIMARY_MENUS = 3;
-    
-    let primaryMenus = [];
-    let secondaryMenus = [];
-    let userDropdownMenus = [];
-
-    // Always prioritize core functionality and current active menu
-    const activeMenu = sortedMenus.find(menu => menu.isActive);
-    const coreMenus = sortedMenus.filter(menu => 
-      ['core', 'jobs', 'projects', 'services', 'investment'].includes(menu.category) && 
-      menu.priority <= 7
-    );
-    
-    // Essential user menus that can be promoted to primary if needed
-    const essentialUserMenus = sortedMenus.filter(menu => 
-      menu.category === 'user' && 
-      ['bookmarks', 'history'].includes(menu.id)
-    );
-    
-    // Start with core menus
-    primaryMenus = [...coreMenus];
-    
-    // Ensure active menu is always visible in primary if it's not already there
-    if (activeMenu && !primaryMenus.includes(activeMenu)) {
-      primaryMenus.unshift(activeMenu);
-    }
-    
-    // If we don't have enough primary menus, promote essential user menus
-    if (primaryMenus.length < MIN_PRIMARY_MENUS) {
-      const menusNeeded = MIN_PRIMARY_MENUS - primaryMenus.length;
-      const menusToPromote = essentialUserMenus.slice(0, menusNeeded);
-      primaryMenus = [...primaryMenus, ...menusToPromote];
-    }
-    
-    // Limit to max primary menus
-    if (primaryMenus.length > MAX_PRIMARY_MENUS) {
-      const overflow = primaryMenus.slice(MAX_PRIMARY_MENUS);
-      primaryMenus = primaryMenus.slice(0, MAX_PRIMARY_MENUS);
-      
-      // Move overflow to secondary, but keep essential user menus if possible
-      const overflowToSecondary = overflow.filter(menu => 
-        !essentialUserMenus.includes(menu) || primaryMenus.length === MAX_PRIMARY_MENUS
-      );
-      secondaryMenus = [...secondaryMenus, ...overflowToSecondary];
-    }
-    
-    // Remaining menus go to secondary (More menu) or user dropdown
-    const remainingMenus = sortedMenus.filter(menu => 
-      !primaryMenus.includes(menu) && !secondaryMenus.includes(menu)
-    );
-    
-    // Separate remaining menus: non-user menus go to secondary, user menus to dropdown
-    const remainingNonUserMenus = remainingMenus.filter(menu => menu.category !== 'user');
-    const remainingUserMenus = remainingMenus.filter(menu => menu.category === 'user');
-    
-    secondaryMenus = [...secondaryMenus, ...remainingNonUserMenus];
-    userDropdownMenus = remainingUserMenus;
-
-    return {
-      primary: primaryMenus,
-      secondary: secondaryMenus,
-      userDropdown: userDropdownMenus
-    };
+    return allMenus.sort((a, b) => a.priority - b.priority);
   };
 
-  const { primary: primaryMenus, secondary: secondaryMenus, userDropdown: userDropdownMenus } = getNavigationMenus();
+  const allUserMenus = getAllUserMenus();
+  const { primary: primaryMenus, more: moreMenus, userDropdown: organizedUserMenus, showSubmitButton, stats } = useSmartMenuLayout(allUserMenus, screenWidth, user);
+
+  // Debug info (remove in production)
+  console.log('Smart Menu Distribution:', stats);
 
   useEffect(() => {
     const handleKeyDown = e => {
@@ -573,15 +764,12 @@ const Header = () => {
         )}
       </AnimatePresence>
 
-      <header className="bg-white/85 backdrop-blur-xl sticky top-0 z-20 border-b border-gray-200/60 supports-[backdrop-filter]:bg-white/85">
+      <header className="bg-white/95 backdrop-blur-xl sticky top-0 z-20 border-b border-gray-200/60 supports-[backdrop-filter]:bg-white/95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-2">
           {/* Enhanced Logo Section */}
           <div className="flex items-center gap-4">
             <Link href="/products" aria-label="ProductBazar - Go to homepage">
-              <div
-                className="w-12 h-12 bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center font-bold relative overflow-hidden transition-all duration-150 hover:scale-105 hover:shadow-lg cursor-pointer group"
-              >
-                {/* Background decoration */}
+              <div className="w-12 h-12 bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center font-bold relative overflow-hidden transition-all duration-150 hover:scale-105 hover:shadow-lg group">
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent group-hover:from-white/30 transition-all duration-150" />
                 <span className="relative z-10 text-lg group-hover:scale-110 transition-transform duration-150">PB</span>
               </div>
@@ -595,7 +783,7 @@ const Header = () => {
             >
               <Search size={18} className="mr-4 text-violet-500 group-hover:text-violet-600 transition-colors" />
               <span className="text-sm font-medium">Search products, startups...</span>
-              <span className="absolute right-4 text-xs text-gray-400 bg-gray-100/80 group-hover:bg-violet-100/80 px-2.5 py-1 rounded-lg font-mono transition-colors border border-gray-200/50">⌘K</span>
+              <span className="absolute right-4 text-xs text-gray-400 bg-gray-100/80 group-hover:bg-violet-100/50 px-2.5 py-1 rounded-lg font-mono transition-all border border-gray-200/50">⌘K</span>
             </button>
           </div>
 
@@ -688,7 +876,8 @@ const Header = () => {
                 )}
               </AnimatePresence>
             </div>
-            {/* Primary Navigation Items */}
+
+            {/* Primary Navigation Items - Only show top 2 most important */}
             {isAuthenticated && primaryMenus.map((menu) => (
               <NavItem
                 key={menu.id}
@@ -696,17 +885,19 @@ const Header = () => {
                 isActive={menu.isActive}
                 href={menu.href}
                 icon={menu.icon}
+                priority={menu.priority}
+                showPriority={false} // Disable priority indicators for cleaner look
               />
             ))}
 
-            {/* More Menu for Secondary Items */}
-            {isAuthenticated && secondaryMenus.length > 0 && (
+            {/* More Menu for All Secondary Items */}
+            {isAuthenticated && moreMenus.length > 0 && (
               <div ref={moreMenuRef} className="relative">
                 <motion.button
                   onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                  className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent ${
+                  className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-xl border border-transparent transition-all duration-300 ${
                     isMoreMenuOpen
-                      ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50'
+                      ? 'text-violet-700 bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200/50 shadow-sm'
                       : 'text-gray-600 hover:text-violet-700 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50 hover:border-violet-200/30'
                   }`}
                   aria-expanded={isMoreMenuOpen}
@@ -714,7 +905,13 @@ const Header = () => {
                   whileHover={{ y: -2 }}
                   whileTap={{ y: 0 }}
                 >
+                  <MoreHorizontal size={16} className="mr-2" />
                   More
+                  {moreMenus.length > 0 && (
+                    <span className="ml-2 px-2 py-0.5 bg-violet-100 text-violet-700 text-xs rounded-full font-medium">
+                      {moreMenus.length}
+                    </span>
+                  )}
                   <motion.div
                     animate={{ rotate: isMoreMenuOpen ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
@@ -729,18 +926,21 @@ const Header = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="absolute right-0 mt-3 w-64 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl z-20 shadow-lg"
+                      className="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-md border border-gray-100/40 rounded-2xl z-20 shadow-lg overflow-hidden"
                     >
-                      <div className="p-4 border-b border-gray-100">
+                      <div className="p-4 border-b border-gray-100 bg-gradient-to-br from-violet-50/50 to-purple-50/50">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-gradient-to-tr from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
-                            <Grid size={16} className="text-white" />
+                            <MoreHorizontal size={16} className="text-white" />
                           </div>
-                          <div className="text-sm font-semibold text-gray-900">More Options</div>
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">More Options</div>
+                            <div className="text-xs text-gray-500">{moreMenus.length} additional features</div>
+                          </div>
                         </div>
                       </div>
-                      <div className="py-2">
-                        {secondaryMenus.map((menu, index) => (
+                      <div className="py-2 max-h-80 overflow-y-auto">
+                        {moreMenus.map((menu, index) => (
                           <motion.div
                             key={menu.id}
                             initial={{ opacity: 0, x: -10 }}
@@ -749,29 +949,27 @@ const Header = () => {
                           >
                             <Link
                               href={menu.href}
-                              className={`flex items-center px-4 py-3 text-sm group transition-all duration-200 ${
+                              className={`flex items-center px-4 py-3 text-sm group transition-all duration-200 mx-2 rounded-xl ${
                                 menu.isActive
-                                  ? 'bg-violet-50 text-violet-700'
-                                  : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
+                                  ? 'bg-violet-100/80 text-violet-700 border border-violet-200/50'
+                                  : 'text-gray-600 hover:bg-violet-50/80 hover:text-violet-600'
                               }`}
                               onClick={() => setIsMoreMenuOpen(false)}
                             >
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-colors ${
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-3 transition-all duration-200 ${
                                 menu.isActive
-                                  ? 'bg-violet-100'
-                                  : 'bg-gray-100 group-hover:bg-violet-100'
+                                  ? 'bg-violet-200/50 text-violet-600'
+                                  : 'bg-gray-100/80 text-gray-600 group-hover:bg-violet-100/80 group-hover:text-violet-600 group-hover:scale-110'
                               }`}>
-                                <span className={`transition-colors ${
-                                  menu.isActive
-                                    ? 'text-violet-600'
-                                    : 'text-gray-600 group-hover:text-violet-600'
-                                }`}>
-                                  {menu.icon}
-                                </span>
+                                {menu.icon}
                               </div>
                               <div className="flex-1">
                                 <div className="font-medium">{menu.label}</div>
+                                <div className="text-xs text-gray-500 capitalize">{menu.category} feature</div>
                               </div>
+                              {menu.score > 200 && (
+                                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                              )}
                               <ArrowRight size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1" />
                             </Link>
                           </motion.div>
@@ -785,25 +983,28 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center gap-4">
-            {isInitialized && isAuthenticated && user?.roleCapabilities?.canUploadProducts && (
-              <button
+            {/* Smart Submit Product Button - only show when appropriate */}
+            {isInitialized && isAuthenticated && user?.roleCapabilities?.canUploadProducts && showSubmitButton && (
+              <motion.button
                 onClick={handleProductSubmit}
-                className="hidden md:flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 rounded-2xl transition-colors duration-150 border border-violet-500/20 relative overflow-hidden group"
-                aria-label="Submit a product"
+                className="hidden md:flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 rounded-2xl transition-all duration-150 border border-violet-500/20 relative overflow-hidden group shadow-lg"
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {/* Background decoration */}
                 <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
                 <Plus size={18} className="mr-2 relative z-10" />
-                <span className="relative z-10">Submit Product</span>
-              </button>
+                <span className="relative z-10 whitespace-nowrap">Submit Product</span>
+              </motion.button>
             )}
+            
             <AuthSection
               userMenuRef={userMenuRef}
               setIsUserMenuOpen={setIsUserMenuOpen}
               isUserMenuOpen={isUserMenuOpen}
               handleLogout={handleLogout}
-              userDropdownMenus={userDropdownMenus}
+              organizedUserMenus={organizedUserMenus}
             />
+            
             <motion.button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-3 text-gray-500 hover:text-violet-600 hover:bg-gradient-to-r hover:from-violet-50/50 hover:to-purple-50/50 rounded-2xl md:hidden focus:ring-2 focus:ring-violet-500/20 transition-all duration-300 border border-transparent hover:border-violet-200/50"
@@ -820,27 +1021,27 @@ const Header = () => {
               </motion.div>
             </motion.button>
           </div>
-        </div>
+      </div>
 
-        {/* Enhanced Mobile Search Bar */}
-        <div className="px-4 pb-4 sm:hidden">
-          <button
-            onClick={() => setIsSearchModalOpen(true)}
-            className="w-full flex items-center h-12 px-5 rounded-2xl border border-gray-200/80 hover:border-violet-400/80 bg-gradient-to-r from-gray-50/90 to-white/90 hover:from-white hover:to-violet-50/50 text-gray-500 hover:text-violet-600 transition-all duration-150 relative group"
-            aria-label="Search"
-          >
-            <Search size={18} className="mr-4 text-violet-500 group-hover:text-violet-600 transition-colors" />
-            <span className="text-sm font-medium">Search products, startups...</span>
-            <span className="absolute right-4 text-xs text-gray-400 bg-gray-100/80 group-hover:bg-violet-100/80 px-2.5 py-1 rounded-lg font-mono transition-colors border border-gray-200/50">⌘K</span>
-          </button>
-        </div>
+      {/* Enhanced Mobile Search Bar */}
+      <div className="px-4 pb-4 sm:hidden">
+        <button
+          onClick={() => setIsSearchModalOpen(true)}
+          className="w-full flex items-center h-12 px-5 rounded-2xl border border-gray-200/80 hover:border-violet-400/80 bg-gradient-to-r from-gray-50/90 to-white/90 hover:from-white hover:to-violet-50/50 text-gray-500 hover:text-violet-600 transition-all duration-150 relative group">
+          <Search size={18} className="mr-4 text-violet-500 group-hover:text-violet-600 transition-colors" />
+          <span className="text-sm font-medium">Search products, startups...</span>
+          <span className="absolute right-4 text-xs text-gray-400 bg-gray-100/80 group-hover:bg-violet-100/80 px-2.5 py-1 rounded-lg font-mono transition-all duration-150 border border-gray-200/50">
+            <span className="ml-2">⌘K</span>
+          </span>
+        </button>
+      </div>
 
-        <SearchModal
-          isOpen={isSearchModalOpen}
-          onClose={() => setIsSearchModalOpen(false)}
-          initialQuery=""
-        />
-      </header>
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        initialQuery=""
+      />
+    </header>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -855,8 +1056,7 @@ const Header = () => {
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              exit={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="absolute top-0 right-0 bottom-0 w-11/12 max-w-sm bg-white/95 backdrop-blur-md shadow-2xl border-l border-gray-200/50 flex flex-col"
               onClick={e => e.stopPropagation()}
             >
@@ -864,13 +1064,13 @@ const Header = () => {
               <div className="flex items-center justify-between p-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-gradient-to-tr from-violet-600 via-purple-600 to-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">
-                    PB
+                    <span>PB</span>
                   </div>
                   <span className="font-semibold text-gray-900">ProductBazar</span>
                 </div>
                 <motion.button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 text-gray-500 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                  className="p-2 text-gray-500 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors duration-200"
                   whileTap={{ scale: 0.95 }}
                 >
                   <X size={20} />
@@ -892,13 +1092,11 @@ const Header = () => {
                         transition={{ delay: 0.1 + idx * 0.05 }}
                       >
                         <Link
-                          href={`/category/${
-                            category.slug || category.name.toLowerCase().replace(/\s+/g, '-')
-                          }`}
+                          href={`/category/${category.slug || category.name.toLowerCase().replace(/\s+/g, '-')}`}
                           className="flex items-center px-4 py-3 text-sm text-gray-600 hover:bg-violet-50 hover:text-violet-600 rounded-xl transition-all duration-200"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <div className="w-8 h-8 bg-gray-100 hover:bg-violet-100 rounded-lg flex items-center justify-center mr-3 transition-colors">
+                          <div className="w-8 h-8 bg-gray-100 group-hover:bg-violet-100 rounded-lg flex items-center justify-center mr-3 transition-colors duration-200">
                             <CategoryIcon
                               icon={category.icon}
                               name={category.name}
@@ -928,11 +1126,11 @@ const Header = () => {
 
                   {isAuthenticated && (
                     <>
-                      {/* Primary Features Section */}
+                      {/* Primary Features Section - Most Important */}
                       {primaryMenus.length > 0 && (
                         <div className="mb-4">
                           <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Primary Features
+                            Top Features
                           </h3>
                           {primaryMenus.map((menu, idx) => (
                             <motion.div
@@ -945,26 +1143,34 @@ const Header = () => {
                                 href={menu.href}
                                 className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
                                   menu.isActive
-                                    ? 'bg-violet-100 text-violet-700'
+                                    ? 'bg-violet-100 text-violet-700 border border-violet-200/50'
                                     : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
                                 }`}
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
                                 {menu.icon && <span className="mr-3">{menu.icon}</span>}
-                                {menu.label}
+                                <div className="flex-1">
+                                  <div className="font-medium">{menu.label}</div>
+                                  {menu.score > 200 && (
+                                    <div className="text-xs text-violet-600">Priority feature</div>
+                                  )}
+                                </div>
+                                {menu.score > 200 && (
+                                  <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                                )}
                               </Link>
                             </motion.div>
                           ))}
                         </div>
                       )}
 
-                      {/* Secondary Features Section */}
-                      {secondaryMenus.length > 0 && (
+                      {/* More Features Section */}
+                      {moreMenus.length > 0 && (
                         <div className="mb-4">
                           <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            More Features
+                            More Features ({moreMenus.length})
                           </h3>
-                          {secondaryMenus.map((menu, idx) => (
+                          {moreMenus.slice(0, 6).map((menu, idx) => (
                             <motion.div
                               key={menu.id}
                               initial={{ opacity: 0, y: 20 }}
@@ -981,40 +1187,53 @@ const Header = () => {
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
                                 {menu.icon && <span className="mr-3">{menu.icon}</span>}
-                                {menu.label}
+                                <div className="flex-1">
+                                  <div className="font-medium">{menu.label}</div>
+                                  <div className="text-xs text-gray-500 capitalize">{menu.category}</div>
+                                </div>
                               </Link>
                             </motion.div>
                           ))}
+                          {moreMenus.length > 6 && (
+                            <div className="px-4 py-2 text-xs text-gray-500">
+                              And {moreMenus.length - 6} more features...
+                            </div>
+                          )}
                         </div>
                       )}
 
-                      {/* User Profile Section */}
-                      {userDropdownMenus.length > 0 && (
+                      {/* User Profile Section - Organized */}
+                      {Object.keys(organizedUserMenus).length > 0 && (
                         <div className="mb-4">
                           <h3 className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Profile & Settings
                           </h3>
-                          {userDropdownMenus.map((menu, idx) => (
-                            <motion.div
-                              key={menu.id}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.7 + idx * 0.05 }}
-                            >
-                              <Link
-                                href={menu.href}
-                                className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
-                                  menu.isActive
-                                    ? 'bg-violet-100 text-violet-700'
-                                    : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
-                                }`}
-                                onClick={() => setIsMobileMenuOpen(false)}
+                          {Object.entries(organizedUserMenus).map(([category, menus]) => 
+                            menus.slice(0, 2).map((menu, idx) => (
+                              <motion.div
+                                key={menu.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.7 + idx * 0.05 }}
                               >
-                                {menu.icon && <span className="mr-3">{menu.icon}</span>}
-                                {menu.label}
-                              </Link>
-                            </motion.div>
-                          ))}
+                                <Link
+                                  href={menu.href}
+                                  className={`flex items-center px-4 py-3 text-sm rounded-xl transition-all duration-200 ${
+                                    menu.isActive
+                                      ? 'bg-violet-100 text-violet-700'
+                                      : 'text-gray-600 hover:bg-violet-50 hover:text-violet-600'
+                                  }`}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                  {menu.icon && <span className="mr-3">{menu.icon}</span>}
+                                  <div className="flex-1">
+                                    <div className="font-medium">{menu.label}</div>
+                                    <div className="text-xs text-gray-500 capitalize">{category}</div>
+                                  </div>
+                                </Link>
+                              </motion.div>
+                            ))
+                          )}
                         </div>
                       )}
                     </>
@@ -1023,6 +1242,7 @@ const Header = () => {
               </div>
 
               <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+                {/* Mobile Submit Product Button - show even on small screens for important action */}
                 {isAuthenticated && user?.roleCapabilities?.canUploadProducts && (
                   <motion.button
                     onClick={() => {
@@ -1045,7 +1265,7 @@ const Header = () => {
                       setIsMobileMenuOpen(false);
                       handleLogout();
                     }}
-                    className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                    className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors duration-200"
                     whileTap={{ scale: 0.98 }}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1063,14 +1283,14 @@ const Header = () => {
                   >
                     <Link
                       href="/auth/login"
-                      className="flex-1 text-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-colors"
+                      className="flex-1 text-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-colors duration-200"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Log In
                     </Link>
                     <Link
                       href="/auth/register"
-                      className="flex-1 text-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl transition-colors"
+                      className="flex-1 text-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 rounded-xl transition-colors duration-200"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Sign Up
@@ -1120,29 +1340,25 @@ const Header = () => {
           }
         }
 
-        /* Enhanced glass morphism effect */
         .glass-morphism {
-          background: rgba(255, 255, 255, 0.85);
+          background: rgba(255, 255, 0.95);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 0.2);
         }
 
-        /* Gradient text */
         .gradient-text {
-          background: linear-gradient(135deg, #8b5cf6, #a855f7, #3b82f6);
+          background: linear-gradient(to right, #8b5cf6, #a855f7, #3b82f6);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
 
-        /* Remove list styling to prevent bullet points */
         ul, ol, li {
           list-style: none;
           margin: 0;
           padding: 0;
         }
 
-        /* Ensure dropdown menus have no list styling */
         .dropdown-menu ul,
         .dropdown-menu ol,
         .dropdown-menu li {

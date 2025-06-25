@@ -63,12 +63,24 @@ export default function VerifyPhone() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [isPhoneEditable, setIsPhoneEditable] = useState(false);
+  const [isPhoneEditable, setIsPhoneEditable] = useState(true);
 
-  // Auto-redirect if phone is already verified and no temp phone
+  // Initialize phone number and form state
   useEffect(() => {
-    if (user?.isPhoneVerified && !user?.tempPhone && !nextStep?.type === 'phone_verification') {
-      router.push(`/user/${user.username}`);
+    if (user) {
+      // If there's a tempPhone (pending verification), use that
+      // Otherwise, use the current phone number
+      const initialPhone = user.tempPhone || user.phone || '';
+      setPhone(initialPhone);
+      
+      // If user already has a verified phone and no temp phone pending, redirect
+      if (user.isPhoneVerified && !user.tempPhone && nextStep?.type !== 'phone_verification') {
+        router.push(`/user/${user.username}`);
+        return;
+      }
+      
+      // Always allow editing on this page since it's for verification/updating phone
+      setIsPhoneEditable(true);
     }
   }, [user, nextStep, router]);
 
@@ -408,7 +420,7 @@ export default function VerifyPhone() {
                           : 'border-gray-200 bg-white focus:border-violet-500 focus:ring-violet-200'
                       } focus:ring-4 focus:ring-opacity-20 outline-none`}
                       required
-                      disabled={isSubmitting || !isPhoneEditable}
+                      disabled={isSubmitting}
                     />
                     {isSubmitting && (
                       <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
