@@ -7,7 +7,6 @@ const allowedOrigins = [
   'https://www.productbazar-frontend.onrender.com',
   'https://productbazar.cyperstudio.in',
   'https://www.productbazar.cyperstudio.in'
-  // Add other production/staging domains here
 ];
 
 // Main CORS configuration
@@ -33,8 +32,10 @@ export const corsOptions = {
 // Middleware to handle OPTIONS requests
 export const handleOptions = (req, res, next) => {
   if (req.method === 'OPTIONS') {
-    // Set CORS headers for preflight requests
-    res.header('Access-Control-Allow-Origin', corsOptions.origin);
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
     res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
     res.header('Access-Control-Allow-Credentials', 'true');

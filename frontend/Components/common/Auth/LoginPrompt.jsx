@@ -8,6 +8,7 @@ import {
   FaTwitter,
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import GoogleAuthButton from './GoogleAuthButton';
 
 // Animation variants
 const backdropVariants = {
@@ -168,14 +169,7 @@ const LoginPrompt = ({
 
                 {/* Social Login Options */}
                 <div className="grid grid-cols-3 gap-3">
-                  <motion.button
-                    className="py-2.5 px-4 bg-[#4285F4] text-white rounded-lg flex items-center justify-center"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <FaGoogle size={16} />
-                  </motion.button>
-
+                  <GoogleAuthButton isLogin={true} size="default" />
                   <motion.button
                     className="py-2.5 px-4 bg-[#24292E] text-white rounded-lg flex items-center justify-center"
                     whileHover={{ scale: 1.05 }}

@@ -425,7 +425,9 @@ export const AuthProvider = ({ children }) => {
   );
 
   // Create a promise for initialization to prevent multiple parallel initializations
-  const initPromiseRef = React.useRef(null);
+  const initPromiseRef = React.useRef(null  );
+
+
 
   // Initialize auth state
   useEffect(() => {

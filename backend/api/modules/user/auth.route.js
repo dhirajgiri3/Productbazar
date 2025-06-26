@@ -9,6 +9,7 @@ import * as verificationController from "../../../controllers/auth/auth.verifica
 import * as profileController from "../../../controllers/auth/auth.profile.controller.js";
 import * as passwordController from "../../../controllers/auth/auth.password.controller.js";
 import * as accountController from "../../../controllers/auth/auth.account.controller.js";
+import googleRoutes from "../../routes/auth/google.routes.js";
 
 import * as authValidator from "../../../validators/auth/auth.validators.js";
 import {
@@ -137,14 +138,6 @@ router.post("/refresh-token", baseController.refreshToken);
 
 // Logout (basic auth via protect middleware is sufficient)
 router.post("/logout", baseController.logout);
-
-// OAuth Routes
-router.get("/google", accountController.googleAuth);
-router.get(
-  "/google/callback",
-  // Passport handles the immediate auth, controller processes result
-  accountController.oauthCallback
-);
 
 // Get Current User Profile (Optional Authentication)
 router.get("/me", optionalAuth, profileController.getOptionalProfile);
@@ -313,5 +306,8 @@ router.post(
     accountController.revokeAccess(req, res, next);
   }
 );
+
+// === Google OAuth Routes ===
+router.use('/google', googleRoutes);
 
 export default router;

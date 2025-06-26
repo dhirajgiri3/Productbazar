@@ -1,149 +1,109 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { FaGoogle } from 'react-icons/fa';
-import { useAuth } from '@/lib/contexts/auth-context';
+import { motion } from 'framer-motion';
 
 const GoogleAuthButton = ({ 
-  isLogin = true, 
-  isLoading = false, 
+  text = "Continue with Google",
+  variant = "primary", // primary, secondary, outline
+  size = "md", // sm, md, lg
+  disabled = false,
+  loading = false,
   className = "",
-  size = "default", // "default", "large", "small"
-  onSuccess,
-  onError,
-  showEmailVerificationReminder = true
+  onClick
 }) => {
-  const { error, clearError } = useAuth();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
-  const handleGoogleAuth = () => {
-    if (isLoading || isProcessing) return;
+  const handleClick = () => {
+    if (disabled || loading) return;
     
-    setIsProcessing(true);
-    clearError();
-    
-    try {
-      // Store callback handlers in sessionStorage for OAuth callback
-      if (onSuccess) {
-        sessionStorage.setItem('oauth_success_callback', 'google_auth_success');
-      }
-      if (onError) {
-        sessionStorage.setItem('oauth_error_callback', 'google_auth_error');
-      }
-
-      // Store current page for redirect after auth
-      sessionStorage.setItem('oauth_redirect_url', window.location.pathname);
-      
-      // Redirect to Google OAuth endpoint
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5004';
-      window.location.href = `${backendUrl}/api/v1/auth/google?mode=${isLogin ? 'login' : 'register'}`;
-    } catch (err) {
-      console.error('Error initiating Google auth:', err);
-      setIsProcessing(false);
-      if (onError) {
-        onError(err);
-      }
+    if (onClick) {
+      onClick();
+    } else {
+      // Default behavior - redirect to Google OAuth
+      const googleAuthUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5004/api/v1'}/auth/google`;
+      window.location.href = googleAuthUrl;
     }
   };
 
   // Size variants
   const sizeClasses = {
-    small: "py-2 px-3 text-sm",
-    default: "py-3 px-4 text-base",
-    large: "py-3.5 px-5 text-lg"
+    sm: "px-4 py-2 text-sm",
+    md: "px-6 py-3 text-base",
+    lg: "px-8 py-4 text-lg"
   };
 
-  const iconSizes = {
-    small: 14,
-    default: 16,
-    large: 18
+  // Variant styles
+  const variantClasses = {
+    primary: "bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300 hover:shadow-md",
+    secondary: "bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100 hover:border-gray-300",
+    outline: "bg-transparent text-gray-700 border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
   };
 
-  // Handle OAuth callback effects
-  React.useEffect(() => {
-    // Listen for OAuth completion events
-    const handleOAuthSuccess = (event) => {
-      if (event.data.type === 'OAUTH_SUCCESS' && onSuccess) {
-        onSuccess(event.data.user);
-      }
-    };
-
-    const handleOAuthError = (event) => {
-      if (event.data.type === 'OAUTH_ERROR' && onError) {
-        onError(event.data.error);
-      }
-    };
-
-    window.addEventListener('message', handleOAuthSuccess);
-    window.addEventListener('message', handleOAuthError);
-
-    return () => {
-      window.removeEventListener('message', handleOAuthSuccess);
-      window.removeEventListener('message', handleOAuthError);
-    };
-  }, [onSuccess, onError]);
-
-  const currentlyLoading = isLoading || isProcessing;
+  const baseClasses = `
+    relative
+    inline-flex
+    items-center
+    justify-center
+    font-medium
+    rounded-lg
+    transition-all
+    duration-200
+    ease-in-out
+    focus:outline-none
+    focus:ring-2
+    focus:ring-purple-500
+    focus:ring-opacity-50
+    ${sizeClasses[size]}
+    ${variantClasses[variant]}
+    ${disabled || loading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
+    ${className}
+  `;
 
   return (
     <motion.button
       type="button"
-      onClick={handleGoogleAuth}
-      disabled={isLoading}
-      className={`
-        w-full flex items-center justify-center gap-3 
-        ${sizeClasses[size]}
-        bg-white border border-gray-300 rounded-xl
-        text-gray-700 font-medium
-        hover:bg-gray-50 hover:border-gray-400
-        focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2
-        disabled:opacity-50 disabled:cursor-not-allowed
-        transition-all duration-300
-        shadow-sm hover:shadow-md
-        ${className}
-      `}
-      whileHover={!isLoading ? { scale: 1.02 } : {}}
-      whileTap={!isLoading ? { scale: 0.98 } : {}}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      className={baseClasses}
+      onClick={handleClick}
+      disabled={disabled || loading}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      whileHover={!disabled && !loading ? { scale: 1.02 } : {}}
+      whileTap={!disabled && !loading ? { scale: 0.98 } : {}}
+      aria-label={text}
     >
-      {isLoading ? (
-        <>
-          <svg
-            className="animate-spin h-4 w-4 text-gray-600"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle 
-              className="opacity-25" 
-              cx="12" 
-              cy="12" 
-              r="10" 
-              stroke="currentColor" 
-              strokeWidth="4" 
-            />
-            <path 
-              className="opacity-75" 
-              fill="currentColor" 
-              d="M4 12a8 8 0 018-8v8H4z" 
-            />
-          </svg>
-          <span>Connecting...</span>
-        </>
-      ) : (
-        <>
-          <FaGoogle 
-            size={iconSizes[size]} 
-            className="text-[#4285F4] flex-shrink-0" 
-          />
-          <span className="text-gray-700">
-            {isLogin ? "Continue with Google" : "Sign up with Google"}
-          </span>
-        </>
+      {/* Loading spinner */}
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin" />
+        </div>
       )}
+
+      {/* Button content */}
+      <div className={`flex items-center space-x-3 ${loading ? 'opacity-0' : 'opacity-100'}`}>
+        <motion.div
+          animate={{
+            rotate: isHovered && !disabled && !loading ? 360 : 0
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          <FaGoogle 
+            className="text-red-500" 
+            size={size === 'sm' ? 16 : size === 'lg' ? 24 : 20} 
+          />
+        </motion.div>
+        <span className="font-medium">{text}</span>
+      </div>
+
+      {/* Hover effect background */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg opacity-0"
+        animate={{
+          opacity: isHovered && !disabled && !loading ? 0.1 : 0
+        }}
+        transition={{ duration: 0.2 }}
+      />
     </motion.button>
   );
 };
