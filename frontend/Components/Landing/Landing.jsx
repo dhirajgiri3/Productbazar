@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from 'react';
-import toast from 'react-hot-toast';
 // React is automatically imported in Next.js
 import HeroSection from "./Components/HeroSection";
 import DashboardPreview from "./Components/DashboardPreview";
@@ -24,24 +22,6 @@ const SectionSpacing = ({ children, className = "" }) => (
 );
 
 function Landing() {
-  // Handle Google OAuth success notification
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const authSuccess = params.get('auth');
-      
-      if (authSuccess === 'success') {
-        toast.success('Successfully signed in with Google!', {
-          duration: 4000,
-          position: 'top-center',
-        });
-        
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  }, []);
-
   return (
     <div className="flex flex-col items-center justify-center bg-white min-h-screen w-full">
       <SectionSpacing>

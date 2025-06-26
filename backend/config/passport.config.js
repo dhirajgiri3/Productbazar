@@ -1,10 +1,159 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import User from "../models/user/user.model.js";
 import logger from "../utils/logging/logger.js";
+import { generateUsername } from "../utils/auth/username.utils.js";
 
 export default function passportConfig() {
+  // Validate required environment variables
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    logger.warn("Google OAuth environment variables missing. Google authentication will be disabled.");
+    return;
+  }
+
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL,
+        passReqToCallback: true,
+        accessType: "offline",
+        prompt: "select_account",
+        scope: ["profile", "email"],
+      },
+      async (request, accessToken, refreshToken, profile, done) => {
+        try {
+          logger.info(`Google OAuth attempt for profile ID: ${profile.id}`, {
+            profileId: profile.id,
+            displayName: profile.displayName,
+          });
+
+          // Validate profile data
+          if (!profile.emails || !profile.emails.length) {
+            logger.error("Google profile missing email information", {
+              profileId: profile.id,
+            });
+            return done(
+              new Error("Google authentication failed: Email information not provided"),
+              null,
+              { message: "Email permission is required for registration" }
+            );
+          }
+
+          const email = profile.emails[0].value.toLowerCase().trim();
+          const profilePhoto = profile.photos?.[0]?.value;
+
+          // Check if user already exists with Google ID
+          let user = await User.findOne({ googleId: profile.id });
+
+          if (user) {
+            // Update user info if needed
+            let hasChanges = false;
+            
+            if (!user.profilePicture && profilePhoto) {
+              user.profilePicture = {
+                url: profilePhoto,
+                publicId: null
+              };
+              hasChanges = true;
+            }
+            
+            if (!user.isEmailVerified) {
+              user.isEmailVerified = true;
+              hasChanges = true;
+            }
+
+            if (hasChanges) {
+              await user.save();
+              logger.info(`Updated existing Google user: ${user._id}`);
+            } else {
+              logger.info(`Existing Google user found: ${user._id}`);
+            }
+            
+            return done(null, user, { isNewUser: false });
+          }
+
+          // Check if user exists with this email
+          user = await User.findOne({ email });
+          
+          if (user) {
+            // Link Google account to existing user
+            user.googleId = profile.id;
+            
+            if (!user.isEmailVerified) {
+              user.isEmailVerified = true;
+            }
+            
+            if (!user.profilePicture && profilePhoto) {
+              user.profilePicture = {
+                url: profilePhoto,
+                publicId: null
+              };
+            }
+
+            // Update name if not set
+            if (!user.firstName && profile.name?.givenName) {
+              user.firstName = profile.name.givenName;
+            }
+            if (!user.lastName && profile.name?.familyName) {
+              user.lastName = profile.name.familyName;
+            }
+
+            await user.save();
+            logger.info(`Linked Google account to existing user: ${user._id}`);
+            return done(null, user, { isNewUser: false });
+          }
+
+          // Create new user
+          const newUserData = {
+            googleId: profile.id,
+            email: email,
+            firstName: profile.name?.givenName || "",
+            lastName: profile.name?.familyName || "",
+            isEmailVerified: true,
+            isProfileCompleted: false,
+            profilePicture: profilePhoto ? {
+              url: profilePhoto,
+              publicId: null
+            } : undefined,
+            role: "user",
+            registrationMethod: "google",
+          };
+
+          // Generate unique username
+          try {
+            const baseUsername = profile.name?.givenName?.toLowerCase() || 
+                                email.split('@')[0].toLowerCase();
+            newUserData.username = await generateUsername(baseUsername);
+          } catch (usernameError) {
+            logger.warn("Failed to generate username for Google user", {
+              error: usernameError.message,
+              email: email,
+            });
+            // Username will be null, user can set it later
+          }
+
+          const newUser = new User(newUserData);
+          await newUser.save();
+          
+          logger.info(`Created new user from Google OAuth: ${newUser._id}`, {
+            email: email,
+            hasUsername: !!newUser.username,
+          });
+          
+          return done(null, newUser, { isNewUser: true });
+        } catch (error) {
+          logger.error(`Google OAuth strategy error: ${error.message}`, {
+            stack: error.stack,
+            profileId: profile?.id,
+          });
+          return done(error, null);
+        }
+      }
+    )
+  );
+
   // Serialize user for session (not used in JWT but required by passport)
   passport.serializeUser((user, done) => {
     done(null, user._id);
@@ -20,114 +169,4 @@ export default function passportConfig() {
       done(error, null);
     }
   });
-
-  // JWT Strategy for API authentication
-  passport.use(
-    new JwtStrategy(
-      {
-        jwtFromRequest: ExtractJwt.fromExtractors([
-          ExtractJwt.fromAuthHeaderAsBearerToken(),
-          ExtractJwt.fromHeader('authorization'),
-          (req) => {
-            let token = null;
-            if (req && req.cookies) {
-              token = req.cookies['token'];
-            }
-            return token;
-          },
-        ]),
-        secretOrKey: process.env.JWT_ACCESS_SECRET,
-        passReqToCallback: true,
-      },
-      async (req, payload, done) => {
-        try {
-          const user = await User.findById(payload.id).select("-password");
-          if (user) {
-            return done(null, user);
-          }
-          return done(null, false);
-        } catch (error) {
-          logger.error(`JWT authentication error: ${error.message}`);
-          return done(error, false);
-        }
-      }
-    )
-  );
-
-  // Google OAuth Strategy
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: "/api/v1/auth/google/callback",
-        scope: ['profile', 'email'],
-      },
-      async (accessToken, refreshToken, profile, done) => {
-        try {
-          logger.info(`Google OAuth attempt for profile: ${profile.id}`);
-
-          // Check if user already exists with this Google ID
-          let user = await User.findOne({ 'google.id': profile.id });
-
-          if (user) {
-            logger.info(`Existing Google user found: ${user.email}`);
-            return done(null, user);
-          }
-
-          // Check if user exists with the same email
-          user = await User.findOne({ email: profile.emails[0].value });
-
-          if (user) {
-            // Link Google account to existing user
-            user.google = {
-              id: profile.id,
-              email: profile.emails[0].value,
-              name: profile.displayName,
-              picture: profile.photos[0]?.value,
-              linkedAt: new Date(),
-            };
-
-            // Mark email as verified if it came from Google
-            if (!user.isEmailVerified) {
-              user.isEmailVerified = true;
-            }
-
-            await user.save();
-            logger.info(`Google account linked to existing user: ${user.email}`);
-            return done(null, user);
-          }
-
-          // Create new user with Google account
-          const newUser = new User({
-            email: profile.emails[0].value,
-            firstName: profile.name?.givenName || '',
-            lastName: profile.name?.familyName || '',
-            google: {
-              id: profile.id,
-              email: profile.emails[0].value,
-              name: profile.displayName,
-              picture: profile.photos[0]?.value,
-              linkedAt: new Date(),
-            },
-            isEmailVerified: true, // Google emails are pre-verified
-            registrationMethod: 'email',
-            profilePicture: {
-              url: profile.photos[0]?.value || '',
-            },
-            // Set profile completion status based on available data
-            profileCompleted: !!(profile.name?.givenName && profile.name?.familyName),
-          });
-
-          await newUser.save();
-          logger.info(`New Google user created: ${newUser.email}`);
-          return done(null, newUser);
-
-        } catch (error) {
-          logger.error(`Google OAuth error: ${error.message}`);
-          return done(error, null);
-        }
-      }
-    )
-  );
 }

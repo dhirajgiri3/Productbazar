@@ -427,7 +427,61 @@ export const AuthProvider = ({ children }) => {
   // Create a promise for initialization to prevent multiple parallel initializations
   const initPromiseRef = React.useRef(null  );
 
+  // OAuth callback handler
+  const handleOAuthCallback = useCallback(async () => {
+    if (typeof window === 'undefined') return false;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthSuccess = urlParams.get('oauth_success');
+    const token = urlParams.get('token');
+    const provider = urlParams.get('provider');
+    const newUser = urlParams.get('new_user');
 
+    // Check if this is an OAuth callback
+    if (oauthSuccess === 'true' && token && provider) {
+      logger.info(`Processing ${provider} OAuth callback with token`);
+      
+      try {
+        // Store the access token
+        localStorage.setItem('accessToken', token);
+        setAccessToken(token);
+
+        // Fetch user data with the new token
+        const result = await fetchUserData(token);
+        
+        if (result?.success && result.user) {
+          // Handle successful authentication
+          await handleAuthSuccess(result.user, null, newUser === 'true');
+          
+          // Clean up URL parameters
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+          
+          logger.info(`${provider} OAuth login successful for user: ${result.user._id}`);
+          return true;
+        } else {
+          throw new Error('Failed to fetch user data after OAuth');
+        }
+      } catch (error) {
+        logger.error(`Error processing ${provider} OAuth callback:`, error);
+        setError(`${provider} authentication failed. Please try again.`);
+        
+        // Clean up failed authentication
+        localStorage.removeItem('accessToken');
+        setAccessToken('');
+        
+        // Clean up URL parameters
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        
+        // Redirect to login page with error
+        router.push('/auth/login?error=oauth_failed');
+        return true; // Return true because we handled the callback, even if it failed
+      }
+    }
+    
+    return false; // Not an OAuth callback
+  }, [fetchUserData, handleAuthSuccess, router]);
 
   // Initialize auth state
   useEffect(() => {
@@ -441,6 +495,18 @@ export const AuthProvider = ({ children }) => {
       if (isInitialized) return;
 
       try {
+        // Check for OAuth callback parameters first
+        const shouldHandleOAuth = await handleOAuthCallback();
+        
+        // If OAuth was handled, don't continue with normal initialization
+        if (shouldHandleOAuth) {
+          if (mounted) {
+            setIsInitialized(true);
+            setAuthLoading(false);
+          }
+          return;
+        }
+
         const storedToken = localStorage.getItem('accessToken');
         const storedUser = localStorage.getItem('user');
 
@@ -492,7 +558,7 @@ export const AuthProvider = ({ children }) => {
       mounted = false;
       controller.abort();
     };
-  }, [handleUserData, fetchUserData, clearAuthState, user, isInitialized]);
+  }, [handleUserData, fetchUserData, clearAuthState, user, isInitialized, handleOAuthCallback]);
 
   const loginWithEmail = useCallback(
     async ({ email, password }) => {

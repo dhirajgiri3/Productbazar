@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi';
 import Link from 'next/link';
-import SocialDivider from 'Components/common/Auth/SocialDivider';
 import GoogleAuthButton from 'Components/common/Auth/GoogleAuthButton';
+import SocialDivider from 'Components/common/Auth/SocialDivider';
 
 const EmailLoginForm = ({ onSubmit, isLoading, onToggleMethod }) => {
   const [formData, setFormData] = useState({

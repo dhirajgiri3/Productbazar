@@ -59,9 +59,15 @@ const userSchema = new mongoose.Schema(
         message: "Please enter a valid phone number",
       },
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      // No index property here, defined explicitly below with userSchema.index()
+    },
     registrationMethod: {
       type: String,
-      enum: ["email", "phone"],
+      enum: ["email", "phone", "google"],
       default: "email",
     },
     isEmailVerified: {
@@ -378,32 +384,6 @@ const userSchema = new mongoose.Schema(
       minlength: [8, "Password must be at least 8 characters long"],
       select: false,
     },
-    // Google OAuth integration
-    google: {
-      id: {
-        type: String,
-        sparse: true, // Allow multiple users without Google ID
-        unique: true, // But ensure unique Google IDs when present
-      },
-      email: {
-        type: String,
-        sparse: true,
-      },
-      name: {
-        type: String,
-      },
-      picture: {
-        type: String,
-        validate: {
-          validator: (v) => !v || validator.isURL(v),
-          message: "Please enter a valid URL for Google profile picture",
-        },
-      },
-      linkedAt: {
-        type: Date,
-        default: Date.now,
-      },
-    },
     lastVerifiedAction: { type: Date, default: null }, // Timestamp of last verified action (e.g., email/phone change)
     verificationRequirements: {
       // Flags for required verification steps
@@ -442,11 +422,12 @@ const userSchema = new mongoose.Schema(
 );
 
 // === Indexes ===
-// Since email, phone already have indexes from their schema definitions
+// Since email, phone, and googleId already have indexes from their schema definitions
 // (defined as unique:true which automatically creates an index), we don't need to
 // define them again here. We'll just create the other needed indexes.
 // userSchema.index({ email: 1 }, { sparse: true });
 // userSchema.index({ phone: 1 }, { sparse: true });
+// userSchema.index({ googleId: 1 }, { sparse: true });
 userSchema.index({ role: 1 });
 userSchema.index({ secondaryRoles: 1 });
 userSchema.index({ interests: 1 });

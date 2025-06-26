@@ -658,23 +658,6 @@ const CompleteProfileContainer = () => {
     );
   }
 
-  // Handle Google OAuth success notification
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const authSuccess = params.get('auth');
-      
-      if (authSuccess === 'success') {
-        toast.success('Successfully signed in with Google! Please complete your profile.', {
-          duration: 4000,
-          position: 'top-center',
-        });
-        
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-white py-12 pt-6 px-4 sm:px-6 lg:px-8">
