@@ -22,7 +22,7 @@ const analyticSchema = new mongoose.Schema({
       'recommendation_collaborative', 'recommendation_preferences',
       'recommendation_interaction', 'recommendation_dismiss',
       'recommendation_feed', 'recommendation_feed_generation',
-      'recommendation_diversified_feed', 'search', 'signup', 
+      'recommendation_diversified_feed', 'search', 'signup', 'register',
       'product_submission', 'interaction'
     ],
     index: true

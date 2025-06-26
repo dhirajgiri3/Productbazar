@@ -198,10 +198,10 @@ const LoginPrompt = ({
               <div className="mt-6 text-center text-sm text-gray-600">
                 Don't have an account?{" "}
                 <a
-                  href={getRedirectPath("/auth/signup")}
+                  href={getRedirectPath("/auth/register")}
                   className="font-medium text-violet-600 hover:text-violet-700 hover:underline"
                 >
-                  Sign up
+                  Register Now
                 </a>
               </div>
             </div>

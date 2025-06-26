@@ -61,6 +61,7 @@ const recommendationInteractionSchema = new mongoose.Schema({
       "interaction",
       "search",
       "signup",
+      "register",
       "login",
       "direct",
       "remove_upvote",

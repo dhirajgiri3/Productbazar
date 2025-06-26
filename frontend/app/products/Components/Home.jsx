@@ -786,7 +786,7 @@ export default function Home() {
               aria-label="Sign up for an account"
               data-testid="signup-button"
             >
-              Sign Up Now
+              Register Now
             </button>
           </div>
         </SectionWrapper>

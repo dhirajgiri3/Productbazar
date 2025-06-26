@@ -1002,9 +1002,9 @@ export default function CategoryPageClient({ slug }) {
                       whileHover={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(124, 58, 237, 0.1), 0 4px 6px -2px rgba(124, 58, 237, 0.05)" }}
                       whileTap={{ scale: 0.98 }}
                       className="px-6 py-2.5 bg-violet-600 text-white rounded-md hover:bg-violet-700 transition-all border border-violet-700 shadow-sm"
-                      onClick={() => router.push("/auth/signup")}
+                      onClick={() => router.push("/auth/register")}
                     >
-                      Sign Up Now
+                      Register Now
                     </motion.button>
                   </div>
                 </div>
