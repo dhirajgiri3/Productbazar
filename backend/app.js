@@ -36,7 +36,6 @@ import {
   logCorsHeaders,
 } from "./api/middlewares/core/cors.middleware.js";
 import { verifyConnection } from "./utils/communication/mail.utils.js";
-import logger from "./utils/logging/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -49,7 +48,6 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later.",
-  // Add proper configuration for proxy environment
   standardHeaders: true,
   legacyHeaders: false,
   trustProxy: true,

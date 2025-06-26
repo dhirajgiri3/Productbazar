@@ -4,7 +4,9 @@ import cors from "cors";
 const allowedOrigins = [
   'http://localhost:3000',
   'https://productbazar-frontend.onrender.com',
-  'https://productbazar.cyperstudio.in'
+  'https://www.productbazar-frontend.onrender.com',
+  'https://productbazar.cyperstudio.in',
+  'https://www.productbazar.cyperstudio.in'
   // Add other production/staging domains here
 ];
 
