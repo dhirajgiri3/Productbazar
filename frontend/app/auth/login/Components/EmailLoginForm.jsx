@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi';
 import Link from 'next/link';
-import GoogleAuthButton from 'Components/common/Auth/GoogleAuthButton';
 import SocialDivider from 'Components/common/Auth/SocialDivider';
 
 const EmailLoginForm = ({ onSubmit, isLoading, onToggleMethod }) => {
@@ -282,7 +281,7 @@ const EmailLoginForm = ({ onSubmit, isLoading, onToggleMethod }) => {
         animate="animate"
         transition={{ delay: 0.6 }}
       >
-        <GoogleAuthButton isLogin={true} isLoading={isLoading} size="default" />
+        {/* Google Authentication has been removed */}
       </motion.div>
     </motion.form>
   );

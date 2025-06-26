@@ -57,29 +57,7 @@ const LoginLeft = () => {
     return () => clearInterval(timer);
   }, [isOtpSent, otpCountdown]);
 
-  // Handle Google login error messages
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const errorMsg = params.get('error');
 
-      if (errorMsg) {
-        const errorMessages = {
-          'google_auth_failed': 'Google authentication failed. Please try again.',
-          'no_user': 'Unable to retrieve user information from Google.',
-          'internal_error': 'An internal error occurred. Please try again.',
-        };
-
-        setFormErrors(prev => ({
-          ...prev,
-          google: errorMessages[errorMsg] || 'Authentication failed. Please try again.'
-        }));
-
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  }, []);
 
   // Function to handle requesting OTP
   const handleRequestOtp = async (e) => {
@@ -109,7 +87,7 @@ const LoginLeft = () => {
   // Function to handle verifying OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    setFormErrors({ phone: "", otp: "", google: "" });
+    setFormErrors({ phone: "", otp: "" });
     if (clearError) clearError();
 
     // OTP validation - ensure it's 4-6 digits only

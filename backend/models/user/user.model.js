@@ -59,15 +59,9 @@ const userSchema = new mongoose.Schema(
         message: "Please enter a valid phone number",
       },
     },
-    googleId: {
-      type: String,
-      unique: true,
-      sparse: true,
-      // No index property here, defined explicitly below with userSchema.index()
-    },
     registrationMethod: {
       type: String,
-      enum: ["email", "phone", "google"],
+      enum: ["email", "phone"],
       default: "email",
     },
     isEmailVerified: {
@@ -422,12 +416,12 @@ const userSchema = new mongoose.Schema(
 );
 
 // === Indexes ===
-// Since email, phone, and googleId already have indexes from their schema definitions
+// Since email and phone already have indexes from their schema definitions
 // (defined as unique:true which automatically creates an index), we don't need to
 // define them again here. We'll just create the other needed indexes.
 // userSchema.index({ email: 1 }, { sparse: true });
 // userSchema.index({ phone: 1 }, { sparse: true });
-// userSchema.index({ googleId: 1 }, { sparse: true });
+// userSchema.index({ phone: 1 }, { sparse: true });
 userSchema.index({ role: 1 });
 userSchema.index({ secondaryRoles: 1 });
 userSchema.index({ interests: 1 });

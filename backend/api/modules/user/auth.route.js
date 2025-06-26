@@ -138,14 +138,6 @@ router.post("/refresh-token", baseController.refreshToken);
 // Logout (basic auth via protect middleware is sufficient)
 router.post("/logout", baseController.logout);
 
-// OAuth Routes
-router.get("/google", accountController.googleAuth);
-router.get(
-  "/google/callback",
-  // Passport handles the immediate auth, controller processes result
-  accountController.oauthCallback
-);
-
 // Get Current User Profile (Optional Authentication)
 router.get("/me", optionalAuth, profileController.getOptionalProfile);
 
