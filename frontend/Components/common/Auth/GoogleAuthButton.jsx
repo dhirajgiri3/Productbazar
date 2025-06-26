@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaGoogle } from 'react-icons/fa';
 import { useAuth } from '@/lib/contexts/auth-context';
+import dotEnv from 'dotenv';
+dotEnv.config(); // Load environment variables
 
 const GoogleAuthButton = ({ 
   isLogin = true, 
@@ -36,8 +38,8 @@ const GoogleAuthButton = ({
       sessionStorage.setItem('oauth_redirect_url', window.location.pathname);
       
       // Redirect to Google OAuth endpoint
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      window.location.href = `${backendUrl}/api/auth/google?mode=${isLogin ? 'login' : 'register'}`;
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5004';
+      window.location.href = `${backendUrl}/api/v1/auth/google?mode=${isLogin ? 'login' : 'register'}`;
     } catch (err) {
       console.error('Error initiating Google auth:', err);
       setIsProcessing(false);
