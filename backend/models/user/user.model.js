@@ -65,6 +65,11 @@ const userSchema = new mongoose.Schema(
       sparse: true,
       // No index property here, defined explicitly below with userSchema.index()
     },
+    registrationMethod: {
+      type: String,
+      enum: ["email", "phone", "google"],
+      default: "email",
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,

@@ -6,6 +6,8 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 import rateLimit from "express-rate-limit";
+import passport from "passport";
+import passportConfig from "./config/passport.config.js";
 
 // Import route files
 import authRoutes from "./api/modules/user/auth.route.js";
@@ -39,6 +41,9 @@ import { verifyConnection } from "./utils/communication/mail.utils.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+
+// Initialize passport configuration
+passportConfig();
 
 // Trust proxy - MUST be set before any rate limiting middleware
 // This is essential for apps deployed behind proxies (like Render, Heroku, etc.)
@@ -78,6 +83,9 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Initialize Passport middleware
+app.use(passport.initialize());
 
 // Logging
 if (process.env.NODE_ENV === "development") {

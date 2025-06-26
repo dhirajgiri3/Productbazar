@@ -25,10 +25,15 @@ dotenv.config();
  * @access  Public
  */
 export const googleAuth = (req, res, next) => {
+  // Optional: Store redirect URL in state parameter
+  const redirectUrl = req.query.redirect || '/dashboard';
+  const state = JSON.stringify({ redirectUrl });
+
   passport.authenticate("google", {
-    scope: ["profile", "email"], // Request profile and email scopes
-    prompt: "select_account", // Force account selection each time
-    session: false, // We are using JWT, not session cookies from passport
+    scope: ["profile", "email"],
+    prompt: "select_account",
+    session: false,
+    state: state,
   })(req, res, next);
 };
 
@@ -38,134 +43,137 @@ export const googleAuth = (req, res, next) => {
  * @access  Public (Handles redirect from Google)
  */
 export const oauthCallback = (req, res, next) => {
-  // Let passport handle the token exchange and profile fetching
-  // The 'google' strategy in passport.config.js will find/create user and call the callback below
   passport.authenticate(
     "google",
     {
       session: false,
       failureRedirect: `${process.env.CLIENT_URL}/auth/login?error=google_auth_failed`,
-    }, // Redirect on initial passport failure
+    },
     async (err, user, info) => {
-      // passport strategy's verify callback returns err, user, info
-      const state = req.query.state; // If you pass state, retrieve it here
-
       try {
-        // Log the start and any immediate errors from passport
+        // Parse state parameter if it exists
+        let redirectUrl = '/dashboard';
+        try {
+          if (req.query.state) {
+            const state = JSON.parse(req.query.state);
+            redirectUrl = state.redirectUrl || '/dashboard';
+          }
+        } catch (stateError) {
+          logger.warn("Failed to parse OAuth state parameter", { 
+            state: req.query.state,
+            error: stateError.message 
+          });
+        }
+
         logger.info("Google OAuth callback invoked.", {
-          info,
-          state,
-          errorMsg: err?.message,
+          hasUser: !!user,
+          isNewUser: info?.isNewUser,
+          error: err?.message,
+          redirectUrl,
         });
 
         if (err) {
-          logger.error(
-            "Error during Google authentication strategy execution:",
-            { error: err.message, stack: err.stack }
-          );
-          // Redirect to client with a generic error
+          logger.error("Error during Google authentication:", { 
+            error: err.message, 
+            stack: err.stack 
+          });
+          
           return res.redirect(
-            `${
-              process.env.CLIENT_URL
-            }/auth/login?error=google_auth_error&message=${encodeURIComponent(
+            `${process.env.CLIENT_URL}/auth/login?error=google_auth_error&message=${encodeURIComponent(
               "Authentication failed. Please try again."
             )}`
           );
         }
 
         if (!user) {
-          // This usually means the passport strategy decided not to proceed (e.g., domain restriction failed)
-          logger.error(
-            "Google OAuth callback: No user object returned from Passport strategy.",
-            { info }
-          );
-          const message =
-            info?.message ||
-            "Could not authenticate with Google. Please try again or use another method.";
+          logger.error("Google OAuth callback: No user returned", { info });
+          const message = info?.message || "Could not authenticate with Google. Please try again.";
+          
           return res.redirect(
-            `${
-              process.env.CLIENT_URL
-            }/auth/login?error=google_no_user&message=${encodeURIComponent(
-              message
-            )}`
+            `${process.env.CLIENT_URL}/auth/login?error=google_no_user&message=${encodeURIComponent(message)}`
           );
         }
 
-        // --- User successfully authenticated or created by passport strategy ---
         logger.info(`Google OAuth successful for user: ${user._id}`, {
           email: maskEmail(user.email),
           isNew: info?.isNewUser || false,
+          hasProfilePicture: !!user.profilePicture,
         });
 
-        // Ensure address structure consistency (important for both new and existing users)
-        await ensureAddressStructure(user); // This updates the user object in memory and potentially DB
-
-        // Update last login time
+        // Ensure address structure and update user
+        await ensureAddressStructure(user);
+        
+        // Update login information
         user.lastLogin = new Date();
-        // Reset login attempts/lockout if applicable (might not apply to OAuth logins)
         user.loginAttempts = 0;
         user.lockUntil = undefined;
-        await user.save(); // Save updated login time and address structure if changed
+        
+        // Save user updates
+        await user.save();
 
-        // --- Generate JWT tokens ---
+        // Generate JWT tokens
         const accessToken = generateAccessToken(user._id);
         const refreshToken = generateRefreshToken(user._id);
 
-        // Store the refresh token
+        // Store refresh token in database
         const refreshTokenDoc = new RefreshToken({
           user: user._id,
           token: refreshToken,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
           createdByIp: req.ip,
           userAgent: req.headers["user-agent"] || "Unknown",
-          provider: "google", // Indicate token originated from OAuth
+          provider: "google",
         });
         await refreshTokenDoc.save();
 
-        // --- Set Refresh Token Cookie ---
+        // Set refresh token cookie
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
           secure: isProduction,
           sameSite: isProduction ? "none" : "lax",
           path: "/",
-          maxAge: 7 * 24 * 60 * 60 * 1000,
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
-        // --- Redirect User to Client ---
-        // Redirect to different pages based on user state (e.g., profile completion)
-        let redirectPath = "/dashboard"; // Default redirect path
+        // Determine redirect path based on user state
+        let finalRedirectPath = redirectUrl;
+        
         if (!user.isProfileCompleted) {
-          redirectPath = "/complete-profile";
-          logger.info(
-            `Redirecting new/incomplete Google OAuth user ${user._id} to profile completion.`
-          );
+          finalRedirectPath = "/complete-profile";
+          logger.info(`Redirecting new Google user ${user._id} to profile completion`);
+        } else if (info?.isNewUser) {
+          finalRedirectPath = "/welcome";
+          logger.info(`Redirecting new Google user ${user._id} to welcome page`);
         }
-        // We need to pass the access token to the client. Query parameter is simple but less secure.
-        // Consider using localStorage via a dedicated callback page or passing via state if possible.
-        // Using query param for simplicity here:
-        const clientRedirectUrl = `${process.env.CLIENT_URL}${redirectPath}?oauth_success=true&token=${accessToken}`;
 
-        logger.info(
-          `Redirecting Google OAuth user ${user._id} to client at ${redirectPath}`
-        );
-        res.redirect(clientRedirectUrl);
+        // Create client redirect URL with success parameters
+        const clientRedirectUrl = new URL(process.env.CLIENT_URL + finalRedirectPath);
+        clientRedirectUrl.searchParams.set('oauth_success', 'true');
+        clientRedirectUrl.searchParams.set('token', accessToken);
+        clientRedirectUrl.searchParams.set('provider', 'google');
+        
+        if (info?.isNewUser) {
+          clientRedirectUrl.searchParams.set('new_user', 'true');
+        }
+
+        logger.info(`Redirecting Google OAuth user ${user._id} to: ${finalRedirectPath}`);
+        res.redirect(clientRedirectUrl.toString());
+
       } catch (error) {
         logger.error("Error processing Google OAuth callback:", {
           userId: user?._id,
           error: error.message,
           stack: error.stack,
         });
-        // Redirect to client with a generic internal server error message
+        
         res.redirect(
-          `${
-            process.env.CLIENT_URL
-          }/auth/login?error=internal_error&message=${encodeURIComponent(
+          `${process.env.CLIENT_URL}/auth/login?error=internal_error&message=${encodeURIComponent(
             "An unexpected error occurred during login."
           )}`
         );
       }
     }
-  )(req, res, next); // Important: call the passport authenticate function
+  )(req, res, next);
 };
 
 /**
