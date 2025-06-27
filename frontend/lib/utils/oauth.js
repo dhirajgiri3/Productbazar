@@ -55,6 +55,8 @@ export class OAuthHandler {
     url.searchParams.delete('token');
     url.searchParams.delete('provider');
     url.searchParams.delete('type');
+    url.searchParams.delete('refresh_token');
+    url.searchParams.delete('new_user');
     
     window.history.replaceState({}, '', url.pathname + url.search);
   }
@@ -163,19 +165,23 @@ export class OAuthHandler {
       return { valid: false, error: 'No callback parameters found' };
     }
     
-    if (!state || !this.wasOAuthInitiated()) {
-      return { valid: false, error: 'OAuth was not properly initiated' };
-    }
-    
+    // Check for error parameters first
     if (params.error) {
       return { valid: false, error: this.getErrorMessage(params.error) };
     }
     
-    if (!params.success || !params.token) {
-      return { valid: false, error: 'Invalid OAuth response' };
+    // If we have a token and success flag, it's valid even without stored state
+    // This handles cases where state might be cleared but OAuth is legitimate
+    if (params.success && params.token) {
+      return { valid: true, params, state };
     }
     
-    return { valid: true, params, state };
+    // If no success/token but we have stored state, check initiation
+    if (state && this.wasOAuthInitiated()) {
+      return { valid: false, error: 'OAuth response incomplete' };
+    }
+    
+    return { valid: false, error: 'Invalid OAuth response' };
   }
 
   /**

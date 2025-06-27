@@ -16,11 +16,18 @@ import {
   FiRefreshCw,
   FiCalendar,
   FiMonitor,
+  FiTrash2,
 } from "react-icons/fi";
 import { makePriorityRequest } from "@/lib/api/api";
 import { toast } from "react-hot-toast";
+import { useAuth } from "@/lib/contexts/auth-context";
+import { useRouter } from "next/navigation";
+import DeleteAccountModal from "../../../../Components/Modal/DeleteAccountModal";
 
 const SecuritySettings = ({ user }) => {
+  const { deleteAccount } = useAuth();
+  const router = useRouter();
+  
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -46,6 +53,9 @@ const SecuritySettings = ({ user }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [logoutAllLoading, setLogoutAllLoading] = useState(false);
+
+  // Delete account modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Calculate password strength
   useEffect(() => {
@@ -215,6 +225,25 @@ const SecuritySettings = ({ user }) => {
       );
     } finally {
       setLogoutAllLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      const result = await deleteAccount();
+      
+      if (result.success) {
+        toast.success("Account deleted successfully");
+        // Redirect to home page since user is logged out
+        router.push('/');
+      } else {
+        toast.error(result.message || 'Failed to delete account');
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("Failed to delete account. Please try again.");
+    } finally {
+      setShowDeleteModal(false);
     }
   };
 
@@ -661,6 +690,66 @@ const SecuritySettings = ({ user }) => {
           </form>
         </div>
       </motion.div>
+
+      {/* Danger Zone Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white rounded-xl shadow-sm border border-red-200 overflow-hidden"
+      >
+        <div className="px-6 py-4 bg-gradient-to-r from-red-50 to-white border-b border-red-200">
+          <div className="flex items-center">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <FiAlertTriangle className="text-red-600 w-5 h-5" />
+            </div>
+            <h3 className="ml-3 text-lg font-semibold text-gray-800">
+              Danger Zone
+            </h3>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="bg-red-50 rounded-lg border border-red-200 p-4 mb-4">
+            <div className="flex items-start">
+              <FiAlertTriangle className="text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                <h4 className="text-base font-medium text-red-800 mb-1">
+                  Delete Account
+                </h4>
+                <p className="text-sm text-red-700 mb-3">
+                  Once you delete your account, there is no going back. This action will permanently delete your account and all associated data including products, projects, comments, and preferences.
+                </p>
+                <ul className="text-sm text-red-600 space-y-1 mb-4">
+                  <li>• All your products and projects will be permanently removed</li>
+                  <li>• Your comments and interactions will be deleted</li>
+                  <li>• Your profile and personal information will be erased</li>
+                  <li>• This action cannot be undone</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <motion.button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200 hover:border-red-300"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+          >
+            <FiTrash2 className="mr-2" />
+            Delete My Account
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteAccount}
+        user={user}
+      />
     </div>
   );
 };

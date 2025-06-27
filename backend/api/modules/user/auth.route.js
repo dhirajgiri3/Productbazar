@@ -295,6 +295,13 @@ router.post(
   accountController.cancelAccountDeletion
 );
 
+// Delete my account immediately (simple and straightforward)
+router.delete(
+  "/delete-my-account",
+  // Basic auth sufficient - simple deletion without verification
+  accountController.deleteMyAccount
+);
+
 // Revoke access tokens (require critical verification for security)
 router.post(
   "/revoke-access",

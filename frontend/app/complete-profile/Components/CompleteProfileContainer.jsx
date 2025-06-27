@@ -50,6 +50,7 @@ const CompleteProfileContainer = () => {
   const [imageLoading, setImageLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [hasAccessToken, setHasAccessToken] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   const totalSteps = user?.role && ["startupOwner", "investor", "agency", "freelancer", "jobseeker"].includes(user.role) ? 6 : 5;
 
@@ -94,6 +95,47 @@ const CompleteProfileContainer = () => {
     setHasAccessToken(!!localStorage.getItem('accessToken'));
   }, []);
 
+  // Add a timeout to prevent infinite loading in extreme cases
+  useEffect(() => {
+    if (authLoading || (hasAccessToken && !user)) {
+      const timeout = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 15000); // 15 seconds timeout
+
+      return () => clearTimeout(timeout);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [authLoading, hasAccessToken, user]);
+
+  // Enhanced OAuth callback handling for complete profile page
+  useEffect(() => {
+    // Check if this is an OAuth callback and handle it properly
+    const urlParams = new URLSearchParams(window.location.search);
+    const isOAuthCallback = urlParams.has('oauth_success') || urlParams.has('token');
+    
+    if (isOAuthCallback) {
+      // If this is an OAuth callback, wait a bit longer for auth context to process
+      const oauthTimer = setTimeout(() => {
+        // Force a re-check of auth state after OAuth processing
+        const token = localStorage.getItem('accessToken');
+        const userData = localStorage.getItem('user');
+        
+        if (token && userData && !user) {
+          // Auth context might not have processed OAuth yet, try to refresh
+          try {
+            const parsedUser = JSON.parse(userData);
+            console.log('OAuth callback detected, found stored user data:', parsedUser);
+          } catch (error) {
+            console.error('Error parsing stored user data:', error);
+          }
+        }
+      }, 1000); // Wait 1 second for OAuth processing
+      
+      return () => clearTimeout(oauthTimer);
+    }
+  }, [user]);
+
   useEffect(() => {
     // Reset role data loaded state when auth state changes
     if (authLoading) {
@@ -101,20 +143,56 @@ const CompleteProfileContainer = () => {
       return;
     }
 
-    // If we have an access token but no user data yet, try to refresh user data
-    if (!user && hasAccessToken && !authLoading) {
-      // Try to refresh user data from the API
-      const loadUserData = async () => {
-        try {
-          // Use the fetchUserData function from AuthContext
-          await fetchUserData(hasAccessToken);
-          // We don't need to set roleDataLoaded here as this effect will run again when user is updated
-        } catch (err) {
-          logger.error("Failed to refresh user data:", err);
+    // Function to retry loading user data with exponential backoff
+    const loadUserDataWithRetry = async (retryCount = 0) => {
+      const maxRetries = 3;
+      const baseDelay = 1000; // 1 second
+      
+      try {
+        // Use the fetchUserData function from AuthContext
+        const success = await fetchUserData();
+        if (!success && retryCount < maxRetries) {
+          // Retry with exponential backoff
+          const delay = baseDelay * Math.pow(2, retryCount);
+          setTimeout(() => {
+            loadUserDataWithRetry(retryCount + 1);
+          }, delay);
+        } else if (!success) {
+          logger.warn("Failed to load user data after retries, marking as loaded to prevent infinite loading");
+          setRoleDataLoaded(true);
+        }
+        // We don't need to set roleDataLoaded here as this effect will run again when user is updated
+      } catch (err) {
+        logger.error("Failed to refresh user data:", err);
+        if (retryCount < maxRetries) {
+          const delay = baseDelay * Math.pow(2, retryCount);
+          setTimeout(() => {
+            loadUserDataWithRetry(retryCount + 1);
+          }, delay);
+        } else {
           setRoleDataLoaded(true); // Prevent infinite loading
         }
-      };
-      loadUserData();
+      }
+    };
+
+    // Enhanced condition for OAuth scenarios
+    // If we have an access token but no user data yet, try to refresh user data
+    if (!user && hasAccessToken && !authLoading) {
+      // Check if this might be an OAuth callback scenario
+      const urlParams = new URLSearchParams(window.location.search);
+      const isOAuthCallback = urlParams.has('oauth_success') || urlParams.has('token');
+      
+      if (isOAuthCallback) {
+        // For OAuth callbacks, wait a bit longer before trying to fetch user data
+        // as the auth context might still be processing the callback
+        const oauthDelay = setTimeout(() => {
+          loadUserDataWithRetry();
+        }, 500);
+        return () => clearTimeout(oauthDelay);
+      } else {
+        // For normal scenarios, try immediately
+        loadUserDataWithRetry();
+      }
       return;
     }
 
@@ -131,7 +209,7 @@ const CompleteProfileContainer = () => {
         skills: user.skills || [],
         interests: user.interests?.map(i => (typeof i === 'string' ? i : i?.name || '')).filter(Boolean) || [],
         socialLinks: user.socialLinks || { facebook: "", twitter: "", linkedin: "", instagram: "", github: "", website: "" },
-        profilePicture: user.profilePicture?.url || "", profileImage: null,
+        profilePicture: user.profilePicture?.url || user.googleProfile?.profilePicture || "", profileImage: null,
         companyName: user.companyName || "", companyWebsite: user.companyWebsite || "",
         companyRole: user.companyRole || "", industry: user.industry || "",
         roleDetails: {}, // Initialize empty, will be populated below
@@ -145,7 +223,7 @@ const CompleteProfileContainer = () => {
       setFormData(initialData);
       setSkillTags(user.skills || []);
       setInterestTags(initialData.interests); // Use the processed interests
-      setProfileImagePreview(user.profilePicture?.url || null);
+      setProfileImagePreview(user.profilePicture?.url || user.googleProfile?.profilePicture || null);
 
       // Fetch and merge existing role-specific data
       if (user.role && user.role !== "user" && user._id) {
@@ -175,7 +253,7 @@ const CompleteProfileContainer = () => {
         setRoleDataLoaded(true);
       }
     }
-  }, [user, authLoading, fetchUserData]); // Depend on user, authLoading, and fetchUserData
+  }, [user, authLoading, fetchUserData, hasAccessToken]); // Added hasAccessToken dependency
 
   // Helper for initial role defaults
     const getInitialRoleDefaults = (role, baseData) => {
@@ -625,26 +703,45 @@ const CompleteProfileContainer = () => {
   // hasAccessToken is now managed by state to prevent hydration mismatch
 
   // Show loading state while authentication is in progress or if we have a token but no user yet
-  if (authLoading || (hasAccessToken && !user)) {
+  if ((authLoading || (hasAccessToken && !user)) && !loadingTimeout) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
-        <LoaderComponent text="Loading authentication data..." size="large" color="violet" />
+        <LoaderComponent 
+          text={authLoading ? "Loading authentication data..." : "Setting up your profile..."} 
+          size="large" 
+          color="violet" 
+        />
       </div>
     );
   }
 
-  // Only show error if auth is initialized but no user is found and no token exists
-  if (!user && !hasAccessToken) {
+  // If timeout occurred or we still don't have user data, show error
+  if (loadingTimeout || (!user && !hasAccessToken)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white p-6 text-center">
-        <h2 className="text-xl font-semibold text-red-600 mb-4">Authentication Error</h2>
-        <p className="text-gray-700 mb-6">Could not load user data. You might need to log in again.</p>
-        <button
-            onClick={() => window.location.href = '/auth/login'} // Redirect to login with correct path
+        <h2 className="text-xl font-semibold text-red-600 mb-4">
+          {loadingTimeout ? "Loading Timeout" : "Authentication Error"}
+        </h2>
+        <p className="text-gray-700 mb-6">
+          {loadingTimeout 
+            ? "Profile data is taking longer than expected to load. Please try refreshing the page or logging in again."
+            : "Could not load user data. You might need to log in again."
+          }
+        </p>
+        <div className="space-x-4">
+          <button
+            onClick={() => window.location.reload()} 
+            className="px-6 py-2 border border-violet-600 text-violet-600 rounded-md hover:bg-violet-50 transition-colors mr-4"
+          >
+            Refresh Page
+          </button>
+          <button
+            onClick={() => window.location.href = '/auth/login'}
             className="px-6 py-2 bg-violet-600 text-white rounded-md hover:bg-violet-700 transition-colors"
-        >
+          >
             Go to Login
-        </button>
+          </button>
+        </div>
       </div>
     );
   }

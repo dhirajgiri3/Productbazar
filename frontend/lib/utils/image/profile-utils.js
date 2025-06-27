@@ -46,7 +46,8 @@ export const normalizeUserData = (user) => {
     },
     badges: user.badges || [],
     activity: user.activity || [],
-    profilePicture: user.profilePicture || ''
+    // Handle both object format and string format for backward compatibility
+    profilePicture: user.profilePicture || null
   };
 };
 

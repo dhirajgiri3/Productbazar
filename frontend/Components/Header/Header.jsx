@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -701,15 +701,52 @@ const Header = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success('Logged out successfully');
-      router.push('/auth/login');
-    } catch (error) {
-      toast.error('Failed to log out');
+  // Add a ref to prevent multiple concurrent logout attempts
+  const logoutInProgressRef = useRef(false);
+
+  const handleLogout = useCallback(async () => {
+    // Prevent multiple concurrent logout attempts
+    if (logoutInProgressRef.current) {
+      console.log('Logout already in progress, ignoring duplicate request');
+      return;
     }
-  };
+
+    logoutInProgressRef.current = true;
+
+    try {
+      // Show immediate feedback
+      toast.loading('Logging out...', { id: 'logout-toast' });
+      
+      const result = await logout();
+      
+      if (result.success) {
+        // Show appropriate success message
+        if (result.serverLogoutFailed) {
+          toast.success('Logged out successfully', { id: 'logout-toast' });
+        } else {
+          toast.success(result.message || 'Logged out successfully', { id: 'logout-toast' });
+        }
+        
+        // Navigate to login page after successful logout
+        router.push('/auth/login');
+      } else {
+        // This should rarely happen with the new logout implementation
+        toast.error(result.message || 'Failed to log out', { id: 'logout-toast' });
+      }
+    } catch (error) {
+      // Fallback error handling
+      console.error('Logout error in header:', error);
+      toast.error('Failed to log out', { id: 'logout-toast' });
+      
+      // Force navigation to login page even on error
+      router.push('/auth/login');
+    } finally {
+      // Reset the flag after a delay to prevent accidental rapid clicks
+      setTimeout(() => {
+        logoutInProgressRef.current = false;
+      }, 2000);
+    }
+  }, [logout, router]);
 
   const handleProductSubmit = () => {
     if (!isAuthenticated) {

@@ -5,6 +5,7 @@ import Startup from "../../models/user/startup.model.js";
 import Agency from "../../models/user/agency.model.js";
 import Freelancer from "../../models/user/freelancer.model.js";
 import Jobseeker from "../../models/user/jobseeker.model.js";
+import { generateUsername } from "../../utils/auth/username.utils.js";
 import { sendOTP, verifyOTP } from "../../utils/communication/twilio.utils.js";
 import {
   generateAccessToken,
@@ -384,31 +385,18 @@ export const verifyOtp = async (req, res, next) => {
       ];
       const assignedRole = role && validRoles.includes(role) ? role : "user";
 
-      // Generate Username from phone
-      const phoneDigits = normalizedPhone.replace(/\D/g, "");
-      const lastSixDigits = phoneDigits.slice(-6);
-      let baseUsername = `user${lastSixDigits}`;
-      let username = baseUsername;
-      let suffix = 0;
-      let isUnique = false;
-      while (!isUnique) {
-        const existingUser = await User.findOne({ username });
-        if (!existingUser) {
-          isUnique = true;
-        } else {
-          suffix++;
-          username = `${baseUsername}${suffix}`;
-          if (username.length > 30) {
-            // Ensure generated username doesn't exceed length
-            username =
-              baseUsername.substring(0, 30 - String(suffix).length) + suffix;
-          }
-        }
-        if (suffix > 1000) {
-          // Safety break
-          username = `user${Math.floor(Math.random() * 1000000)}`;
-          break;
-        }
+      // Generate Username using utility function for consistency
+      let username;
+      try {
+        const phoneDigits = normalizedPhone.replace(/\D/g, "");
+        const lastSixDigits = phoneDigits.slice(-6);
+        const baseUsername = `user${lastSixDigits}`;
+        username = await generateUsername(baseUsername);
+        logger.info(`Generated username for phone registration: ${username}`);
+      } catch (usernameError) {
+        logger.error(`Failed to generate username for phone registration: ${usernameError.message}`);
+        // Fallback to a simple random username
+        username = `user${Date.now().toString().slice(-8)}`;
       }
 
       // Create the new user

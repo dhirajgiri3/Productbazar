@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/user/user.model.js";
+import { generateUsername } from "../utils/auth/username.utils.js";
 import logger from "../utils/logging/logger.js";
 import dotenv from "dotenv";
 
@@ -58,6 +59,40 @@ export default function passportConfig() {
               profilePicture: googleProfile.profilePicture,
               emailVerified: googleProfile.emailVerified,
             };
+            
+            // Generate username if user doesn't have one
+            if (!user.username) {
+              try {
+                let baseUsername = '';
+                
+                if (user.firstName && user.lastName) {
+                  baseUsername = `${user.firstName}.${user.lastName}`;
+                } else if (user.firstName) {
+                  baseUsername = user.firstName;
+                } else if (user.lastName) {
+                  baseUsername = user.lastName;
+                } else if (user.email) {
+                  baseUsername = user.email.split('@')[0];
+                } else {
+                  baseUsername = 'user';
+                }
+                
+                user.username = await generateUsername(baseUsername);
+                logger.info(`Generated username for existing Google user: ${user.username}`);
+              } catch (usernameError) {
+                logger.error(`Failed to generate username for existing Google user: ${usernameError.message}`);
+                user.username = `user${Date.now().toString().slice(-8)}`;
+              }
+            }
+            
+            // Update profile picture if Google provides a newer one
+            if (googleProfile.profilePicture) {
+              user.profilePicture = {
+                url: googleProfile.profilePicture,
+                publicId: user.profilePicture?.publicId || null // Keep existing publicId if any
+              };
+            }
+            
             user.lastLoginAt = new Date();
             await user.save();
             
@@ -80,6 +115,39 @@ export default function passportConfig() {
                 emailVerified: googleProfile.emailVerified,
               };
               
+              // Generate username if user doesn't have one
+              if (!user.username) {
+                try {
+                  let baseUsername = '';
+                  
+                  if (user.firstName && user.lastName) {
+                    baseUsername = `${user.firstName}.${user.lastName}`;
+                  } else if (user.firstName) {
+                    baseUsername = user.firstName;
+                  } else if (user.lastName) {
+                    baseUsername = user.lastName;
+                  } else if (user.email) {
+                    baseUsername = user.email.split('@')[0];
+                  } else {
+                    baseUsername = 'user';
+                  }
+                  
+                  user.username = await generateUsername(baseUsername);
+                  logger.info(`Generated username for existing user during Google linking: ${user.username}`);
+                } catch (usernameError) {
+                  logger.error(`Failed to generate username for existing user: ${usernameError.message}`);
+                  user.username = `user${Date.now().toString().slice(-8)}`;
+                }
+              }
+              
+              // Update profile picture if Google provides one and user doesn't have one
+              if (googleProfile.profilePicture && (!user.profilePicture || !user.profilePicture.url)) {
+                user.profilePicture = {
+                  url: googleProfile.profilePicture,
+                  publicId: null // Google images don't have Cloudinary publicId
+                };
+              }
+              
               // If Google email is verified, mark user email as verified
               if (googleProfile.emailVerified) {
                 user.isEmailVerified = true;
@@ -93,11 +161,41 @@ export default function passportConfig() {
             }
           }
 
+          // Generate username using the utility function for consistency
+          let username;
+          try {
+            // Create a base username from Google profile data
+            let baseUsername = '';
+            
+            if (googleProfile.firstName && googleProfile.lastName) {
+              baseUsername = `${googleProfile.firstName}.${googleProfile.lastName}`;
+            } else if (googleProfile.firstName) {
+              baseUsername = googleProfile.firstName;
+            } else if (googleProfile.lastName) {
+              baseUsername = googleProfile.lastName;
+            } else if (googleProfile.email) {
+              // Fallback to email prefix if names aren't available
+              baseUsername = googleProfile.email.split('@')[0];
+            } else {
+              // Final fallback
+              baseUsername = 'googleuser';
+            }
+            
+            // Use the username utility to ensure uniqueness
+            username = await generateUsername(baseUsername);
+            logger.info(`Generated username for Google user: ${username}`);
+          } catch (usernameError) {
+            logger.error(`Failed to generate username for Google user: ${usernameError.message}`);
+            // Fallback to a simple random username
+            username = `user${Date.now().toString().slice(-8)}`;
+          }
+
           // Create new user with Google OAuth
           const newUser = new User({
             firstName: googleProfile.firstName,
             lastName: googleProfile.lastName,
             email: googleProfile.email,
+            username: username, // Set the generated username
             googleId: googleProfile.googleId,
             registrationMethod: "google",
             isGoogleLinked: true,
@@ -109,7 +207,11 @@ export default function passportConfig() {
               profilePicture: googleProfile.profilePicture,
               emailVerified: googleProfile.emailVerified,
             },
-            profileImage: googleProfile.profilePicture || "",
+            // Set profilePicture in the correct format for the User model
+            profilePicture: googleProfile.profilePicture ? {
+              url: googleProfile.profilePicture,
+              publicId: null // Google images don't have Cloudinary publicId
+            } : undefined,
             lastLoginAt: new Date(),
             registrationDate: new Date(),
           });

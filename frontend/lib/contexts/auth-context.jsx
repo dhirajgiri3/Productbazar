@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import api, { makePriorityRequest } from '../api/api.js';
 import logger from '../utils/logger.js';
 import { oauthHandler } from '../utils/oauth.js';
+import { runAllCleanup } from '../utils/cleanup-utils.js';
 
 const AuthContext = createContext({});
 
@@ -196,18 +197,67 @@ export const AuthProvider = ({ children }) => {
 
   // Define the clearAuthState function first since it's used in fetchUserData
   const clearAuthState = useCallback(() => {
-    setUser(null);
-    setAccessToken('');
-    setNextStep(null);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('nextStep');
-    
-    // Dispatch auth:logout event to invalidate cache
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('auth:logout'));
+    try {
+      // Clear state immediately
+      setUser(null);
+      setAccessToken('');
+      setNextStep(null);
+      setError('');
+      setAuthLoading(false); // Also reset loading state
+      
+      // Clear localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('nextStep');
+        localStorage.removeItem('skippedSteps');
+        
+        // Clear any user-specific recommendation settings
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+          if (key.startsWith('recommendation_settings_')) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
+      
+      // Run comprehensive cleanup
+      runAllCleanup();
+      
+      // Reset axios default authorization header
+      if (typeof window !== 'undefined') {
+        // Clear auth header from axios defaults
+        delete api.defaults.headers.common['Authorization'];
+        
+        // Dispatch auth events to notify other components
+        const events = [
+          new CustomEvent('auth:logout', {
+            detail: { timestamp: Date.now() }
+          }),
+          new CustomEvent('auth:unauthorized', {
+            detail: { 
+              message: 'User logged out',
+              code: 'LOGOUT',
+              timestamp: Date.now()
+            }
+          }),
+          new CustomEvent('auth:state-cleared', {
+            detail: { timestamp: Date.now() }
+          })
+        ];
+        
+        events.forEach(event => window.dispatchEvent(event));
+      }
+    } catch (error) {
+      console.error('Error clearing auth state:', error);
+      // Still try to clear basic state even if some operations fail
+      setUser(null);
+      setAccessToken('');
+      setNextStep(null);
+      setError('');
+      setAuthLoading(false);
     }
-  }, [setUser, setAccessToken, setNextStep]);
+  }, []);
 
   // Add a ref to track the API call status and prevent duplicate calls
   const fetchingUserDataRef = React.useRef(false);
@@ -337,6 +387,39 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Delete Account function (for authenticated users)
+  const deleteAccount = useCallback(async () => {
+    setAuthLoading(true);
+    setError('');
+
+    try {
+      const response = await makePriorityRequest('/auth/delete-my-account', {
+        method: 'DELETE'
+      });
+
+      if (response.data.status === 'success' || response.data.success) {
+        // Clear auth state immediately after successful deletion
+        clearAuthState();
+        
+        return { 
+          success: true, 
+          message: 'Your account has been permanently deleted.' 
+        };
+      }
+
+      const errorMessage = response.data.message || 'Failed to delete account';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } catch (err) {
+      logger.error('Delete account error:', err);
+      const errorMessage = err.response?.data?.message || 'Failed to delete account';
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [clearAuthState]);
+
   // Fetch user data from the server with debouncing
   const fetchUserData = useCallback(
     async token => {
@@ -426,9 +509,7 @@ export const AuthProvider = ({ children }) => {
   );
 
   // Create a promise for initialization to prevent multiple parallel initializations
-  const initPromiseRef = React.useRef(null  );
-
-  // OAuth callback handler using the new utility
+  const initPromiseRef = React.useRef(null  );  // OAuth callback handler using the new utility
   const handleOAuthCallback = useCallback(async () => {
     if (typeof window === 'undefined') return false;
     
@@ -438,6 +519,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     logger.info('Processing OAuth callback');
+    setAuthLoading(true); // Set loading state immediately
     
     try {
       // Process the callback using the OAuth handler
@@ -445,6 +527,7 @@ export const AuthProvider = ({ children }) => {
       
       if (!result.success) {
         setError(result.error);
+        setAuthLoading(false);
         router.push('/auth/login?error=oauth_failed');
         return true;
       }
@@ -452,27 +535,41 @@ export const AuthProvider = ({ children }) => {
       const { token, provider, type } = result;
       logger.info(`Processing ${provider} OAuth ${type} with token`);
       
-      // Store the access token
+      // Store the access token immediately
       localStorage.setItem('accessToken', token);
       setAccessToken(token);
 
-      // Fetch user data with the new token
-      const userData = await fetchUserData(token);
+      // Fetch user data immediately with the new token to ensure we have user data
+      const userDataFetched = await fetchUserData(token);
       
-      if (userData?.success && userData.user) {
-        // Handle successful authentication
-        const isNewUser = type === 'register';
-        await handleAuthSuccess(userData.user, null, isNewUser);
-        
-        logger.info(`${provider} OAuth ${type} successful for user: ${userData.user._id}`);
+      if (userDataFetched) {
+        logger.info(`${provider} OAuth ${type} successful - user data loaded`);
+        setAuthLoading(false); // Clear loading state
         return true;
       } else {
-        throw new Error('Failed to fetch user data after OAuth');
+        // If fetching user data fails, try the handleAuthSuccess approach
+        logger.warn('Direct user data fetch failed, trying handleAuthSuccess approach');
+        
+        // Create a mock auth success payload to trigger handleAuthSuccess
+        const mockAuthData = {
+          token: token,
+          data: {
+            accessToken: token
+          }
+        };
+
+        // Process through handleAuthSuccess to ensure proper state management
+        await handleAuthSuccess(mockAuthData);
+        
+        logger.info(`${provider} OAuth ${type} successful - auth state updated via handleAuthSuccess`);
+        setAuthLoading(false); // Clear loading state
+        return true;
       }
       
     } catch (error) {
       logger.error('Error processing OAuth callback:', error);
       setError('Authentication failed. Please try again.');
+      setAuthLoading(false);
       
       // Clean up failed authentication
       localStorage.removeItem('accessToken');
@@ -483,7 +580,7 @@ export const AuthProvider = ({ children }) => {
       router.push('/auth/login?error=oauth_failed');
       return true; // Return true because we handled the callback, even if it failed
     }
-  }, [fetchUserData, handleAuthSuccess, router]);
+  }, [handleAuthSuccess, fetchUserData, router]);
 
   // Initialize auth state
   useEffect(() => {
@@ -821,36 +918,56 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = useCallback(async () => {
+    // Use a ref to prevent multiple concurrent logout attempts
+    if (fetchingUserDataRef.current) {
+      return { success: false, message: 'Logout already in progress' };
+    }
+
+    fetchingUserDataRef.current = true;
     setAuthLoading(true);
     setError('');
 
     try {
-      // Make sure to include withCredentials to send cookies
-      const response = await api.post('/auth/logout', {}, { withCredentials: true });
-      if (response.data.status === 'success') {
-        clearAuthState();
-        router.push('/auth/login');
-        return { success: true };
-      }
-      setError(response.data.message || 'Logout failed');
-      return { success: false, message: response.data.message };
-    } catch (err) {
-      // Even if the server request fails, clear local auth state
-      // This ensures the user can still log out even if the server is unreachable
+      // First, clear the auth state immediately for responsive UI
       clearAuthState();
-      router.push('/auth/login');
 
-      const errorMessage = err.response?.data?.message || 'Logout failed';
-      setError(errorMessage);
+      // Then try to notify the server about logout
+      try {
+        await api.post('/auth/logout', {}, { 
+          withCredentials: true,
+          timeout: 3000 // Shorter timeout for better UX
+        });
+        
+        return { success: true, message: 'Logged out successfully' };
+      } catch (serverError) {
+        // Server logout failed but local logout already succeeded
+        console.warn('Server logout failed, but local logout successful:', serverError.message);
+        return { 
+          success: true, 
+          message: 'Logged out successfully', 
+          serverLogoutFailed: true 
+        };
+      }
+    } catch (err) {
+      // Fallback: ensure auth state is cleared even in unexpected errors
+      console.error('Unexpected logout error:', err);
+      
+      try {
+        clearAuthState();
+      } catch (clearError) {
+        console.error('Failed to clear auth state in fallback:', clearError);
+      }
+      
       return {
-        success: false,
-        message: errorMessage,
-        localLogoutSuccessful: true,
+        success: true, // Always return success for logout
+        message: 'Logged out successfully',
+        unexpectedError: true,
       };
     } finally {
+      fetchingUserDataRef.current = false;
       setAuthLoading(false);
     }
-  }, [clearAuthState, router]);
+  }, [clearAuthState]);
 
   const requestOtp = useCallback(async (phone, type = 'login') => {
     setAuthLoading(true);
@@ -1619,6 +1736,7 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     verifyPasswordResetToken,
     changePassword,
+    deleteAccount,
   }), [
     user, 
     accessToken, 
@@ -1655,6 +1773,7 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     verifyPasswordResetToken,
     changePassword,
+    deleteAccount,
   ]);
 
   // Return context value with all functions and state

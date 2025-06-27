@@ -177,6 +177,13 @@ export const linkGoogleAccount = async (req, res, next) => {
           profilePicture: googleData.picture,
           emailVerified: googleData.verified_email,
         },
+        // Update profile picture if Google provides one and user doesn't have one
+        ...(googleData.picture && (!req.user.profilePicture || !req.user.profilePicture.url) && {
+          profilePicture: {
+            url: googleData.picture,
+            publicId: null // Google images don't have Cloudinary publicId
+          }
+        }),
         // If Google email is verified and matches user email, verify user email
         ...(googleData.verified_email && googleData.email === req.user.email && {
           isEmailVerified: true

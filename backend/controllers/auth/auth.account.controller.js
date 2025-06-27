@@ -16,6 +16,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../../utils/auth/jwt.utils.js";
+import AccountDeletionService from "../../services/user/accountDeletion.service.js";
 
 dotenv.config();
 
@@ -683,6 +684,81 @@ export const updateSecuritySettings = async (req, res, next) => {
           "Failed to update security settings due to a server error.",
           500,
           "UPDATE_SECURITY_FAILED"
+        )
+      );
+    }
+  }
+};
+
+/**
+ * @desc    Delete my account immediately (simple and straightforward)
+ * @route   DELETE /auth/delete-my-account
+ * @access  Private (Requires authentication)
+ */
+export const deleteMyAccount = async (req, res, next) => {
+  const userId = req.user._id;
+
+  try {
+    logger.info(`User ${userId} requested immediate account deletion`);
+
+    // Validate that the account can be deleted
+    const validation = await AccountDeletionService.validateDeletion(userId);
+    if (!validation.canDelete) {
+      logger.warn(`Account deletion denied for user ${userId}: ${validation.reason}`);
+      return next(
+        new AppError(
+          validation.reason || "Account cannot be deleted at this time.",
+          400,
+          "DELETE_ACCOUNT_VALIDATION_FAILED"
+        )
+      );
+    }
+
+    // Delete the account and all associated data
+    const deletionSummary = await AccountDeletionService.deleteUserAccount(userId);
+
+    logger.info(`Account deletion completed for user ${userId}`, deletionSummary);
+
+    // Clear cookies to log out the user
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "strict",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "strict",
+    });
+
+    res.status(200).json(
+      formatResponse(
+        "success",
+        "Your account has been permanently deleted. All your data has been removed from our systems.",
+        {
+          deletedAt: deletionSummary.deletedAt,
+          deletedDataSummary: {
+            products: deletionSummary.deletedData.products,
+            projects: deletionSummary.deletedData.projects,
+            comments: deletionSummary.deletedData.comments,
+            // Don't expose too much detail to the user
+          }
+        }
+      )
+    );
+  } catch (error) {
+    logger.error(
+      `Account deletion failed for user ${userId}: ${error.message}`,
+      { stack: error.stack }
+    );
+    if (error instanceof NotFoundError || error instanceof AppError) {
+      next(error);
+    } else {
+      next(
+        new AppError(
+          "Failed to delete account due to a server error. Please try again later.",
+          500,
+          "DELETE_ACCOUNT_FAILED"
         )
       );
     }

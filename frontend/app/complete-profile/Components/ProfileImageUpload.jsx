@@ -1,16 +1,55 @@
 "use client";
 
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import LoaderComponent from "../../../Components/UI/LoaderComponent";
 
 const ProfileImageUpload = forwardRef(
-  ({ profileImagePreview, imageLoading, handleProfileImageChange, disabled }, ref) => {
+  ({ profileImagePreview, imageLoading, handleProfileImageChange, disabled, user }, ref) => {
+    const [imgError, setImgError] = useState(false);
+
     const handleClick = () => {
       if (!disabled && ref.current) {
         ref.current.click();
       }
     };
+
+    // Get the profile image URL with proper fallback logic
+    const getProfileImageUrl = () => {
+      // First priority: preview image (when user is uploading new image)
+      if (profileImagePreview) {
+        return profileImagePreview;
+      }
+
+      // Second priority: existing user profile picture
+      if (user?.profilePicture?.url && !imgError) {
+        return user.profilePicture.url;
+      }
+
+      // Third priority: string profile picture (legacy support)
+      if (typeof user?.profilePicture === 'string' && user.profilePicture && !imgError) {
+        return user.profilePicture;
+      }
+
+      // Fourth priority: Google profile picture (for OAuth users)
+      if (user?.googleProfile?.profilePicture && !imgError) {
+        return user.googleProfile.profilePicture;
+      }
+
+      return null;
+    };
+
+    // Generate initials as fallback
+    const getInitials = () => {
+      if (!user) return 'U';
+      const firstName = user.firstName || '';
+      const lastName = user.lastName || '';
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'U';
+    };
+
+    const profileImageUrl = getProfileImageUrl();
+    const initials = getInitials();
 
     return (
       <motion.div
@@ -26,17 +65,32 @@ const ProfileImageUpload = forwardRef(
               <div className="w-full h-full flex items-center justify-center bg-violet-50">
                 <LoaderComponent size="small" color="violet" text="" />
               </div>
-            ) : profileImagePreview ? (
-              <img
-                src={profileImagePreview}
-                alt="Profile Preview"
-                className="w-full h-full object-cover"
-              />
+            ) : profileImageUrl ? (
+              <div className="relative w-full h-full">
+                <Image
+                  src={profileImageUrl}
+                  alt="Profile Preview"
+                  fill
+                  className="object-cover"
+                  priority
+                  onError={() => setImgError(true)}
+                  unoptimized={profileImageUrl.includes('ui-avatars.com')}
+                />
+              </div>
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-violet-50 text-violet-200">
-                <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-100 to-violet-50">
+                <div className="text-center">
+                  {/* Show initials if user exists, otherwise show default icon */}
+                  {user ? (
+                    <div className="text-2xl font-bold text-violet-600">
+                      {initials}
+                    </div>
+                  ) : (
+                    <svg className="w-16 h-16 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  )}
+                </div>
               </div>
             )}
 
@@ -48,7 +102,7 @@ const ProfileImageUpload = forwardRef(
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span className="text-xs font-medium">{profileImagePreview ? "Change Photo" : "Add Photo"}</span>
+                  <span className="text-xs font-medium">{profileImageUrl ? "Change Photo" : "Add Photo"}</span>
                 </div>
               </div>
             )}
@@ -92,7 +146,7 @@ const ProfileImageUpload = forwardRef(
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
               </svg>
-              <span>{profileImagePreview ? "Change Profile Picture" : "Upload Profile Picture"}</span>
+              <span>{profileImageUrl ? "Change Profile Picture" : "Upload Profile Picture"}</span>
             </>
           )}
         </motion.button>

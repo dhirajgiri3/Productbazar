@@ -45,6 +45,7 @@ export const ProfileBasicsForm = ({
               imageLoading={imageLoading}
               handleProfileImageChange={handleProfileImageChange}
               disabled={false}
+              user={user}
             />
           </div>
 

@@ -29,7 +29,9 @@ const ProfilePicture = ({
 
     const profileUrl =
       user.profilePicture?.url ||
-      (typeof user.profilePicture === 'string' ? user.profilePicture : '');
+      (typeof user.profilePicture === 'string' ? user.profilePicture : '') ||
+      user.googleProfile?.profilePicture || 
+      '';
 
     return profileUrl && profileUrl !== '/Assets/Image/Profile.png' ? profileUrl : null;
   };

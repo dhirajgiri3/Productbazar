@@ -7,6 +7,7 @@ import Agency from "../../models/user/agency.model.js";
 import Freelancer from "../../models/user/freelancer.model.js";
 import Jobseeker from "../../models/user/jobseeker.model.js";
 import Blacklist from "../../models/core/blacklist.model.js";
+import { generateUsername } from "../../utils/auth/username.utils.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -146,29 +147,16 @@ export const register = async (req, res, next) => {
       return next(new ValidationError("Email already registered"));
     }
 
-    // Generate username logic (same as original)
-    const emailUsername = email.toLowerCase().split('@')[0];
-    let baseUsername = emailUsername.replace(/[^a-z0-9._-]/g, '.').replace(/\.+/g, '.');
-    if (baseUsername.length < 3) baseUsername = baseUsername.padEnd(3, '0');
-    if (baseUsername.length > 30) baseUsername = baseUsername.substring(0, 30);
-    let username = baseUsername;
-    let suffix = 0;
-    let isUnique = false;
-    while (!isUnique) {
-      const existingUser = await User.findOne({ username });
-      if (!existingUser) {
-        isUnique = true;
-      } else {
-        suffix++;
-        username = `${baseUsername}${suffix}`;
-        if (username.length > 30) { // Ensure generated username doesn't exceed length
-            username = baseUsername.substring(0, 30 - String(suffix).length) + suffix;
-        }
-      }
-      if (suffix > 1000) {
-        username = `user${Math.floor(Math.random() * 1000000)}`;
-        break;
-      }
+    // Generate username using utility function for consistency
+    let username;
+    try {
+      const emailUsername = email.toLowerCase().split('@')[0];
+      username = await generateUsername(emailUsername);
+      logger.info(`Generated username for email registration: ${username}`);
+    } catch (usernameError) {
+      logger.error(`Failed to generate username for email registration: ${usernameError.message}`);
+      // Fallback to a simple random username
+      username = `user${Date.now().toString().slice(-8)}`;
     }
 
     const user = new User({
