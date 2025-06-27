@@ -25,12 +25,16 @@ export const initiateGoogleAuth = (req, res, next) => {
       req.session.redirectUrl = req.query.redirect;
     }
 
-    // Store auth context (login vs register)
-    if (req.query.context) {
-      req.session.authContext = req.query.context;
+    // Store auth type (login vs register) from query params
+    if (req.query.type) {
+      req.session.authType = req.query.type;
     }
 
-    logger.info('Initiating Google OAuth authentication');
+    logger.info('Initiating Google OAuth authentication', {
+      redirectUrl: req.session.redirectUrl,
+      authType: req.session.authType,
+      sessionId: req.sessionID
+    });
     
     passport.authenticate("google", {
       scope: ["profile", "email"],
@@ -50,14 +54,17 @@ export const initiateGoogleAuth = (req, res, next) => {
 export const handleGoogleCallback = async (req, res, next) => {
   passport.authenticate("google", { session: false }, async (err, user, info) => {
     try {
+      // Get client URL from environment
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      
       if (err) {
         logger.error(`Google OAuth callback error: ${err.message}`);
-        return res.redirect(`${process.env.FRONTEND_URL}/auth/login?error=oauth_error&message=${encodeURIComponent('Authentication failed')}`);
+        return res.redirect(`${clientUrl}/auth/login?error=oauth_error&message=${encodeURIComponent('Authentication failed')}`);
       }
 
       if (!user) {
         logger.warn('Google OAuth callback: No user returned');
-        return res.redirect(`${process.env.FRONTEND_URL}/auth/login?error=oauth_failed&message=${encodeURIComponent('Authentication was cancelled or failed')}`);
+        return res.redirect(`${clientUrl}/auth/login?error=oauth_failed&message=${encodeURIComponent('Authentication was cancelled or failed')}`);
       }
 
       // Generate tokens
@@ -68,16 +75,26 @@ export const handleGoogleCallback = async (req, res, next) => {
       user.lastLoginAt = new Date();
       await user.save();
 
-      // Determine redirect URL
-      const redirectUrl = req.session?.redirectUrl || `${process.env.FRONTEND_URL}/dashboard`;
-      const authContext = req.session?.authContext || 'login';
+      // Get stored session data
+      const redirectUrl = req.session?.redirectUrl;
+      const authType = req.session?.authType || 'login';
+
+      logger.info('Google OAuth callback processing', {
+        userId: user._id,
+        redirectUrl,
+        authType,
+        sessionId: req.sessionID
+      });
 
       // Clear session data
-      delete req.session?.redirectUrl;
-      delete req.session?.authContext;
+      if (req.session) {
+        delete req.session.redirectUrl;
+        delete req.session.authType;
+      }
 
       // Check if user needs to complete profile
       const needsProfileCompletion = !user.firstName || !user.lastName || !user.role || user.role === 'user';
+      const isNewUser = user.registrationMethod === 'google';
 
       // Build redirect URL with tokens and user info
       const redirectParams = new URLSearchParams({
@@ -85,21 +102,32 @@ export const handleGoogleCallback = async (req, res, next) => {
         token: accessToken,
         refresh_token: refreshTokenDoc.token,
         provider: 'google',
-        new_user: user.registrationMethod === 'google' ? 'true' : 'false',
-        needs_completion: needsProfileCompletion ? 'true' : 'false',
-        context: authContext
+        new_user: isNewUser ? 'true' : 'false',
+        type: authType
       });
 
-      const finalRedirectUrl = needsProfileCompletion 
-        ? `${process.env.FRONTEND_URL}/complete-profile?${redirectParams.toString()}`
-        : `${redirectUrl}?${redirectParams.toString()}`;
+      // Determine final redirect URL
+      let finalRedirectUrl;
+      
+      if (needsProfileCompletion) {
+        // User needs to complete profile
+        finalRedirectUrl = `${clientUrl}/complete-profile?${redirectParams.toString()}`;
+      } else if (redirectUrl && redirectUrl.startsWith('/')) {
+        // Use stored redirect URL (make sure it's a relative path)
+        finalRedirectUrl = `${clientUrl}${redirectUrl}?${redirectParams.toString()}`;
+      } else {
+        // Default redirect based on auth type
+        const defaultPath = authType === 'register' ? '/auth/register' : '/auth/login';
+        finalRedirectUrl = `${clientUrl}${defaultPath}?${redirectParams.toString()}`;
+      }
 
       logger.info(`Google OAuth success for user ${user._id}, redirecting to: ${finalRedirectUrl}`);
       
       res.redirect(finalRedirectUrl);
     } catch (error) {
       logger.error(`Google OAuth callback processing error: ${error.message}`);
-      res.redirect(`${process.env.FRONTEND_URL}/auth/login?error=processing_error&message=${encodeURIComponent('Failed to process authentication')}`);
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      res.redirect(`${clientUrl}/auth/login?error=processing_error&message=${encodeURIComponent('Failed to process authentication')}`);
     }
   })(req, res, next);
 };

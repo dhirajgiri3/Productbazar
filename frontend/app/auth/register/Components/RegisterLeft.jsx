@@ -16,8 +16,8 @@ import {
 } from "react-icons/hi";
 import { useAuth } from "@/lib/contexts/auth-context";
 import EmailRegistrationForm from "./EmailRegistrationForm";
-import GoogleAuthButton from 'Components/common/Auth/GoogleAuthButton';
-import SocialDivider from 'Components/common/Auth/SocialDivider';
+import GoogleAuthButton from '@/Components/common/Auth/GoogleAuthButton';
+import SocialDivider from '@/Components/common/Auth/SocialDivider';
 import { debounce } from "lodash";
 
 const RegisterLeft = () => {
