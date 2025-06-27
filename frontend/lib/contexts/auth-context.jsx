@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useRouter } from 'next/navigation';
 import api, { makePriorityRequest } from '../api/api.js';
 import logger from '../utils/logger.js';
+import { oauthHandler } from '../utils/oauth.js';
 
 const AuthContext = createContext({});
 
@@ -427,60 +428,61 @@ export const AuthProvider = ({ children }) => {
   // Create a promise for initialization to prevent multiple parallel initializations
   const initPromiseRef = React.useRef(null  );
 
-  // OAuth callback handler
+  // OAuth callback handler using the new utility
   const handleOAuthCallback = useCallback(async () => {
     if (typeof window === 'undefined') return false;
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const oauthSuccess = urlParams.get('oauth_success');
-    const token = urlParams.get('token');
-    const provider = urlParams.get('provider');
-    const newUser = urlParams.get('new_user');
-
     // Check if this is an OAuth callback
-    if (oauthSuccess === 'true' && token && provider) {
-      logger.info(`Processing ${provider} OAuth callback with token`);
-      
-      try {
-        // Store the access token
-        localStorage.setItem('accessToken', token);
-        setAccessToken(token);
-
-        // Fetch user data with the new token
-        const result = await fetchUserData(token);
-        
-        if (result?.success && result.user) {
-          // Handle successful authentication
-          await handleAuthSuccess(result.user, null, newUser === 'true');
-          
-          // Clean up URL parameters
-          const cleanUrl = window.location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
-          
-          logger.info(`${provider} OAuth login successful for user: ${result.user._id}`);
-          return true;
-        } else {
-          throw new Error('Failed to fetch user data after OAuth');
-        }
-      } catch (error) {
-        logger.error(`Error processing ${provider} OAuth callback:`, error);
-        setError(`${provider} authentication failed. Please try again.`);
-        
-        // Clean up failed authentication
-        localStorage.removeItem('accessToken');
-        setAccessToken('');
-        
-        // Clean up URL parameters
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-        
-        // Redirect to login page with error
-        router.push('/auth/login?error=oauth_failed');
-        return true; // Return true because we handled the callback, even if it failed
-      }
+    if (!oauthHandler.isOAuthCallback()) {
+      return false;
     }
+
+    logger.info('Processing OAuth callback');
     
-    return false; // Not an OAuth callback
+    try {
+      // Process the callback using the OAuth handler
+      const result = oauthHandler.processCallback();
+      
+      if (!result.success) {
+        setError(result.error);
+        router.push('/auth/login?error=oauth_failed');
+        return true;
+      }
+
+      const { token, provider, type } = result;
+      logger.info(`Processing ${provider} OAuth ${type} with token`);
+      
+      // Store the access token
+      localStorage.setItem('accessToken', token);
+      setAccessToken(token);
+
+      // Fetch user data with the new token
+      const userData = await fetchUserData(token);
+      
+      if (userData?.success && userData.user) {
+        // Handle successful authentication
+        const isNewUser = type === 'register';
+        await handleAuthSuccess(userData.user, null, isNewUser);
+        
+        logger.info(`${provider} OAuth ${type} successful for user: ${userData.user._id}`);
+        return true;
+      } else {
+        throw new Error('Failed to fetch user data after OAuth');
+      }
+      
+    } catch (error) {
+      logger.error('Error processing OAuth callback:', error);
+      setError('Authentication failed. Please try again.');
+      
+      // Clean up failed authentication
+      localStorage.removeItem('accessToken');
+      setAccessToken('');
+      oauthHandler.clearOAuthState();
+      
+      // Redirect to login page with error
+      router.push('/auth/login?error=oauth_failed');
+      return true; // Return true because we handled the callback, even if it failed
+    }
   }, [fetchUserData, handleAuthSuccess, router]);
 
   // Initialize auth state

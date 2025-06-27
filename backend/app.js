@@ -2,6 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
+import session from "express-session";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -83,6 +84,18 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Session configuration for OAuth state management
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-session-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 10 * 60 * 1000 // 10 minutes - enough for OAuth flow
+  }
+}));
 
 // Initialize Passport middleware
 app.use(passport.initialize());

@@ -9,6 +9,7 @@ import * as verificationController from "../../../controllers/auth/auth.verifica
 import * as profileController from "../../../controllers/auth/auth.profile.controller.js";
 import * as passwordController from "../../../controllers/auth/auth.password.controller.js";
 import * as accountController from "../../../controllers/auth/auth.account.controller.js";
+import * as googleController from "../../../controllers/auth/auth.google.controller.js";
 
 import * as authValidator from "../../../validators/auth/auth.validators.js";
 import {
@@ -140,6 +141,13 @@ router.post("/logout", baseController.logout);
 
 // Get Current User Profile (Optional Authentication)
 router.get("/me", optionalAuth, profileController.getOptionalProfile);
+
+// --- Google OAuth Routes (Public) ---
+// Initiate Google OAuth authentication
+router.get("/google", googleController.initiateGoogleAuth);
+
+// Google OAuth callback
+router.get("/google/callback", googleController.handleGoogleCallback);
 
 // --- Protected Routes (Require Authentication - `protect`) ---
 router.use(protect);
@@ -305,5 +313,15 @@ router.post(
     accountController.revokeAccess(req, res, next);
   }
 );
+
+// --- Protected Google OAuth Routes ---
+// Link Google account to existing user (Protected)
+router.post("/google/link", googleController.linkGoogleAccount);
+
+// Unlink Google account from user (Protected)
+router.delete("/google/unlink", googleController.unlinkGoogleAccount);
+
+// Get Google OAuth status (Protected)
+router.get("/google/status", googleController.getGoogleAuthStatus);
 
 export default router;

@@ -16,6 +16,8 @@ import {
 } from "react-icons/hi";
 import { useAuth } from "@/lib/contexts/auth-context";
 import EmailRegistrationForm from "./EmailRegistrationForm";
+import GoogleAuthButton from '@/Components/common/Auth/GoogleAuthButton';
+import SocialDivider from '@/Components/common/Auth/SocialDivider';
 import { debounce } from "lodash";
 
 const RegisterLeft = () => {
@@ -359,6 +361,26 @@ const RegisterLeft = () => {
                 <HiOutlinePhone className="text-lg" /> Phone
               </motion.button>
             </div>
+          </motion.div>
+
+          {/* Google OAuth Section */}
+          <motion.div 
+            variants={itemVariants} 
+            className="mb-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <GoogleAuthButton 
+              isLogin={false} 
+              size="default"
+              className="shadow-sm"
+            />
+          </motion.div>
+
+          {/* Divider */}
+          <motion.div variants={itemVariants}>
+            <SocialDivider text="Or continue with" />
           </motion.div>
 
           {/* Form Section */}

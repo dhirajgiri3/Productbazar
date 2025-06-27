@@ -12,6 +12,8 @@ import {
 } from "react-icons/hi";
 import { useAuth } from "@/lib/contexts/auth-context";
 import EmailLoginForm from './EmailLoginForm';
+import GoogleAuthButton from 'Components/common/Auth/GoogleAuthButton';
+import SocialDivider from 'Components/common/Auth/SocialDivider';
 import { debounce } from "lodash"; // For performance optimization
 
 const LoginLeft = () => {
@@ -306,6 +308,26 @@ const LoginLeft = () => {
                 <span>Phone</span>
               </motion.button>
             </div>
+          </motion.div>
+
+          {/* Google OAuth Section */}
+          <motion.div 
+            variants={itemVariants} 
+            className="mb-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <GoogleAuthButton 
+              isLogin={true} 
+              size="default"
+              className="shadow-sm"
+            />
+          </motion.div>
+
+          {/* Divider */}
+          <motion.div variants={itemVariants}>
+            <SocialDivider text="Or continue with" />
           </motion.div>
 
           {/* Form section with enhanced transitions and optimized height */}

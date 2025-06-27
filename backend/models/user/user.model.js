@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema(
     },
     registrationMethod: {
       type: String,
-      enum: ["email", "phone"],
+      enum: ["email", "phone", "google"],
       default: "email",
     },
     isEmailVerified: {
@@ -71,6 +71,22 @@ const userSchema = new mongoose.Schema(
     isPhoneVerified: {
       type: Boolean,
       default: false,
+    },
+    // Google OAuth fields
+    googleId: {
+      type: String,
+      sparse: true, // Allows multiple null values
+      index: true,
+    },
+    isGoogleLinked: {
+      type: Boolean,
+      default: false,
+    },
+    googleProfile: {
+      displayName: String,
+      email: String,
+      profilePicture: String,
+      emailVerified: Boolean,
     },
     role: {
       type: String,
