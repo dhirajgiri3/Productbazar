@@ -714,6 +714,28 @@ export default function ProjectDetailPage() {
                         <span className="relative z-10">Share</span>
                       </motion.button>
 
+                      {/* Board Access Button - Available to all authenticated users with access */}
+                      {isAuthenticated && currentProject && (
+                        <motion.a
+                          href={`/projects/${slug}/board`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="px-4 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 transition-all duration-300 border border-violet-600 flex items-center gap-2 text-sm font-medium relative overflow-hidden group"
+                        >
+                          <motion.div
+                            className="relative z-10 text-white"
+                            whileHover={{ rotate: [0, 10, 0] }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                          >
+                            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M3 3h18v18H3V3zm16 16V5H5v14h14z" fill="currentColor"/>
+                              <path d="M7 7h4v4H7V7zm6 0h4v4h-4V7zm-6 6h4v4H7v-4zm6 0h4v4h-4v-4z" fill="currentColor"/>
+                            </svg>
+                          </motion.div>
+                          <span className="relative z-10">Open Board</span>
+                        </motion.a>
+                      )}
+
                       {/* Project Management Buttons - Only visible to project owner or users with permission */}
                       {isAuthenticated && currentProject && (
                         <>
